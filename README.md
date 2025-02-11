@@ -7,6 +7,8 @@ post transactions, create trail balance, create income statement, balance sheet 
 
 -[Team Members](#team-members)<br>
 
+-[Setting Up Your Machine](#setting-up-your-machine)<br>
+
 -[Architecture](#architecture)<br>
 
 -[Environment](#environment)<br>
@@ -23,6 +25,8 @@ Huy Nguyen <br>
 Rafay Hassan <br>
 
 Merjan Bahru <br>
+
+## Setting Up Your Machine
 
 ## Architecture
 
