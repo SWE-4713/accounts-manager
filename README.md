@@ -42,4 +42,4 @@ Merjan Bahru <br>
 
 
 ## Set Up  
-[Dev Setup Guide](https://github.com/Team-04-2/DataMaskingTool-api/blob/dev/devsetup.md)
+[Dev Setup Guide](https://github.com/SWE-4713/accounts-manager/blob/main/devsetup.md)
