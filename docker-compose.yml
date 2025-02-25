@@ -12,6 +12,7 @@ services:
       - "3310:3306"  # Expose MariaDB on default MySQL port
     volumes:
       - mariadb_data:/var/lib/mysql
+      - ./schemas:/docker-entrypoint-initdb.d 
 
 volumes:
   mariadb_data:
