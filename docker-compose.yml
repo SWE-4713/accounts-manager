@@ -1,0 +1,19 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: ${DB_HOST}
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_DATABASE: financeproject 
+      MARIADB_USER: dev
+      MARIADB_PASSWORD: tmpPassword
+    ports:
+      - "3310:3306"  # Expose MariaDB on default MySQL port
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+volumes:
+  mariadb_data:
+    driver: local
+

@@ -40,3 +40,6 @@ Merjan Bahru <br>
 ## Final Video Presentation
 
 
+
+## Set Up  
+[Dev Setup Guide](https://github.com/Team-04-2/DataMaskingTool-api/blob/dev/devsetup.md)
