@@ -1,19 +1,19 @@
 services:
-
   mariadb:
     image: mariadb:10.11
     container_name: ${DB_HOST}
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME} 
+      MARIADB_USER: dev
+      MARIADB_PASSWORD: tmpPassword
+    ports:
+      - "3310:3306"  # Expose MariaDB on default MySQL port
     volumes:
       - mariadb_data:/var/lib/mysql
-    ports:
-      - "3310:3309"
-    restart: always
 
 volumes:
   mariadb_data:
     driver: local
-  mysql_data:
-    driver: local
+
