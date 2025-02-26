@@ -15,7 +15,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public void registerUser(String username, String password, String role) {
+    public void registerUser(String username, String password, String role, String firstName, String lastName, String address, String dob, String email) {
         // Check if the user already exists
         if (userRepo.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
@@ -29,6 +29,11 @@ public class UserService {
         user.setUsername(username);
         user.setPassword(hashedPassword);
         user.setRole(role);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setAddress(address);
+        user.setDob(dob);
+        user.setEmail(email);
 
         // Save the user in the database
         userRepo.save(user);
