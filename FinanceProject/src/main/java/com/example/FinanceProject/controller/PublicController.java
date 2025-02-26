@@ -11,5 +11,10 @@ public class PublicController {
     public String publicPage() {
         return "user-page";  // Return the name of the HTML page (Thymeleaf template)
     }
+
+    @GetMapping("/auth/registration")
+    public String registrationPage() {
+        return "registration";  // Return the name of the HTML page (Thymeleaf template)
+    }
 }
 
