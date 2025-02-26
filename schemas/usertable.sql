@@ -37,6 +37,21 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 ); 
 
+CREATE TABLE pending_users (
+  id int NOT NULL AUTO_INCREMENT,
+  /* firstname initial and full last name with 4 digits, 2 digits being month and 2 being the year of account creation */
+  username VARCHAR(255) NOT NULL UNIQUE,
+  role VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  first_name varchar(100) NOT NULL,
+  last_name varchar(100) NOT NULL,
+  address varchar(100) NOT NULL,
+  dob varchar(100) NOT NULL,
+  email varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+); 
+
 /*the hashed password is "password"*/
 INSERT INTO users (username, password, role, first_name, last_name, address, dob, email) 
 VALUES ('tmpadmin', '$2a$10$rvsQslR1DIGTZ6kRt6VWI.wB9cgp4NxwSJnO8t0uCkuOd6XZ2PrZ2', 'ROLE_ADMIN', 'Temp', 'Admin', '123 Admin St, City, Country', '1980-01-01', 'admin@example.com');
