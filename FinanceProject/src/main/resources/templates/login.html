@@ -1,22 +1,128 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Login</title>
+  <title>Login</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #eee;
+      display: flex;
+      flex-direction: column;
+      font-family: sans-serif;
+      justify-content: center;
+      align-items: center;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      color: Black;
+      text-align: center;
+      padding: 150px 0;
+      font-size: 70px;
+      font-weight: bold;
+    }
+
+    .main {
+      margin-top: 80px;
+      width: 400px;
+      background: white;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 8px 16px rgba(0,0,0,.3);
+    }
+
+    .main form h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #222;
+      font-size: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 50px;
+      border-radius: 6px;
+      border: 1px solid silver;
+      padding: 0 15px;
+      font-size: 18px;
+    }
+
+    button {
+      width: 100%;
+      height: 50px;
+      background: #007bff;
+      border: none;
+      color: white;
+      font-size: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .register-container {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .register-container a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .register-container a:hover {
+      text-decoration: underline;
+    }
+
+  </style>
 </head>
 <body>
-<h2>Login</h2>
-<form th:action="@{/login}" method="post">
-    <div>
-        <label>Username:</label>
-        <input type="text" name="username"/>
+
+<header>Atlas Finance</header>
+
+<div class="main">
+  <form th:action="@{/login}" method="post">
+    <h2>Login</h2>
+    <div class="form-group">
+      <label>Username:</label>
+      <input type="text" class="form-control" name="username"/>
     </div>
-    <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
+    <div class="form-group">
+      <label>Password:</label>
+      <input type="password" class="form-control" name="password"/>
     </div>
-    <div>
-        <button type="submit">Login</button>
+    <button type="submit">Login</button>
+    <div class="register-container">
+      Need an account? <a href="registration.html" title="Register Here">Register Here</a>
     </div>
-</form>
+  </form>
+</div>
+
 </body>
 </html>
