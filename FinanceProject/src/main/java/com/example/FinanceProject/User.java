@@ -22,4 +22,14 @@ public class User {
     private String password;
 
     private String role; // e.g., ROLE_USER, ROLE_ADMIN
+
+    private String firstName; // e.g., ROLE_USER, ROLE_ADMIN
+
+    private String lastName; // e.g., ROLE_USER, ROLE_ADMIN
+
+    private String address; // e.g., ROLE_USER, ROLE_ADMIN
+
+    private String dob; // e.g., ROLE_USER, ROLE_ADMIN
+
+    private String email; // e.g., ROLE_USER, ROLE_ADMIN
 }

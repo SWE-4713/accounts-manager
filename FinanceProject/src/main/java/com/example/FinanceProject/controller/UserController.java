@@ -15,9 +15,14 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestParam String username,
                                                @RequestParam String password,
-                                               @RequestParam String role) {
+                                               @RequestParam String role,
+                                               @RequestParam String firstName,
+                                               @RequestParam String lastName,
+                                               @RequestParam String address,
+                                               @RequestParam String dob,
+                                               @RequestParam String email) {
         try {
-            userService.registerUser(username, password, role);
+            userService.registerUser(username, password, role, firstName, lastName, address, dob, email);
             return ResponseEntity.ok("User registered successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error registering user: " + e.getMessage());

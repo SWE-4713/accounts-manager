@@ -29,12 +29,12 @@ CREATE TABLE users (
   role VARCHAR(50) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  firstName varchar(100) NOT NULL,
-  lastName varchar(100) NOT NULL,
+  first_name varchar(100) NOT NULL,
+  last_name varchar(100) NOT NULL,
   address varchar(100) NOT NULL,
-  DOB varchar(100) NOT NULL,
+  dob varchar(100) NOT NULL,
   email varchar(100) NOT NULL,
-  PRIMARY KEY (idUsers)
+  PRIMARY KEY (id)
 ); 
 /*!40101 SET character_set_client = @saved_cs_client */;
 

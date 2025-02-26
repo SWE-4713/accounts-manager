@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF (enable in production)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public/**", "/auth/registration").permitAll() // Allow public access
+                        .requestMatchers("/public/**", "/auth/register").permitAll() // Allow public access
                         .requestMatchers("/admin/**").hasRole("ADMIN") // Restrict admin routes
                         .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN") // Restrict user routes
                         .anyRequest().authenticated()
