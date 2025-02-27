@@ -5,6 +5,7 @@ import com.example.FinanceProject.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -45,5 +46,37 @@ public class UserService {
 
     public void deleteUser(Long id) {
         userRepo.deleteById(id);
+    }
+
+    public User getUserById(Long id) {
+        Optional<User> userOptional = userRepo.findById(id);
+        if (!userOptional.isPresent()) {
+            throw new IllegalArgumentException("User not found with ID: " + id);
+        }
+        return userOptional.get();
+    }
+
+    public void updateUser(Long id, String username, String role, String firstName, 
+                          String lastName, String address, String dob, String email) {
+        // Get the existing user
+        User existingUser = getUserById(id);
+        
+        // Check if username is being changed and if the new username already exists
+        if (!existingUser.getUsername().equals(username) && 
+            userRepo.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        
+        // Update user fields
+        existingUser.setUsername(username);
+        existingUser.setRole(role);
+        existingUser.setFirstName(firstName);
+        existingUser.setLastName(lastName);
+        existingUser.setAddress(address);
+        existingUser.setDob(dob);
+        existingUser.setEmail(email);
+        
+        // Save the updated user
+        userRepo.save(existingUser);
     }
 }
