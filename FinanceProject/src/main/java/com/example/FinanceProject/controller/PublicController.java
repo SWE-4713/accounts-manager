@@ -6,15 +6,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PublicController {
 
-    // This will serve the public page
+    // Existing mapping for public page
     @GetMapping("/public")
     public String publicPage() {
-        return "user-page";  // Return the name of the HTML page (Thymeleaf template)
+        return "user-page";  // Returns the user-page view
     }
 
+    // New mapping for user dashboard (for non-admins)
+    @GetMapping("/user")
+    public String userDashboard() {
+        return "user-page";  // Returns the user-page view
+    }
+
+    // Registration mapping remains unchanged
     @GetMapping("/auth/registration")
     public String registrationPage() {
-        return "registration";  // Return the name of the HTML page (Thymeleaf template)
+        return "registration";
     }
 }
 

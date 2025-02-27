@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3310,
+            "driver": "MySQL",
+            "name": "127.0.0.1",
+            "database": "financeproject",
+            "username": "root",
+            "password": "devPassword"
+        }
+    ],
+    "java.compile.nullAnalysis.mode": "automatic"
+}

@@ -38,4 +38,12 @@ public class UserService {
         // Save the user in the database
         userRepo.save(user);
     }
+
+    public Iterable<User> getAllUsers() {
+        return userRepo.findAll();
+    }
+
+    public void deleteUser(Long id) {
+        userRepo.deleteById(id);
+    }
 }

@@ -8,6 +8,50 @@
     <h1>Welcome, Admin!</h1>
     <p>This page is only viewable by admins.</p>
 
-    <p><a href="/logout">Logout</a></p> <!-- Provide a logout link -->
+    <!-- Display any feedback messages -->
+    <div th:if="${message}" style="color: green;" th:text="${message}"></div>
+    <div th:if="${error}" style="color: red;" th:text="${error}"></div>
+
+    <!-- Form to create a new user -->
+    <h2>Create New User</h2>
+    <form th:action="@{/admin/users/create}" method="post">
+        <label>Username: <input type="text" name="username" required/></label><br/>
+        <label>Password: <input type="password" name="password" required/></label><br/>
+        <label>Role: <input type="text" name="role" required/></label><br/>
+        <label>First Name: <input type="text" name="firstName" required/></label><br/>
+        <label>Last Name: <input type="text" name="lastName" required/></label><br/>
+        <label>Address: <input type="text" name="address" required/></label><br/>
+        <label>Date of Birth: <input type="text" name="dob" required/></label><br/>
+        <label>Email: <input type="email" name="email" required/></label><br/>
+        <button type="submit">Create User</button>
+    </form>
+
+    <!-- Table displaying the list of existing users with delete option -->
+    <h2>Existing Users</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.role}"></td>
+                <td>
+                    <form th:action="@{/admin/users/delete}" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${user.id}" />
+                        <button type="submit" onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><a href="/logout">Logout</a></p>
 </body>
 </html>
