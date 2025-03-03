@@ -15,14 +15,15 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
-    // Serve the admin landing page with a list of existing users
+    // Serve the admin landing page with both active and pending users
     @GetMapping
     public String adminLandingPage(Model model) {
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
-
-    // Handle the form submission to create a new user
+    
+    // Handle the creation of a new user via admin form
     @PostMapping("/users/create")
     public String createUser(@RequestParam String username,
                              @RequestParam String password,
@@ -39,22 +40,49 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", "Error creating user: " + e.getMessage());
         }
-        // Refresh the list of users after creation
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
 
-    // Handle deletion of a user based on the user's id
-    @PostMapping("/users/delete")
-    public String deleteUser(@RequestParam Long id, Model model) {
+    // Accept a pending registration
+    @PostMapping("/pending/accept")
+    public String acceptPending(@RequestParam Long id, Model model) {
         try {
-            userService.deleteUser(id);
-            model.addAttribute("message", "User deleted successfully.");
+            userService.acceptPendingUser(id);
+            model.addAttribute("message", "User accepted successfully.");
         } catch (Exception e) {
-            model.addAttribute("error", "Error deleting user: " + e.getMessage());
+            model.addAttribute("error", "Error accepting user: " + e.getMessage());
         }
-        // Refresh the list of users after deletion
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
+        return "admin-landing";
+    }
+
+    // Deny a pending registration
+    @PostMapping("/pending/deny")
+    public String denyPending(@RequestParam Long id, Model model) {
+        try {
+            userService.denyPendingUser(id);
+            model.addAttribute("message", "User denied successfully.");
+        } catch (Exception e) {
+            model.addAttribute("error", "Error denying user: " + e.getMessage());
+        }
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
+        return "admin-landing";
+    }
+    
+    @PostMapping("/users/suspend")
+    public String suspendUser(@RequestParam Long id, Model model) {
+        try {
+            userService.suspendUser(id);
+            model.addAttribute("message", "User suspended successfully.");
+        } catch (Exception e) {
+            model.addAttribute("error", "Error suspending user: " + e.getMessage());
+        }
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
 }

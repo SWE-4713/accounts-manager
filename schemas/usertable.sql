@@ -36,6 +36,8 @@ CREATE TABLE users (
   email varchar(100) NOT NULL,
   PRIMARY KEY (id)
 ); 
+
+DELETE FROM users WHERE username IN ('admin1', 'admin2', 'admin3');
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

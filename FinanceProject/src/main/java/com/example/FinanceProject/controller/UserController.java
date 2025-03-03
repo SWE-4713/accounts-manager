@@ -13,7 +13,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // This method processes the registration form submission
+    // This method processes self-registration
     @PostMapping("/register")
     public String registerUser(@RequestParam String username,
                                @RequestParam String password,
@@ -25,12 +25,11 @@ public class UserController {
                                @RequestParam String email,
                                Model model) {
         try {
-            // Create and save the new user
-            userService.registerUser(username, password, role, firstName, lastName, address, dob, email);
-            // Redirect to a confirmation page after successful registration
+            // Instead of immediately adding to live users,
+            // add to pending users.
+            userService.registerPendingUser(username, password, role, firstName, lastName, address, dob, email);
             return "registrationConfirmation";
         } catch (Exception e) {
-            // If an error occurs (e.g., duplicate username), send the error back to the registration page.
             model.addAttribute("error", "Error registering user: " + e.getMessage());
             return "registration";
         }

@@ -22,10 +22,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
+        // Only allow login if the user's status is ACCEPTED.
+        if (!"ACCEPTED".equals(user.getStatus())) {
+            throw new UsernameNotFoundException("User not accepted");
+        }
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
-                user.getPassword(), // Spring Security will automatically compare passwords
+                user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
         );
     }

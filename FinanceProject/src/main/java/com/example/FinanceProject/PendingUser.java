@@ -3,13 +3,13 @@ package com.example.FinanceProject;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
+@Table(name = "pending_users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "users")
-public class User {
+public class PendingUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,14 +21,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String role; // e.g., ROLE_USER, ROLE_ADMIN
-
+    private String role;
     private String firstName;
     private String lastName;
     private String address;
     private String dob;
     private String email;
-    
-    // New field to store acceptance status ("ACCEPTED", "PENDING", etc.)
+
+    // Optional status field – here always "PENDING"
     private String status;
 }
