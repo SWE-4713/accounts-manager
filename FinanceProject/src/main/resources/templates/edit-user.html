@@ -1,27 +1,214 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Edit User</title>
-</head>
-<body>
-    <h1>Edit User</h1>
-    
-    <form th:action="@{/admin/users/update}" method="post">
-        <input type="hidden" name="id" th:value="${user.id}" />
-        
-        <label>Username: <input type="text" name="username" th:value="${user.username}" required/></label><br/>
-        <label>Role: <input type="text" name="role" th:value="${user.role}" required/></label><br/>
-        <label>First Name: <input type="text" name="firstName" th:value="${user.firstName}" required/></label><br/>
-        <label>Last Name: <input type="text" name="lastName" th:value="${user.lastName}" required/></label><br/>
-        <label>Address: <input type="text" name="address" th:value="${user.address}" required/></label><br/>
-        <label>Date of Birth: <input type="text" name="dob" th:value="${user.dob}" required/></label><br/>
-        <label>Email: <input type="email" name="email" th:value="${user.email}" required/></label><br/>
-        
-        <button type="submit">Update User</button>
-        <a th:href="@{/admin}"><button type="button">Cancel</button></a>
-    </form>
-    
-</body>
-</html>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background-color: #0069d9;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+        }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
+        .button-group {
+            margin-top: 20px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 5px;
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <img src="https://i.imgur.com/aBKRRy2.png" width="40px"> Edit User
+            </div>
+            <a href="/logout" class="logout-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </header>
+    <div class="container">
+        <h1>Edit User</h1>
+
+        <form th:action="@{/admin/users/update}" method="post" th:object="${user}">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" th:field="*{username}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" th:field="*{firstName}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" th:field="*{lastName}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address Name</label>
+                <input type="text" id="address" th:field="*{address}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" th:field="*{dob}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('dob')}" th:errors="*{dob}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" th:field="*{email}" required />
+                <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" th:field="*{role}" required>
+                    <option value="ROLE_ADMIN">Admin</option>
+                    <option value="ROLE_MANAGER">Manager</option>
+                    <option value="ROLE_USER">User</option>
+                </select>
+                <div class="error-message" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn">Save Changes</button>
+                <a th:href="@{/admin}" class="btn btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
