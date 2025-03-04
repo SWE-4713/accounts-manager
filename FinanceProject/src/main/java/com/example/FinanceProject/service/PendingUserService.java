@@ -1,4 +1,4 @@
-package com.example.FinanceProject;
+package com.example.FinanceProject.service;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,27 +8,26 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "pending_users")
+public class PendingUserService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
-    private String role; // e.g., ROLE_USER, ROLE_ADMIN
-
+    private String role; 
     private String firstName;
     private String lastName;
     private String address;
     private String dob;
     private String email;
-    
-    // New field to store acceptance status ("ACCEPTED", "PENDING", etc.)
+
+    // Status will be "PENDING", "ACCEPTED", or "DENIED"
     private String status;
 }

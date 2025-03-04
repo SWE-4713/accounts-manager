@@ -1,6 +1,8 @@
 package com.example.FinanceProject.service;
 
+import com.example.FinanceProject.PendingUser;
 import com.example.FinanceProject.User;
+import com.example.FinanceProject.repository.PendingUserRepo;
 import com.example.FinanceProject.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,18 +16,16 @@ public class UserService {
     private UserRepo userRepo;
 
     @Autowired
+    private PendingUserRepo pendingUserRepo;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public void registerUser(String username, String password, String role, String firstName, String lastName, String address, String dob, String email) {
-        // Check if the user already exists
         if (userRepo.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
-
-        // Hash the password
         String hashedPassword = passwordEncoder.encode(password);
-
-        // Create a new user entity
         User user = new User();
         user.setUsername(username);
         user.setPassword(hashedPassword);
@@ -35,17 +35,69 @@ public class UserService {
         user.setAddress(address);
         user.setDob(dob);
         user.setEmail(email);
-
-        // Save the user in the database
+        // Set status to "ACCEPTED" so the user can log in
+        user.setStatus("ACCEPTED");
         userRepo.save(user);
     }
 
+    public void registerPendingUser(String username, String password, String role, String firstName, String lastName, String address, String dob, String email) {
+        String hashedPassword = passwordEncoder.encode(password);
+        PendingUser pendingUser = new PendingUser();
+        pendingUser.setUsername(username);
+        pendingUser.setPassword(hashedPassword);
+        pendingUser.setRole(role);
+        pendingUser.setFirstName(firstName);
+        pendingUser.setLastName(lastName);
+        pendingUser.setAddress(address);
+        pendingUser.setDob(dob);
+        pendingUser.setEmail(email);
+        pendingUser.setStatus("PENDING");
+        pendingUserRepo.save(pendingUser);
+    }
+
+    // Retrieve all pending registrations
+    public Iterable<PendingUser> getAllPendingUsers() {
+        return pendingUserRepo.findAll();
+    }
+
+    public void acceptPendingUser(Long pendingUserId) {
+        PendingUser pendingUser = pendingUserRepo.findById(pendingUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Pending user not found"));
+    
+        // Create a new active user without rehashing the already hashed password.
+        User user = new User();
+        user.setUsername(pendingUser.getUsername());
+        user.setPassword(pendingUser.getPassword());  // Use the hash as-is.
+        user.setRole(pendingUser.getRole());
+        user.setFirstName(pendingUser.getFirstName());
+        user.setLastName(pendingUser.getLastName());
+        user.setAddress(pendingUser.getAddress());
+        user.setDob(pendingUser.getDob());
+        user.setEmail(pendingUser.getEmail());
+        user.setStatus("ACCEPTED");  // Explicitly set the status.
+        
+        userRepo.save(user);
+        pendingUserRepo.deleteById(pendingUserId);
+    }
+    
+    
+
+    // Deny a pending user: simply remove the pending record
+    public void denyPendingUser(Long pendingUserId) {
+        pendingUserRepo.deleteById(pendingUserId);
+    }
+
+    // Existing method to get all active users (for admin view)
     public Iterable<User> getAllUsers() {
         return userRepo.findAll();
     }
 
-    public void deleteUser(Long id) {
-        userRepo.deleteById(id);
+    // Suspend the user
+    public void suspendUser(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setStatus("SUSPENDED");
+        userRepo.save(user);
     }
 
     public User getUserById(Long id) {

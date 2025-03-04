@@ -37,10 +37,7 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 ); 
 
-/*the hashed password is "password"*/
-INSERT INTO users (username, password, role, first_name, last_name, address, dob, email) 
-VALUES ('tmpadmin', '$2a$10$rvsQslR1DIGTZ6kRt6VWI.wB9cgp4NxwSJnO8t0uCkuOd6XZ2PrZ2', 'ROLE_ADMIN', 'Temp', 'Admin', '123 Admin St, City, Country', '1980-01-01', 'admin@example.com');
-
+DELETE FROM users WHERE username IN ('admin1', 'admin2', 'admin3');
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
