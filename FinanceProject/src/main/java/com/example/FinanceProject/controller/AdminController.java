@@ -87,6 +87,19 @@ public class AdminController {
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
+    
+    @PostMapping("/users/unsuspend")
+    public String unsuspendUser(@RequestParam Long id, Model model) {
+        try {
+            userService.unsuspendUser(id);
+            model.addAttribute("message", "User unsuspended successfully.");
+        } catch (Exception e) {
+            model.addAttribute("error", "Error unsuspending user: " + e.getMessage());
+        }
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
+        return "admin-landing";
+    }
 
     @GetMapping("/users/edit")
     public String showEditUserForm(@RequestParam("id") Long id, Model model) {

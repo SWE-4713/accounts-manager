@@ -278,6 +278,15 @@
             gap: 8px;
             align-items: center;
         }
+
+        .btn-unsuspend {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-unsuspend:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 
@@ -353,6 +362,7 @@
         </div>
 
         <!-- Section for active users -->
+        <!-- Section for active users -->
         <div class="section">
             <h2><i class="fas fa-users"></i> Active Users</h2>
             <table>
@@ -361,6 +371,7 @@
                         <th>#</th>
                         <th>Username</th>
                         <th>Role</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -369,22 +380,31 @@
                         <td th:text="${iterStat.index + 1}"></td>
                         <td th:text="${user.username}"></td>
                         <td th:text="${user.role}"></td>
+                        <td th:text="${user.status}"></td>
                         <td class="action-buttons">
                             <a th:href="@{/admin/users/edit(id=${user.id})}" class="btn btn-edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <form th:action="@{/admin/users/suspend}" method="post" class="action-form">
+                            <!-- Change the form action URL based on user status -->
+                            <form
+                                th:action="${user.status == 'SUSPENDED'} ? @{/admin/users/unsuspend} : @{/admin/users/suspend}"
+                                method="post" class="action-form">
                                 <input type="hidden" name="id" th:value="${user.id}" />
-                                <button type="submit" class="btn btn-suspend"
-                                    onclick="return confirm('Are you sure you want to suspend this user?');">
-                                    <i class="fas fa-user-slash"></i> Suspend
+                                <button type="submit"
+                                    th:class="${user.status == 'SUSPENDED'} ? 'btn btn-unsuspend' : 'btn btn-suspend'"
+                                    th:onclick="return confirm([[${user.status == 'SUSPENDED'} ? 'Are you sure you want to unsuspend this user?' : 'Are you sure you want to suspend this user?']]);">
+                                    <i
+                                        th:class="${user.status == 'SUSPENDED'} ? 'fas fa-user-check' : 'fas fa-user-slash'"></i>
+                                    <span th:text="${user.status == 'SUSPENDED'} ? 'Unsuspend' : 'Suspend'"></span>
                                 </button>
+
                             </form>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
 
         <!-- Section for pending registrations -->
         <div class="section">

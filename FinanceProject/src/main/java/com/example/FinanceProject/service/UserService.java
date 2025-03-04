@@ -100,6 +100,14 @@ public class UserService {
         userRepo.save(user);
     }
 
+    // Unsuspend the user
+    public void unsuspendUser(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setStatus("ACCEPTED");
+        userRepo.save(user);
+    }
+
     public User getUserById(Long id) {
         Optional<User> userOptional = userRepo.findById(id);
         if (!userOptional.isPresent()) {
