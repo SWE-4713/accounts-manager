@@ -1,109 +1,450 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        table { border-collapse: collapse; width: 90%; margin-bottom: 20px; }
-        table, th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        .section { margin-bottom: 40px; }
-        .message { color: green; }
-        .error { color: red; }
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        h1,
+        h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            position: relative;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .message,
+        .error {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Form Styles */
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .action-form {
+            display: inline;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (max-width: 768px) {
+            form:not(.action-form) {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+
+        .submit-btn {
+            grid-column: span 2;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .submit-btn {
+                grid-column: span 1;
+            }
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button[type="submit"]:not(.btn) {
+            background-color: var(--primary);
+            padding: 10px 20px;
+        }
+
+        button[type="submit"]:not(.btn):hover {
+            background-color: #3a5a8a;
+        }
+
+        /* Table Styles */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px var(--border);
+        }
+
+        thead {
+            background-color: #f1f4f9;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            min-width: 90px;
+            height: 36px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 8px;
+            border: none;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+        .btn-accept {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background-color: #218838;
+        }
+
+        .btn-deny,
+        .btn-suspend {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-deny:hover,
+        .btn-suspend:hover {
+            background-color: #c82333;
+        }
+
+        .btn-edit {
+            background-color: var(--info);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #138496;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-unsuspend {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-unsuspend:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
+
 <body>
-    <h1>Welcome, Admin!</h1>
-    <p>This page is only viewable by admins.</p>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i> Admin Dashboard
+            </div>
+            <a href="/logout" class="logout-link">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </header>
 
-    <!-- Feedback messages -->
-    <div th:if="${message}" class="message" th:text="${message}"></div>
-    <div th:if="${error}" class="error" th:text="${error}"></div>
+    <div class="container">
+        <!-- Feedback messages -->
+        <div th:if="${message}" class="message" th:text="${message}"></div>
+        <div th:if="${error}" class="error" th:text="${error}"></div>
 
-    <!-- Section for creating a new active user -->
-    <div class="section">
-        <h2>Create New User</h2>
-        <form th:action="@{/admin/users/create}" method="post">
-            <label>Username: <input type="text" name="username" required/></label><br/>
-            <label>Password: <input type="password" name="password" required/></label><br/>
-            <label>Role:
-                <select name="role" required>
-                    <option value="ROLE_ADMIN">Admin</option>
-                    <option value="ROLE_MANAGER">Manager</option>
-                    <option value="ROLE_USER">User</option>
-                </select>
-            </label><br/>
-            <label>First Name: <input type="text" name="firstName" required/></label><br/>
-            <label>Last Name: <input type="text" name="lastName" required/></label><br/>
-            <label>Address: <input type="text" name="address" required/></label><br/>
-            <label>Date of Birth: <input type="date" name="dob" required/></label><br/>
-            <label>Email: <input type="email" name="email" required/></label><br/>
-            <button type="submit">Create User</button>
-        </form>
+        <!-- Section for creating a new active user -->
+        <div class="section">
+            <h2><i class="fas fa-user-plus"></i> Create New User</h2>
+            <form th:action="@{/admin/users/create}" method="post">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="ROLE_ADMIN">Admin</option>
+                        <option value="ROLE_MANAGER">Manager</option>
+                        <option value="ROLE_USER">User</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required />
+                </div>
+
+                <div class="submit-btn">
+                    <button type="submit"><i class="fas fa-plus-circle"></i> Create User</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section for active users -->
+        <!-- Section for active users -->
+        <div class="section">
+            <h2><i class="fas fa-users"></i> Active Users</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user, iterStat : ${users}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${user.role}"></td>
+                        <td th:text="${user.status}"></td>
+                        <td class="action-buttons">
+                            <a th:href="@{/admin/users/edit(id=${user.id})}" class="btn btn-edit">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <!-- Change the form action URL based on user status -->
+                            <form
+                                th:action="${user.status == 'SUSPENDED'} ? @{/admin/users/unsuspend} : @{/admin/users/suspend}"
+                                method="post" class="action-form">
+                                <input type="hidden" name="id" th:value="${user.id}" />
+                                <button type="submit"
+                                    th:class="${user.status == 'SUSPENDED'} ? 'btn btn-unsuspend' : 'btn btn-suspend'"
+                                    th:onclick="return confirm([[${user.status == 'SUSPENDED'} ? 'Are you sure you want to unsuspend this user?' : 'Are you sure you want to suspend this user?']]);">
+                                    <i
+                                        th:class="${user.status == 'SUSPENDED'} ? 'fas fa-user-check' : 'fas fa-user-slash'"></i>
+                                    <span th:text="${user.status == 'SUSPENDED'} ? 'Unsuspend' : 'Suspend'"></span>
+                                </button>
+
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- Section for pending registrations -->
+        <div class="section">
+            <h2><i class="fas fa-user-clock"></i> Pending Registrations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pending : ${pendingUsers}">
+                        <td th:text="${pending.id}"></td>
+                        <td th:text="${pending.username}"></td>
+                        <td th:text="${pending.email}"></td>
+                        <td th:text="${pending.status}"></td>
+                        <td class="action-buttons">
+                            <form th:action="@{/admin/pending/accept}" method="post" class="action-form">
+                                <input type="hidden" name="id" th:value="${pending.id}" />
+                                <button type="submit" class="btn btn-accept">
+                                    <i class="fas fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/pending/deny}" method="post" class="action-form">
+                                <input type="hidden" name="id" th:value="${pending.id}" />
+                                <button type="submit" class="btn btn-deny"
+                                    onclick="return confirm('Are you sure you want to deny this registration?');">
+                                    <i class="fas fa-times"></i> Deny
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <!-- Section for active users -->
-    <div class="section">
-        <h2>Active Users</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="user, iterStat : ${users}">
-                    <!-- Display a sequential number starting from 1 -->
-                    <td th:text="${iterStat.index + 1}"></td>
-                    <td th:text="${user.username}"></td>
-                    <td th:text="${user.role}"></td>
-                    <td>
-                        <form th:action="@{/admin/users/suspend}" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${user.id}" />
-                            <button type="submit" onclick="return confirm('Are you sure you want to suspend this user?');">Suspend</button>
-                        </form>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Section for pending registrations -->
-    <div class="section">
-        <h2>Pending Registrations</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="pending : ${pendingUsers}">
-                    <td th:text="${pending.id}"></td>
-                    <td th:text="${pending.username}"></td>
-                    <td th:text="${pending.email}"></td>
-                    <td th:text="${pending.status}"></td>
-                    <td>
-                        <form th:action="@{/admin/pending/accept}" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${pending.id}" />
-                            <button type="submit">Accept</button>
-                        </form>
-                        <form th:action="@{/admin/pending/deny}" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${pending.id}" />
-                            <button type="submit" onclick="return confirm('Are you sure you want to deny this registration?');">Deny</button>
-                        </form>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <p><a href="/logout">Logout</a></p>
 </body>
+
 </html>
