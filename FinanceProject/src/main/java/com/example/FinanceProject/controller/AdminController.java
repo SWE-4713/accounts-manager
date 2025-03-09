@@ -2,12 +2,14 @@ package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.User;
 import com.example.FinanceProject.service.UserService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
 
 @Controller
 @Secured("ROLE_ADMIN")
@@ -20,7 +22,9 @@ public class AdminController {
     // Serve the admin landing page with both active and pending users
     @GetMapping
     public String adminLandingPage(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
@@ -104,6 +108,8 @@ public class AdminController {
     @GetMapping("/users/edit")
     public String showEditUserForm(@RequestParam("id") Long id, Model model) {
         User user = userService.getUserById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("username", authentication.getName());
         model.addAttribute("user", user);
         return "edit-user";
     }
