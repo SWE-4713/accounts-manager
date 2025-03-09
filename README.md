@@ -22,9 +22,6 @@ Silas Tompkins <br>
 
 Huy Nguyen <br>
 
-Rafay Hassan <br>
-
-Merjan Bahru <br>
 
 ## Setting Up Your Machine
 
