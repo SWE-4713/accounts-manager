@@ -15,7 +15,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Create first admin account
         try {
-            userService.registerUser(
+            userService.registerSetUser(
                 "admin1",         // username
                 "password123",    // password (this will be hashed)
                 "ROLE_ADMIN",     // role
@@ -31,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create second admin account
         try {
-            userService.registerUser(
+            userService.registerSetUser(
                 "admin2",
                 "password123",
                 "ROLE_ADMIN",
@@ -47,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create third admin account
         try {
-            userService.registerUser(
+            userService.registerSetUser(
                 "admin3",
                 "password123",
                 "ROLE_ADMIN",

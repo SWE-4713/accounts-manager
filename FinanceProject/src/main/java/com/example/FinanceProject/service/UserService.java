@@ -1,6 +1,7 @@
 package com.example.FinanceProject.service;
 
 import com.example.FinanceProject.PendingUser;
+import com.example.FinanceProject.dto.RegistrationRequest; // Import the DTO
 import com.example.FinanceProject.User;
 import com.example.FinanceProject.repository.PendingUserRepo;
 import com.example.FinanceProject.repository.UserRepo;
@@ -21,26 +22,42 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public void registerUser(String username, String password, String role, String firstName, String lastName, String address, String dob, String email) {
-        if (userRepo.findByUsername(username).isPresent()) {
+    public void registerNewUser(RegistrationRequest request) {
+        if (userRepo.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
-        String hashedPassword = passwordEncoder.encode(password);
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+
         User user = new User();
-        user.setUsername(username);
+        user.setUsername(request.getUsername());
         user.setPassword(hashedPassword);
-        user.setRole(role);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setAddress(address);
-        user.setDob(dob);
-        user.setEmail(email);
-        // Set status to "ACCEPTED" so the user can log in
+        // You'll need to get these values from the RegistrationRequest or
+        // set defaults.
+        user.setRole("USER"); // Or get from RegistrationRequest
+        user.setFirstName("N/A"); // Or get from RegistrationRequest
+        user.setLastName("N/A"); // Or get from RegistrationRequest
+        user.setAddress("N/A"); // Or get from RegistrationRequest
+        user.setDob("N/A"); // Or get from RegistrationRequest
+        user.setEmail("N/A"); // Or get from RegistrationRequest
         user.setStatus("ACCEPTED");
+
         userRepo.save(user);
     }
 
-    public void registerPendingUser(String username, String password, String role, String firstName, String lastName, String address, String dob, String email) {
+    // Existing method for registering pending users
+    public void registerPendingUser(
+            String username,
+            String password,
+            String role,
+            String firstName,
+            String lastName,
+            String address,
+            String dob,
+            String email) {
+        if (pendingUserRepo.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
         String hashedPassword = passwordEncoder.encode(password);
         PendingUser pendingUser = new PendingUser();
         pendingUser.setUsername(username);
@@ -55,32 +72,58 @@ public class UserService {
         pendingUserRepo.save(pendingUser);
     }
 
+    public void registerSetUser(
+            String username,
+            String password,
+            String role,
+            String firstName,
+            String lastName,
+            String address,
+            String dob,
+            String email) {
+        if (userRepo.findByUsername(username).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        String hashedPassword = passwordEncoder.encode(password);
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(hashedPassword);
+        user.setRole(role);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setAddress(address);
+        user.setDob(dob);
+        user.setEmail(email);
+        user.setStatus("ACCEPTED");
+        userRepo.save(user);
+    }
+
     // Retrieve all pending registrations
     public Iterable<PendingUser> getAllPendingUsers() {
         return pendingUserRepo.findAll();
     }
 
     public void acceptPendingUser(Long pendingUserId) {
-        PendingUser pendingUser = pendingUserRepo.findById(pendingUserId)
+        PendingUser pendingUser = pendingUserRepo
+                .findById(pendingUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Pending user not found"));
-    
-        // Create a new active user without rehashing the already hashed password.
+
+        // Create a new active user without rehashing the already hashed
+        // password.
         User user = new User();
         user.setUsername(pendingUser.getUsername());
-        user.setPassword(pendingUser.getPassword());  // Use the hash as-is.
+        user.setPassword(pendingUser.getPassword()); // Use the hash as-is.
         user.setRole(pendingUser.getRole());
         user.setFirstName(pendingUser.getFirstName());
         user.setLastName(pendingUser.getLastName());
         user.setAddress(pendingUser.getAddress());
         user.setDob(pendingUser.getDob());
         user.setEmail(pendingUser.getEmail());
-        user.setStatus("ACCEPTED");  // Explicitly set the status.
-        
+        user.setStatus("ACCEPTED"); // Explicitly set the status.
+
         userRepo.save(user);
         pendingUserRepo.deleteById(pendingUserId);
     }
-    
-    
 
     // Deny a pending user: simply remove the pending record
     public void denyPendingUser(Long pendingUserId) {
@@ -94,7 +137,8 @@ public class UserService {
 
     // Suspend the user
     public void suspendUser(Long id) {
-        User user = userRepo.findById(id)
+        User user = userRepo
+                .findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setStatus("SUSPENDED");
         userRepo.save(user);
@@ -102,7 +146,8 @@ public class UserService {
 
     // Unsuspend the user
     public void unsuspendUser(Long id) {
-        User user = userRepo.findById(id)
+        User user = userRepo
+                .findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setStatus("ACCEPTED");
         userRepo.save(user);
@@ -116,17 +161,25 @@ public class UserService {
         return userOptional.get();
     }
 
-    public void updateUser(Long id, String username, String role, String firstName, 
-                          String lastName, String address, String dob, String email) {
+    public void updateUser(
+            Long id,
+            String username,
+            String role,
+            String firstName,
+            String lastName,
+            String address,
+            String dob,
+            String email) {
         // Get the existing user
         User existingUser = getUserById(id);
-        
-        // Check if username is being changed and if the new username already exists
-        if (!existingUser.getUsername().equals(username) && 
-            userRepo.findByUsername(username).isPresent()) {
+
+        // Check if username is being changed and if the new username already
+        // exists
+        if (!existingUser.getUsername().equals(username) &&
+                userRepo.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
-        
+
         // Update user fields
         existingUser.setUsername(username);
         existingUser.setRole(role);
@@ -135,7 +188,7 @@ public class UserService {
         existingUser.setAddress(address);
         existingUser.setDob(dob);
         existingUser.setEmail(email);
-        
+
         // Save the updated user
         userRepo.save(existingUser);
     }

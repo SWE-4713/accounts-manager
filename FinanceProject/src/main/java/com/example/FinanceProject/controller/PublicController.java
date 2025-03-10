@@ -21,7 +21,7 @@ public class PublicController {
     // Registration mapping remains unchanged
     @GetMapping("/auth/registration")
     public String registrationPage() {
-        return "registration";
+        return "registration_page";
     }
 }
 

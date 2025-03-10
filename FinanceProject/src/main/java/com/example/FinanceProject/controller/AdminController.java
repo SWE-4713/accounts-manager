@@ -41,7 +41,7 @@ public class AdminController {
                              @RequestParam String email,
                              Model model) {
         try {
-            userService.registerUser(username, password, role, firstName, lastName, address, dob, email);
+            userService.registerSetUser(username, password, role, firstName, lastName, address, dob, email);
             model.addAttribute("message", "User created successfully.");
         } catch (Exception e) {
             model.addAttribute("error", "Error creating user: " + e.getMessage());
