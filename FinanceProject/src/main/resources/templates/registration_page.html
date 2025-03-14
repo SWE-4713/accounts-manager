@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registration</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #eee;
+            display: flex;
+            flex-direction: column;
+            font-family: sans-serif;
+            justify-content: center;
+            align-items: center;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            color: Black;
+            text-align: center;
+            padding: 100px 0;
+            font-size: 70px;
+            font-weight: bold;
+        }
+
+        .main {
+            margin-top: 80px;
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .3);
+        }
+
+        .main form h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #222;
+            font-size: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 50px;
+            border-radius: 6px;
+            border: 1px solid silver;
+            padding: 0 15px;
+            font-size: 18px;
+        }
+
+        button {
+            width: 100%;
+            height: 50px;
+            background: #007bff;
+            border: none;
+            color: white;
+            font-size: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .main h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #222;
+            font-size: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 50px;
+            border-radius: 6px;
+            border: 1px solid silver;
+            padding: 0 15px;
+            font-size: 18px;
+        }
+
+        button {
+            width: 100%;
+            height: 50px;
+            background: #007bff;
+            border: none;
+            color: white;
+            font-size: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .login-container {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .login-container a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .login-container a:hover {
+            text-decoration: underline;
+        }
+
+        /* Add styles for error messages */
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+<div class="main">
+    <h2>Registration</h2>
+    <!-- Registration form starts here -->
+    <form id="registrationForm">
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" class="form-control" id="firstName" name="firstName" required>
+        </div>
+        <!-- Add other fields for lastName, email, address, dob, username, password, role, etc. -->
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" class="form-control" id="lastName" name="lastName" required>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label>Address</label>
+            <input type="text" class="form-control" id="address" name="address" required>
+        </div>
+        <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" class="form-control" id="dob" name="dob" required>
+        </div>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div id="passwordError" class="error-message"></div>
+        </div>
+        <div class="form-group" style="display: none;">
+            <label>Role</label>
+            <select class="form-control" id="role" name="role" required>
+                <option value="ROLE_USER">User</option>
+                <option value="ROLE_ADMIN">Admin</option>
+            </select>
+        </div>
+        <div id="generalError" class="error-message"></div>
+        <button type="submit" class="submit">Submit</button>
+    </form>
+    <!-- Registration form ends here -->
+    <div class="login-container">
+        Already have an account?<br/><a href="login.html" title="Login Here">Login Here</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        // Clear any previous error messages
+        document.getElementById('passwordError').style.display = 'none';
+        document.getElementById('generalError').style.display = 'none';
+
+        // Get form data
+        const formData = new FormData();
+        formData.append('firstName', document.getElementById('firstName').value);
+        formData.append('lastName', document.getElementById('lastName').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('address', document.getElementById('address').value);
+        formData.append('dob', document.getElementById('dob').value);
+        formData.append('username', document.getElementById('username').value);
+        formData.append('password', document.getElementById('password').value);
+        formData.append('role', document.getElementById('role').value);
+
+        // Send the data using fetch API
+        fetch('/auth/register', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to the confirmation page on success
+                    window.location.href = '/public/registrationConfirmation';
+                    return;
+                }
+
+                // If we get here, there was an error
+                return response.json().then(data => {
+                    throw data;
+                });
+            })
+            .catch(error => {
+                // Handle specific error types
+                if (error.password) {
+                    // Display password error
+                    const passwordError = document.getElementById('passwordError');
+                    passwordError.textContent = error.password;
+                    passwordError.style.display = 'block';
+                } else {
+                    // Display general error
+                    const generalError = document.getElementById('generalError');
+                    generalError.textContent = error.message || 'An error occurred during registration. Please try again.';
+                    generalError.style.display = 'block';
+                }
+            });
+    });
+</script>
+</body>
+
+</html>
