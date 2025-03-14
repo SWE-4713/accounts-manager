@@ -37,7 +37,7 @@ public class UserController {
             Map<String, String> errors = new HashMap<>();
             errors.put(
                     "password",
-                    "Password must contain at least one letter, one number, and one special character."
+                    "Password must contain at least one letter, one number, one special character, and be at least 8 characters long."
             );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }

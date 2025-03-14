@@ -26,10 +26,15 @@ public class RegistrationController {
         this.userService = userService;
     }
 
-    @GetMapping("/register")
+    @GetMapping("/registration")
     public String showRegistrationForm(Model model) {
         model.addAttribute("registrationRequest", new RegistrationRequest());
         return "registration_page"; // Replace with your registration form view name
+    }
+
+    @GetMapping("/registrationConfirmation")
+    public String registrationConfirmation() {
+        return "registrationConfirmation";
     }
 
     @PostMapping("/register_tmp")
@@ -45,7 +50,7 @@ public class RegistrationController {
 
         if (!PasswordValidator.isValid(request.getPassword())) {
             Map<String, String> errors = new HashMap<>();
-            errors.put("password", "Password must contain at least one letter, one number, and one special character.");
+            errors.put("password", "Password must contain at least one letter, one number, one special character, and be at least 8 characters long.");
             return ResponseEntity.badRequest().body(errors);
         }
 

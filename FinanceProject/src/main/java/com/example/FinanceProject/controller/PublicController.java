@@ -18,10 +18,5 @@ public class PublicController {
         return "user-page";  // Returns the user-page view
     }
 
-    // Registration mapping remains unchanged
-    @GetMapping("/auth/registration")
-    public String registrationPage() {
-        return "registration_page";
-    }
 }
 
