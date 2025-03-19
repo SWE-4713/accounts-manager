@@ -1,5 +1,6 @@
 package com.example.FinanceProject.controller;
 
+import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.UserService;
 import com.example.FinanceProject.util.PasswordValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // This method processes self-registration
+    @Autowired
+    private EmailService emailService; // Add this
+
     // This method processes self-registration
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
@@ -31,21 +34,17 @@ public class UserController {
             @RequestParam String address,
             @RequestParam String dob,
             @RequestParam String email,
-            Model model
-    ) {
+            Model model) {
         if (!PasswordValidator.isValid(password)) {
             Map<String, String> errors = new HashMap<>();
             errors.put(
                     "password",
-                    "Password must contain at least one letter, one number, one special character, and be at least 8 characters long."
-            );
+                    "Password must contain at least one letter, one number, one special character, and be at least 8 characters long.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
 
-
         try {
-            // Instead of immediately adding to live users,
-            // add to pending users.
+            // This method now sends emails to all admins automatically
             userService.registerPendingUser(
                     username,
                     password,
@@ -54,15 +53,11 @@ public class UserController {
                     lastName,
                     address,
                     dob,
-                    email
-            );
-            // return "registrationConfirmation"; // Old return for Thymeleaf
+                    email);
+
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("User registration pending approval"); // Success message
+                    .body("User registration pending approval");
         } catch (Exception e) {
-            // model.addAttribute("error", "Error registering user: " +
-            // e.getMessage()); // Old Thymeleaf
-            // return "registration_page"; // Old Thymeleaf
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error registering user: " + e.getMessage());
         }
