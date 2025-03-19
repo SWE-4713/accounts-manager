@@ -118,6 +118,25 @@
             border: 1px solid #f5c6cb;
         }
 
+        .nav-links {
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            padding: 10px 15px;
+            margin-right: 10px;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #3a5a8a;
+        }
+
         /* Form Styles */
         form {
             display: grid;
@@ -364,6 +383,9 @@
     </header>
 
     <div class="container">
+        <div class="nav-links">
+            <a th:href="@{/accounts}"><i class="fas fa-list"></i> Account List</a>
+        </div>
         <!-- Feedback messages -->
         <div th:if="${message}" class="message" th:text="${message}"></div>
         <div th:if="${error}" class="error" th:text="${error}"></div>

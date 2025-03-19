@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Account</title>
+</head>
+<body>
+    <h1>Add New Account</h1>
+    <form th:action="@{/admin/accounts/add}" th:object="${account}" method="post">
+        <label>Account Name:</label>
+        <input type="text" th:field="*{accountName}" required/><br/>
+        
+        <label>Account Number:</label>
+        <input type="text" th:field="*{accountNumber}" required/><br/>
+        
+        <label>Account Description:</label>
+        <input type="text" th:field="*{accountDescription}" /><br/>
+        
+        <label>Normal Side:</label>
+        <input type="text" th:field="*{normalSide}" /><br/>
+        
+        <label>Account Category:</label>
+        <input type="text" th:field="*{accountCategory}" /><br/>
+        
+        <label>Account Subcategory:</label>
+        <input type="text" th:field="*{accountSubcategory}" /><br/>
+        
+        <label>Initial Balance:</label>
+        <input type="number" step="0.01" th:field="*{initialBalance}" /><br/>
+        
+        <label>Debit:</label>
+        <input type="number" step="0.01" th:field="*{debit}" /><br/>
+        
+        <label>Credit:</label>
+        <input type="number" step="0.01" th:field="*{credit}" /><br/>
+        
+        <label>Balance:</label>
+        <input type="number" step="0.01" th:field="*{balance}" /><br/>
+        
+        <label>User ID:</label>
+        <input type="number" th:field="*{userId}" /><br/>
+        
+        <label>Order:</label>
+        <input type="text" th:field="*{accountOrder}" /><br/>
+        
+        <label>Statement:</label>
+        <input type="text" th:field="*{statement}" /><br/>
+        
+        <label>Comment:</label>
+        <textarea th:field="*{comment}"></textarea><br/>
+        
+        <button type="submit">Add Account</button>
+    </form>
+</body>
+</html>

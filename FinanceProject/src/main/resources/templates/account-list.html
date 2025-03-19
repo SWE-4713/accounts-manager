@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Account List</title>
+    <style>
+      table { border-collapse: collapse; width: 90%; margin-bottom: 20px; }
+      table, th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Accounts</h1>
+    <a th:href="@{/accounts/add}">Add New Account</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Account Name</th>
+                <th>Account Number</th>
+                <th>Description</th>
+                <th>Normal Side</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Initial Balance</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+                <th>Date Added</th>
+                <th>User ID</th>
+                <th>Order</th>
+                <th>Statement</th>
+                <th>Comment</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="account : ${accounts}">
+                <td th:text="${account.id}"></td>
+                <td th:text="${account.accountName}"></td>
+                <td th:text="${account.accountNumber}"></td>
+                <td th:text="${account.accountDescription}"></td>
+                <td th:text="${account.normalSide}"></td>
+                <td th:text="${account.accountCategory}"></td>
+                <td th:text="${account.accountSubcategory}"></td>
+                <td th:text="${#numbers.formatDecimal(account.initialBalance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.debit, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.credit, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${account.dateAdded}"></td>
+                <td th:text="${account.userId}"></td>
+                <td th:text="${account.accountOrder}"></td>
+                <td th:text="${account.statement}"></td>
+                <td th:text="${account.comment}"></td>
+                <td th:text="${account.active}"></td>
+                <td>
+                    <a th:href="@{/admin/accounts/edit(id=${account.id})}">Edit</a>
+                    <form th:action="@{/admin/accounts/deactivate}" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${account.id}" />
+                        <button type="submit" onclick="return confirm('Are you sure you want to deactivate this account?');">Deactivate</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
