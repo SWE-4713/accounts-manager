@@ -10,28 +10,30 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@Secured({"ROLE_ADMIN", "ROLE_USER"})  // Allow both admin and user roles to access these endpoints
+@Secured({"ROLE_ADMIN", "ROLE_USER"})  // List page remains accessible to both roles
 @RequestMapping("/accounts")
 public class AccountController {
     
     @Autowired
     private AccountService accountService;
     
-    // List all accounts
+    // List all accounts (accessible to both admin and user)
     @GetMapping
     public String listAccounts(Model model) {
         model.addAttribute("accounts", accountService.getAllAccounts());
         return "account-list";
     }
     
-    // Show form to add a new account
+    // Show form to add a new account (accessible only to admin)
+    @Secured("ROLE_ADMIN")
     @GetMapping("/add")
     public String showAddAccountForm(Model model) {
         model.addAttribute("account", new Account());
         return "account-add";
     }
     
-    // Handle submission of a new account
+    // Handle submission of a new account (accessible only to admin)
+    @Secured("ROLE_ADMIN")
     @PostMapping("/add")
     public String addAccount(@ModelAttribute("account") Account account, RedirectAttributes redirectAttributes) {
         try {
@@ -43,7 +45,7 @@ public class AccountController {
         return "redirect:/user/accounts";
     }
     
-    // Show form to edit an account
+    // Show form to edit an account (accessible to both admin and user)
     @GetMapping("/edit")
     public String showEditAccountForm(@RequestParam("id") Long id, Model model) {
         Account account = accountService.getAccountById(id);
@@ -51,7 +53,7 @@ public class AccountController {
         return "account-edit";
     }
     
-    // Handle updating an account
+    // Handle updating an account (accessible to both admin and user)
     @PostMapping("/update")
     public String updateAccount(@ModelAttribute("account") Account account, RedirectAttributes redirectAttributes) {
         try {
@@ -63,7 +65,7 @@ public class AccountController {
         return "redirect:/user/accounts";
     }
     
-    // Deactivate an account
+    // Deactivate an account (accessible to both admin and user)
     @PostMapping("/deactivate")
     public String deactivateAccount(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -75,4 +77,3 @@ public class AccountController {
         return "redirect:/user/accounts";
     }
 }
-
