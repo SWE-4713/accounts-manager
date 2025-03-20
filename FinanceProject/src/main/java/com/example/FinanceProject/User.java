@@ -3,6 +3,8 @@ package com.example.FinanceProject;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,6 +19,19 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(name = "failed_attempt", columnDefinition = "integer default 0")
+    private int failedAttempt;
+
+    @Column(name = "account_non_locked", columnDefinition = "boolean default true")
+    private boolean accountNonLocked;
+
+    @Column(name = "lock_time")
+    private Date lockTime;
+
+    @Column(name = "password_update_date")
+    private Date passwordUpdateDate;
+
 
     @Column(nullable = false)
     private String password;

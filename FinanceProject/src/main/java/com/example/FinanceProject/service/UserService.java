@@ -1,19 +1,28 @@
 package com.example.FinanceProject.service;
 
+import com.example.FinanceProject.PasswordResetToken;
 import com.example.FinanceProject.PendingUser;
 import com.example.FinanceProject.dto.RegistrationRequest;
 import com.example.FinanceProject.User;
+import com.example.FinanceProject.repository.PasswordResetTokenRepository;
 import com.example.FinanceProject.repository.PendingUserRepo;
 import com.example.FinanceProject.repository.UserRepo;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Autowired
     private UserRepo userRepo;
@@ -26,6 +35,170 @@ public class UserService {
     
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PasswordExpirationService passwordExpirationService;
+
+    public boolean checkPasswordExpiration(User user) {
+        return passwordExpirationService.isPasswordExpired(user);
+    }
+
+    /**
+     * Finds a user by their username
+     * @param username The username to search for
+     * @return The user if found, or null if no user exists with that username
+     */
+    public User findUserByUsername(String username) {
+        Optional<User> userOptional = userRepo.findByUsername(username);
+        return userOptional.orElse(null);
+    }
+
+    /**
+     * Initiates the forgot password process by generating a token and sending an email
+     * @param email The email address of the user requesting password reset
+     * @return true if email was found and reset email was sent, false otherwise
+     */
+    @Transactional
+    public boolean initiatePasswordReset(String email) {
+        Optional<User> userOptional = userRepo.findByEmail(email);
+
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            passwordResetTokenRepository.deleteByUser(user);
+            String token = generatePasswordResetToken(user);
+            try {
+                sendPasswordResetEmail(user.getEmail(), user.getFirstName(), token);
+                return true;
+            } catch (MessagingException e) {
+                // Log the error
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Generates and stores a password reset token for a user
+     * @param user The user requesting password reset
+     * @return The generated token
+     */
+    private String generatePasswordResetToken(User user) {
+        // First invalidate any existing tokens for this user
+        passwordResetTokenRepository.deleteByUser(user);
+
+        // Generate a new token
+        String token = UUID.randomUUID().toString();
+
+        // Create token with expiration (typically 24 hours)
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setToken(token);
+        resetToken.setUser(user);
+        resetToken.setExpiryDate(LocalDateTime.now().plusHours(24));
+
+        passwordResetTokenRepository.save(resetToken);
+        return token;
+    }
+
+    /**
+     * Validates a password reset token
+     * @param token The token to validate
+     * @return The user associated with the valid token, or null if invalid or expired
+     */
+    public User validatePasswordResetToken(String token) {
+        Optional<PasswordResetToken> tokenOptional = passwordResetTokenRepository.findByToken(token);
+
+        if (tokenOptional.isPresent()) {
+            PasswordResetToken resetToken = tokenOptional.get();
+
+            // Check if token is expired
+            if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                passwordResetTokenRepository.delete(resetToken);
+                return null;
+            }
+
+            return resetToken.getUser();
+        }
+
+        return null;
+    }
+
+    /**
+     * Encodes a password using the application's password encoder
+     *
+     * @param rawPassword The plain text password to encode
+     * @return The encoded password string
+     */
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
+    /**
+     * Completes the password reset process by updating the user's password
+     * @param token The reset token
+     * @param newPassword The new password
+     * @return true if password was successfully reset, false otherwise
+     */
+    public boolean resetPassword(String token, String newPassword) {
+        User user = validatePasswordResetToken(token);
+        if (user == null) {
+            return false;
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        passwordExpirationService.updatePasswordDate(user); // Update password date
+        userRepo.save(user);
+
+        try {
+            sendPasswordChangedEmail(user.getEmail(), user.getFirstName());
+        } catch (MessagingException e) {
+            // Log exception
+        }
+
+        return true;
+    }
+
+    /**
+     * Sends a password reset email to the user
+     */
+    private void sendPasswordResetEmail(String userEmail, String firstName, String token) throws MessagingException {
+        String subject = "Password Reset Request";
+        String resetUrl = "http://localhost:8080/reset-password?token=" + token; // Adjust to your application's URL
+
+        String content =
+                "<div style='font-family: Arial, sans-serif; max-width: 600px;'>" +
+                        "<h2>Password Reset Request</h2>" +
+                        "<p>Hello " + firstName + ",</p>" +
+                        "<p>We received a request to reset your password. If you didn't make this request, you can ignore this email.</p>" +
+                        "<p>To reset your password, click the link below (valid for 24 hours):</p>" +
+                        "<p><a href='" + resetUrl + "' style='display: inline-block; background-color: #4CAF50; color: white; padding: 10px 15px; " +
+                        "text-decoration: none; border-radius: 4px;'>Reset Password</a></p>" +
+                        "<p>If the button doesn't work, copy and paste this URL into your browser:</p>" +
+                        "<p>" + resetUrl + "</p>" +
+                        "<p>Thank you,<br>The Finance Project Team</p>" +
+                        "</div>";
+
+        emailService.sendHtmlEmail(userEmail, subject, content);
+    }
+
+    /**
+     * Sends a confirmation email when password has been changed
+     */
+    private void sendPasswordChangedEmail(String userEmail, String firstName) throws MessagingException {
+        String subject = "Password Successfully Changed";
+
+        String content =
+                "<div style='font-family: Arial, sans-serif; max-width: 600px;'>" +
+                        "<h2>Password Changed Successfully</h2>" +
+                        "<p>Hello " + firstName + ",</p>" +
+                        "<p>Your password has been successfully changed.</p>" +
+                        "<p>If you did not make this change, please contact our support team immediately.</p>" +
+                        "<p>Thank you,<br>The Finance Project Team</p>" +
+                        "</div>";
+
+        emailService.sendHtmlEmail(userEmail, subject, content);
+    }
 
     public void registerNewUser(RegistrationRequest request) {
         if (userRepo.findByUsername(request.getUsername()).isPresent()) {
@@ -163,6 +336,16 @@ public class UserService {
         user.setEmail(email);
         user.setStatus("ACCEPTED");
         userRepo.save(user);
+    }
+
+    /**
+     * Saves or updates a user in the database
+     *
+     * @param user The user entity to save
+     * @return The saved user entity with any generated IDs and default values
+     */
+    public User saveUser(User user) {
+        return userRepo.save(user);
     }
 
     // Retrieve all pending registrations

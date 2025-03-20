@@ -1,20 +1,27 @@
 package com.example.FinanceProject;
 
+import com.example.FinanceProject.repository.UserRepo;
+import com.example.FinanceProject.service.LoginAttemptService;
+import com.example.FinanceProject.service.PasswordExpirationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.*;
 import com.example.FinanceProject.service.CustomUserDetailsService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
+
 import java.io.IOException;
 
 @Configuration
@@ -22,9 +29,14 @@ import java.io.IOException;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final UserRepo userRepo;
+    private final PasswordExpirationService passwordExpirationService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService, UserRepo userRepo, PasswordExpirationService passwordExpirationService) {
         this.userDetailsService = userDetailsService;
+        this.userRepo = userRepo;
+        this.passwordExpirationService = passwordExpirationService;
     }
 
     @Bean
@@ -32,7 +44,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity (enable in production)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/public/**", "/auth/registration", "/auth/register").permitAll() // Allow public access
+                .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "password-reset-success", "/api/password/forgot", "/api/password/reset/validate", "/api/password/reset", "/password-expired").permitAll() // Allow public access
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Restrict admin routes
                 .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN") // Restrict user routes
                 .anyRequest().authenticated()
@@ -44,9 +56,15 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login").permitAll()
-            );
+            ).addFilterBefore(passwordExpirationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordExpirationFilter passwordExpirationFilter() {
+        // Use UserRepo instead of UserService
+        return new PasswordExpirationFilter(userRepo, passwordExpirationService);
     }
 
     @Bean
@@ -77,5 +95,52 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+    @Bean
+    public AuthenticationSuccessHandler loginSuccessHandler() {
+        return new SimpleUrlAuthenticationSuccessHandler() {
+            @Autowired
+            private LoginAttemptService loginAttemptService;
+
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                                                Authentication authentication) throws IOException, ServletException {
+
+                // Reset failed attempts for successful login
+                loginAttemptService.resetFailedAttempts(authentication.getName());
+
+                super.onAuthenticationSuccess(request, response, authentication);
+            }
+        };
+    }
+
+    @Bean
+    public AuthenticationFailureHandler loginFailureHandler() {
+        return new SimpleUrlAuthenticationFailureHandler() {
+            @Autowired
+            private LoginAttemptService loginAttemptService;
+
+            @Autowired
+            private UserRepo userRepo;
+
+            @Override
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+                                                AuthenticationException exception) throws IOException, ServletException {
+
+                String username = request.getParameter("username");
+                User user = userRepo.findByUsername(username).orElse(null);
+
+                if (user != null) {
+                    loginAttemptService.increaseFailedAttempts(user);
+
+                    if (user.getFailedAttempt() >= LoginAttemptService.MAX_FAILED_ATTEMPTS) {
+                        loginAttemptService.lockUser(user);
+                        exception = new LockedException("Your account has been locked due to 3 failed attempts.");
+                    }
+                }
+
+                super.onAuthenticationFailure(request, response, exception);
+            }
+        };
     }
 }
