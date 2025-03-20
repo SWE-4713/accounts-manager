@@ -46,4 +46,9 @@ public class User {
     
     // New field to store acceptance status ("ACCEPTED", "PENDING", etc.)
     private String status;
+
+    @Setter
+    @Getter
+    private boolean passwordExpiryNotificationSent = false;
+
 }

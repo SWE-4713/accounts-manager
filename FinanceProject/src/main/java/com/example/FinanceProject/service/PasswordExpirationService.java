@@ -12,7 +12,7 @@ import java.util.Date;
 @Service
 public class PasswordExpirationService {
 
-    private static final int PASSWORD_EXPIRATION_DAYS = 7;
+    public static final int PASSWORD_EXPIRATION_DAYS = 7;
     
     @Autowired
     private UserRepo userRepo;
