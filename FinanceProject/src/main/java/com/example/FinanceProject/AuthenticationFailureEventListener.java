@@ -1,6 +1,7 @@
 package com.example.FinanceProject; // Adjust the package as needed
 
 import com.example.FinanceProject.service.LoginAttemptService;
+import com.example.FinanceProject.service.LoginLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -15,6 +16,9 @@ public class AuthenticationFailureEventListener {
     private LoginAttemptService loginAttemptService;
 
     @Autowired
+    private LoginLogService loginLogService;
+
+    @Autowired
     private UserRepo userRepo;
 
     @EventListener
@@ -25,5 +29,7 @@ public class AuthenticationFailureEventListener {
         if (user != null) {
             loginAttemptService.increaseFailedAttempts(user);
         }
+        // Log the failed login attempt regardless of whether the user exists
+        loginLogService.recordLogin(user, username, false);
     }
 }
