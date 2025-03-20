@@ -42,10 +42,11 @@ public class AccountController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error adding account: " + e.getMessage());
         }
-        return "redirect:/user/accounts";
+        return "redirect:/accounts";
     }
     
-    // Show form to edit an account (accessible to both admin and user)
+    // Show form to edit an account (accessible only to admin)
+    @Secured("ROLE_ADMIN")
     @GetMapping("/edit")
     public String showEditAccountForm(@RequestParam("id") Long id, Model model) {
         Account account = accountService.getAccountById(id);
@@ -53,7 +54,8 @@ public class AccountController {
         return "account-edit";
     }
     
-    // Handle updating an account (accessible to both admin and user)
+    // Handle updating an account (accessible only to admin)
+    @Secured("ROLE_ADMIN")
     @PostMapping("/update")
     public String updateAccount(@ModelAttribute("account") Account account, RedirectAttributes redirectAttributes) {
         try {
@@ -62,10 +64,11 @@ public class AccountController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error updating account: " + e.getMessage());
         }
-        return "redirect:/user/accounts";
+        return "redirect:/accounts";
     }
     
-    // Deactivate an account (accessible to both admin and user)
+    // Deactivate an account (accessible only to admin)
+    @Secured("ROLE_ADMIN")
     @PostMapping("/deactivate")
     public String deactivateAccount(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -74,6 +77,6 @@ public class AccountController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error deactivating account: " + e.getMessage());
         }
-        return "redirect:/user/accounts";
+        return "redirect:/accounts";
     }
 }

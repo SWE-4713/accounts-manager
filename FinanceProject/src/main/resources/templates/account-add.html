@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>Add New Account</h1>
-    <form th:action="@{/admin/accounts/add}" th:object="${account}" method="post">
+    <form th:action="@{/accounts/add}" th:object="${account}" method="post">
         <label>Account Name:</label>
         <input type="text" th:field="*{accountName}" required/><br/>
         
