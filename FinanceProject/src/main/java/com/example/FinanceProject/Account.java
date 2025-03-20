@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_account_name", columnNames = {"account_name"}),
+        @UniqueConstraint(name = "uk_account_number", columnNames = {"account_number"})
+})
 @Data
 public class Account {
 
@@ -15,14 +18,12 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // a. Account name (unique, not null)
     @NotNull
-    @Column(name = "account_name", nullable = false, unique = true)
+    @Column(name = "account_name", nullable = false)
     private String accountName;
 
-    // b. Account number (unique, not null)
     @NotNull
-    @Column(name = "account_number", nullable = false, unique = true)
+    @Column(name = "account_number", nullable = false)
     private String accountNumber;
 
     // c. Account description (optional)
@@ -61,9 +62,9 @@ public class Account {
     @Column(name = "date_added")
     private LocalDateTime dateAdded = LocalDateTime.now();
 
-    // l. User id (the creator/owner; optional)
-    @Column(name = "user_id")
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // m. Order (optional; use Integer for numeric order)
     @Column(name = "account_order")
@@ -74,10 +75,36 @@ public class Account {
     private String statement;
 
     // o. Comment (optional; NVARCHAR(MAX))
-    @Column(name = "comment", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "comment")
     private String comment;
 
     // Active flag; true for active, false for deactivated
     @Column(name = "active")
     private boolean active = true;
+
+    /**
+     * Gets the ID of the associated user.
+     *
+     * @return The user ID or null if no user is associated
+     */
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    /**
+     * Sets the user by ID.
+     * This method creates a proxy User object with only the ID set.
+     * Useful for setting relationships without loading the full User entity.
+     *
+     * @param userId The ID of the user to associate with this account
+     */
+    public void setUserId(Long userId) {
+        if (userId != null) {
+            User userRef = new User();
+            userRef.setId(userId);
+            this.user = userRef;
+        } else {
+            this.user = null;
+        }
+    }
 }
