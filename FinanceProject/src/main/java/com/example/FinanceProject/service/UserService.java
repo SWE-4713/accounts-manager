@@ -1,9 +1,11 @@
 package com.example.FinanceProject.service;
 
+import com.example.FinanceProject.PasswordHistory;
 import com.example.FinanceProject.PasswordResetToken;
 import com.example.FinanceProject.PendingUser;
 import com.example.FinanceProject.dto.RegistrationRequest;
 import com.example.FinanceProject.User;
+import com.example.FinanceProject.repository.PasswordHistoryRepository;
 import com.example.FinanceProject.repository.PasswordResetTokenRepository;
 import com.example.FinanceProject.repository.PendingUserRepo;
 import com.example.FinanceProject.repository.UserRepo;
@@ -14,12 +16,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private PasswordHistoryRepository passwordHistoryRepository;
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
@@ -38,6 +44,9 @@ public class UserService {
 
     @Autowired
     private PasswordExpirationService passwordExpirationService;
+
+    // Number of previous passwords to check against
+    private static final int PASSWORD_HISTORY_LIMIT = 5;
 
     public boolean checkPasswordExpiration(User user) {
         return passwordExpirationService.isPasswordExpired(user);
@@ -146,9 +155,19 @@ public class UserService {
             return false;
         }
 
+        if (isPasswordPreviouslyUsed(user, newPassword)) {
+            throw new PasswordReusedException("Password has been used previously. Please choose a different password.");
+        }
+
+
         user.setPassword(passwordEncoder.encode(newPassword));
         passwordExpirationService.updatePasswordDate(user); // Update password date
+        user.setLockTime(new Date(0));
+        user.setPasswordUpdateDate(new Date());
         userRepo.save(user);
+
+        // Save the current password to history before changing it
+        savePasswordToHistory(user, user.getPassword());
 
         try {
             sendPasswordChangedEmail(user.getEmail(), user.getFirstName());
@@ -157,6 +176,40 @@ public class UserService {
         }
 
         return true;
+    }
+
+    private void savePasswordToHistory(User user, String passwordHash) {
+        PasswordHistory history = new PasswordHistory(user, passwordHash);
+        passwordHistoryRepository.save(history);
+
+        // Optional: Maintain only a certain number of password history entries
+        // This helps to manage database growth
+        List<PasswordHistory> histories = passwordHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+        if (histories.size() > PASSWORD_HISTORY_LIMIT) {
+            // Remove older entries beyond the limit
+            for (int i = PASSWORD_HISTORY_LIMIT; i < histories.size(); i++) {
+                passwordHistoryRepository.delete(histories.get(i));
+            }
+        }
+    }
+
+    public class PasswordReusedException extends RuntimeException {
+        public PasswordReusedException(String message) {
+            super(message);
+        }
+    }
+
+    private boolean isPasswordPreviouslyUsed(User user, String newPassword) {
+        // Get the user's password history
+        List<PasswordHistory> passwordHistories = passwordHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+
+        // Check if the new password matches any previous passwords
+        for (PasswordHistory history : passwordHistories) {
+            if (passwordEncoder.matches(newPassword, history.getPasswordHash())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -220,7 +273,10 @@ public class UserService {
         user.setEmail("N/A"); // Or get from RegistrationRequest
         user.setStatus("ACCEPTED");
 
+        user.setLockTime(new Date(0));
+        user.setPasswordUpdateDate(new Date());
         userRepo.save(user);
+        savePasswordToHistory(user, user.getPassword());
     }
 
     // Notify all admin users about a new pending registration
@@ -335,7 +391,10 @@ public class UserService {
         user.setDob(dob);
         user.setEmail(email);
         user.setStatus("ACCEPTED");
+        user.setLockTime(new Date(0));
+        user.setPasswordUpdateDate(new Date());
         userRepo.save(user);
+        savePasswordToHistory(user, user.getPassword());
     }
 
     /**
@@ -370,9 +429,12 @@ public class UserService {
         user.setEmail(pendingUser.getEmail());
         user.setStatus("ACCEPTED"); // Explicitly set the status
 
+        user.setLockTime(new Date(0));
+        user.setPasswordUpdateDate(new Date());
         userRepo.save(user);
+        savePasswordToHistory(user, user.getPassword());
         pendingUserRepo.deleteById(pendingUserId);
-        
+
         // Notify the user that their account has been approved (optional)
         try {
             sendAccountApprovalEmail(user.getEmail(), user.getFirstName());

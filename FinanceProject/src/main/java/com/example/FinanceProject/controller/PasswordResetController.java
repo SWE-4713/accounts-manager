@@ -41,20 +41,26 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String password) {
-        System.out.println("Password reset: " + token + " " + password);
-        boolean result = userService.resetPassword(token, password);
-        
         Map<String, Object> response = new HashMap<>();
-        if (result) {
-            response.put("success", true);
-            response.put("message", "Password has been reset successfully");
-            return ResponseEntity.ok(response);
-        } else {
+
+        try {
+            boolean result = userService.resetPassword(token, password);
+
+            if (result) {
+                response.put("success", true);
+                response.put("message", "Password has been reset successfully");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Invalid or expired token");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (UserService.PasswordReusedException e) {
             response.put("success", false);
-            response.put("message", "Invalid or expired token");
+            response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
