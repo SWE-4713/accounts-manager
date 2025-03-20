@@ -37,6 +37,6 @@ public class PasswordExpirationController {
         passwordExpirationService.updatePasswordDate(user);
         userService.saveUser(user);
 
-        return "redirect:/dashboard";
+        return "redirect:/logout";
     }
 }
