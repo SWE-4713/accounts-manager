@@ -44,6 +44,7 @@ public class PasswordResetController {
     
     @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String password) {
+        System.out.println("Password reset: " + token + " " + password);
         boolean result = userService.resetPassword(token, password);
         
         Map<String, Object> response = new HashMap<>();
