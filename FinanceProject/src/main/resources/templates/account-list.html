@@ -49,18 +49,18 @@
             <a th:href="@{/event-logs}" >Event Logs</a>
         </div>
     </header>
-    
+
     <h1>Chart of Accounts</h1>
-    
+
     <!-- Search/Filter Form -->
     <form method="get" th:action="@{/accounts}">
-        <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc." 
+        <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc."
                th:value="${param.query}" />
         <button type="submit">Search</button>
     </form>
-    
+
     <a th:href="@{/accounts/add}">Add New Account</a>
-    
+
     <table>
         <thead>
             <tr>
@@ -112,14 +112,14 @@
                     <!-- Only allow deactivation if balance equals zero -->
                     <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
                         <input type="hidden" name="id" th:value="${account.id}" />
-                        <button type="submit" 
+                        <button type="submit"
                                 th:if="${account.balance.compareTo(0) == 0}"
                                 onclick="return confirm('Are you sure you want to deactivate this account?');">
                             Deactivate
                         </button>
-                        <button type="button" 
-                                th:if="${account.balance.compareTo(0) > 0}" 
-                                class="disabled-button" 
+                        <button type="button"
+                                th:if="${account.balance.compareTo(0) > 0}"
+                                class="disabled-button"
                                 title="Accounts with balance greater than zero cannot be deactivated."
                                 disabled>
                             Deactivate
