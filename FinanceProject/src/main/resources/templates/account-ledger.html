@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Account Ledger</title>
+    <style>
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+        .nav-buttons a {
+            margin-right: 10px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 90%; 
+            margin-bottom: 20px; 
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <!-- Common Header -->
+    <header>
+        <div>
+            <img src="https://i.imgur.com/aBKRRy2.png" alt="Software Logo" style="height:50px;"/>
+        </div>
+        <div>
+            <span th:text="'Welcome, ' + ${username}">Welcome, User</span>
+        </div>
+        <div>
+            <input type="date" id="popupCalendar" />
+        </div>
+        <div class="nav-buttons">
+            <a th:href="@{/accounts}" >Chart of Accounts</a>
+            <a th:href="@{/journal}" >Journalizing</a>
+            <a th:href="@{/event-logs}" >Event Logs</a>
+        </div>
+    </header>
+
+    <h1>Ledger for Account: <span th:text="${account.accountName}"></span></h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="entry : ${ledgerEntries}">
+                <td th:text="${entry.date}"></td>
+                <td th:text="${entry.description}"></td>
+                <td th:text="${entry.debit}"></td>
+                <td th:text="${entry.credit}"></td>
+                <td th:text="${entry.balance}"></td>
+            </tr>
+            <tr th:if="${ledgerEntries == null or #lists.isEmpty(ledgerEntries)}">
+                <td colspan="5">No ledger entries available.</td>
+            </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/accounts}">Back to Accounts</a>
+</body>
+</html>

@@ -1,290 +1,133 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account List</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/aBKRRy2.png">
     <style>
-        :root {
-            --primary: #4a6fa5;
-            --secondary: #6c757d;
-            --success: #28a745;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --border: #dee2e6;
-            --warning: #ffc107;
-            --info: #17a2b8;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f8fa;
-            color: #333;
-            line-height: 1.6;
-            padding-bottom: 40px;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        .header {
-            background-color: var(--primary);
-            color: white;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-content {
+        header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
         }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logout-link {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 8px 15px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .logout-link:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .section {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        h1, h2 {
-            color: var(--dark);
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            position: relative;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .action-buttons {
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
+        .nav-buttons a {
             margin-right: 10px;
-            background-color: var(--primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
         }
-
-        .btn:hover {
-            background-color: #3a5a8a;
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 90%;
             margin-bottom: 20px;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-
-        table th {
-            background-color: #f2f2f2;
-            color: var(--dark);
-            font-weight: 600;
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: left;
-            padding: 12px 15px;
-            border-bottom: 2px solid var(--border);
         }
-
-        table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        table tr:last-child td {
-            border-bottom: none;
-        }
-
-        table tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .action-form {
-            display: inline;
-            margin: 0;
-            padding: 0;
-        }
-
-        .actions {
-            white-space: nowrap;
+        .disabled-button {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
         }
     </style>
+    <!-- Include any JavaScript libraries or CSS as needed for an enhanced calendar -->
 </head>
-
 <body>
-<div class="header">
-    <div class="container header-content">
-        <div class="logo">
-            <img src="https://i.imgur.com/aBKRRy2.png" width="40px"> Admin Dashboard
+    <!-- Header with logo, username, calendar and navigation buttons -->
+    <header>
+        <div>
+            <img src="https://i.imgur.com/aBKRRy2.png" alt="Software Logo" style="height:50px;"/>
         </div>
-        <a href="/logout" class="logout-link">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-    </div>
-</div>
-
-<div class="container">
-    <div class="section">
-        <h1>Accounts</h1>
-
-        <div class="action-buttons">
-            <a th:href="@{/accounts/add}" class="btn">
-                <i class="fas fa-plus"></i> Add New Account
-            </a>
+        <div>
+            <span th:text="'Welcome, ' + ${username}">Welcome, User</span>
         </div>
-
-        <div class="table-responsive">
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Account Name</th>
-                    <th>Account Number</th>
-                    <th>Description</th>
-                    <th>Normal Side</th>
-                    <th>Category</th>
-                    <th>Subcategory</th>
-                    <th>Initial Balance</th>
-                    <th>Debit</th>
-                    <th>Credit</th>
-                    <th>Balance</th>
-                    <th>Date Added</th>
-                    <th>User ID</th>
-                    <th>Order</th>
-                    <th>Statement</th>
-                    <th>Comment</th>
-                    <th>Active</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="account : ${accounts}">
-                    <td th:text="${account.id}"></td>
-                    <td th:text="${account.accountName}"></td>
-                    <td th:text="${account.accountNumber}"></td>
-                    <td th:text="${account.accountDescription}"></td>
-                    <td th:text="${account.normalSide}"></td>
-                    <td th:text="${account.accountCategory}"></td>
-                    <td th:text="${account.accountSubcategory}"></td>
-                    <td th:text="${#numbers.formatDecimal(account.initialBalance, 1, 'COMMA', 2, 'POINT')}"></td>
-                    <td th:text="${#numbers.formatDecimal(account.debit, 1, 'COMMA', 2, 'POINT')}"></td>
-                    <td th:text="${#numbers.formatDecimal(account.credit, 1, 'COMMA', 2, 'POINT')}"></td>
-                    <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
-                    <td th:text="${account.dateAdded}"></td>
-                    <td th:text="${account.userId}"></td>
-                    <td th:text="${account.accountOrder}"></td>
-                    <td th:text="${account.statement}"></td>
-                    <td th:text="${account.comment}"></td>
-                    <td>
-                        <span th:if="${account.active}" class="badge bg-success">Active</span>
-                        <span th:unless="${account.active}" class="badge bg-danger">Inactive</span>
-                    </td>
-                    <td class="actions">
-                        <a th:href="@{/accounts/edit(id=${account.id})}" class="btn">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <form th:action="@{/accounts/deactivate}" method="post" class="action-form">
-                            <input type="hidden" name="id" th:value="${account.id}" />
-                            <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('Are you sure you want to deactivate this account?');">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div>
+            <input type="date" id="popupCalendar" />
         </div>
-    </div>
-</div>
+        <div class="nav-buttons">
+            <a th:href="@{/accounts}" >Chart of Accounts</a>
+            <a th:href="@{/journal}" >Journal</a>
+            <a th:href="@{/event-logs}" >Event Logs</a>
+        </div>
+    </header>
 
-<style>
-    .badge {
-        display: inline-block;
-        padding: 0.25em 0.6em;
-        font-size: 75%;
-        font-weight: 700;
-        line-height: 1;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
-        border-radius: 0.25rem;
-        color: white;
-    }
+    <h1>Chart of Accounts</h1>
 
-    .bg-success {
-        background-color: var(--success);
-    }
+    <!-- Search/Filter Form -->
+    <form method="get" th:action="@{/accounts}">
+        <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc."
+               th:value="${param.query}" />
+        <button type="submit">Search</button>
+    </form>
 
-    .bg-danger {
-        background-color: var(--danger);
-    }
+    <a th:href="@{/accounts/add}">Add New Account</a>
 
-    .table-responsive {
-        overflow-x: auto;
-    }
-</style>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Account Name</th>
+                <th>Account Number</th>
+                <th>Description</th>
+                <th>Normal Side</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Initial Balance</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Balance</th>
+                <th>Date Added</th>
+                <th>User ID</th>
+                <th>Order</th>
+                <th>Statement</th>
+                <th>Comment</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="account : ${accounts}">
+                <td th:text="${account.id}"></td>
+                <!-- Account name is now a link to the ledger view -->
+                <td>
+                    <a th:href="@{'/accounts/' + ${account.id} + '/ledger'}"
+                       th:text="${account.accountName}"></a>
+                </td>
+                <td th:text="${account.accountNumber}"></td>
+                <td th:text="${account.accountDescription}"></td>
+                <td th:text="${account.normalSide}"></td>
+                <td th:text="${account.accountCategory}"></td>
+                <td th:text="${account.accountSubcategory}"></td>
+                <td th:text="${#numbers.formatDecimal(account.initialBalance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.debit, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.credit, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${account.dateAdded}"></td>
+                <td th:text="${account.userId}"></td>
+                <td th:text="${account.accountOrder}"></td>
+                <td th:text="${account.statement}"></td>
+                <td th:text="${account.comment}"></td>
+                <td th:text="${account.active}"></td>
+                <td>
+                    <a th:href="@{/accounts/edit(id=${account.id})}">Edit</a>
+                    <!-- Only allow deactivation if balance equals zero -->
+                    <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${account.id}" />
+                        <button type="submit"
+                                th:if="${account.balance.compareTo(0) == 0}"
+                                onclick="return confirm('Are you sure you want to deactivate this account?');">
+                            Deactivate
+                        </button>
+                        <button type="button"
+                                th:if="${account.balance.compareTo(0) > 0}"
+                                class="disabled-button"
+                                title="Accounts with balance greater than zero cannot be deactivated."
+                                disabled>
+                            Deactivate
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>
-
 </html>

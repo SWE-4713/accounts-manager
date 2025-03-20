@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Event Logs</title>
+    <style>
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+        .nav-buttons a {
+            margin-right: 10px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 90%; 
+            margin-bottom: 20px; 
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <!-- Common Header -->
+    <header>
+        <div>
+            <img src="https://i.imgur.com/aBKRRy2.png" alt="Software Logo" style="height:50px;"/>
+        </div>
+        <div>
+            <span th:text="'Welcome, ' + ${username}">Welcome, User</span>
+        </div>
+        <div>
+            <input type="date" id="popupCalendar" />
+        </div>
+        <div class="nav-buttons">
+            <a th:href="@{/accounts}" >Chart of Accounts</a>
+            <a th:href="@{/journal}" >Journalizing</a>
+            <a th:href="@{/event-logs}" >Event Logs</a>
+        </div>
+    </header>
+
+    <h1>Event Logs</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Before Image</th>
+                <th>After Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="log : ${eventLogs}">
+                <td th:text="${log.id}"></td>
+                <td th:text="${log.userId}"></td>
+                <td th:text="${log.timestamp}"></td>
+                <td th:text="${log.action}"></td>
+                <td><pre th:text="${log.beforeImage}"></pre></td>
+                <td><pre th:text="${log.afterImage}"></pre></td>
+            </tr>
+            <tr th:if="${eventLogs == null or #lists.isEmpty(eventLogs)}">
+                <td colspan="6">No event logs available.</td>
+            </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/accounts}">Back to Accounts</a>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Journal</title>
+    <style>
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+        .nav-buttons a {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Common Header -->
+    <header>
+        <div>
+            <img src="https://i.imgur.com/aBKRRy2.png" alt="Software Logo" style="height:50px;"/>
+        </div>
+        <div>
+            <span th:text="'Welcome, ' + ${username}">Welcome, User</span>
+        </div>
+        <div>
+            <input type="date" id="popupCalendar" />
+        </div>
+        <div class="nav-buttons">
+            <a th:href="@{/accounts}" >Chart of Accounts</a>
+            <a th:href="@{/journal}" >Journalizing</a>
+            <a th:href="@{/event-logs}" >Event Logs</a>
+        </div>
+    </header>
+
+    <h1>Journalizing</h1>
+    <p>This page will contain functionality for journal entries. (To be implemented.)</p>
+    <a th:href="@{/accounts}">Back to Accounts</a>
+</body>
+</html>
