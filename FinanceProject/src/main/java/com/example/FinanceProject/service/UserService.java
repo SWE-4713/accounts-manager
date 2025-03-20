@@ -334,22 +334,27 @@ public class UserService {
 
     // Method for registering pending users - now with admin notification
     public void registerPendingUser(
-            String username,
-            String password,
             String role,
             String firstName,
             String lastName,
             String address,
             String dob,
             String email) {
-        if (pendingUserRepo.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("Username already exists");
+        if (pendingUserRepo.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email already exists");
         }
-        
-        String hashedPassword = passwordEncoder.encode(password);
+
+
         PendingUser pendingUser = new PendingUser();
+        // Generate username based on first initial, last name, and current date
+        LocalDateTime now = LocalDateTime.now();
+        String month = String.format("%02d", now.getMonthValue());
+        String year = String.format("%02d", now.getYear() % 100);
+
+        // Create username: first initial + last name + month + year
+        String username = (firstName.substring(0, 1) + lastName + month + year).toLowerCase();
+
         pendingUser.setUsername(username);
-        pendingUser.setPassword(hashedPassword);
         pendingUser.setRole(role);
         pendingUser.setFirstName(firstName);
         pendingUser.setLastName(lastName);
@@ -417,10 +422,15 @@ public class UserService {
                 .findById(pendingUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Pending user not found"));
 
+
+        // Generate a random password
+        String password = generateRandomPassword();
+        String encodedPassword = encodePassword(password);
+
         // Create a new active user without rehashing the already hashed password
         User user = new User();
         user.setUsername(pendingUser.getUsername());
-        user.setPassword(pendingUser.getPassword()); // Use the hash as-is
+        user.setPassword(encodedPassword);
         user.setRole(pendingUser.getRole());
         user.setFirstName(pendingUser.getFirstName());
         user.setLastName(pendingUser.getLastName());
@@ -433,16 +443,58 @@ public class UserService {
         user.setPasswordUpdateDate(new Date());
         userRepo.save(user);
         savePasswordToHistory(user, user.getPassword());
+
+
+        // Send email with credentials to the user
+        sendCredentialsEmail(user.getEmail(), user.getUsername(), password);
+
         pendingUserRepo.deleteById(pendingUserId);
 
         // Notify the user that their account has been approved (optional)
         try {
-            sendAccountApprovalEmail(user.getEmail(), user.getFirstName());
+//            sendAccountApprovalEmail(user.getEmail(), user.getFirstName());
+            System.out.println("Accept user");
         } catch (Exception e) {
             System.err.println("Failed to send approval email: " + e.getMessage());
         }
     }
-    
+
+    /**
+     * Sends an email with the generated username and password
+     */
+    private void sendCredentialsEmail(String email, String username, String password) {
+        try {
+            String subject = "Your Account Has Been Approved";
+            String content = "Dear User,\n\n" +
+                    "Your account has been approved. Here are your login credentials:\n\n" +
+                    "Username: " + username + "\n" +
+                    "Password: " + password + "\n\n" +
+                    "Please login using these credentials and change your password immediately.\n\n" +
+                    "Regards,\nThe Finance Project Team";
+
+            emailService.sendSimpleEmail(email, subject, content);
+        } catch (Exception e) {
+            // Log the exception but don't prevent the user creation
+            System.err.println("Failed to send credentials email: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Generates a random password
+     */
+    private String generateRandomPassword() {
+        // Generate a random password with 10 characters
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < 10; i++) {
+            int index = (int)(chars.length() * Math.random());
+            password.append(chars.charAt(index));
+        }
+
+        return password.toString();
+    }
+
     // Send account approval email to the user
     private void sendAccountApprovalEmail(String userEmail, String firstName) {
         if (userEmail == null || userEmail.isEmpty() || userEmail.equals("N/A")) {

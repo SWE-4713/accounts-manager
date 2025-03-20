@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface PendingUserRepo extends JpaRepository<PendingUser, Long> {
     Optional<PendingUser> findByUsername(String username);
+    Optional<PendingUser> findByEmail(String username);
 }

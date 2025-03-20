@@ -26,8 +26,6 @@ public class UserController {
     // This method processes self-registration
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
-            @RequestParam String username,
-            @RequestParam String password,
             @RequestParam String role,
             @RequestParam String firstName,
             @RequestParam String lastName,
@@ -35,19 +33,17 @@ public class UserController {
             @RequestParam String dob,
             @RequestParam String email,
             Model model) {
-        if (!PasswordValidator.isValid(password)) {
-            Map<String, String> errors = new HashMap<>();
-            errors.put(
-                    "password",
-                    "Password must contain at least one letter, one number, one special character, and be at least 8 characters long.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-        }
+//        if (!PasswordValidator.isValid(password)) {
+//            Map<String, String> errors = new HashMap<>();
+//            errors.put(
+//                    "password",
+//                    "Password must contain at least one letter, one number, one special character, and be at least 8 characters long.");
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+//        }
 
         try {
             // This method now sends emails to all admins automatically
             userService.registerPendingUser(
-                    username,
-                    password,
                     role,
                     firstName,
                     lastName,
