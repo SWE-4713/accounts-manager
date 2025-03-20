@@ -1,19 +1,13 @@
 package com.example.FinanceProject;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.Data;
 
 @Entity
-@Table(name = "accounts",
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = {"accountNumber"}),
-           @UniqueConstraint(columnNames = {"accountName"})
-       })
+@Table(name = "accounts")
 @Data
 public class Account {
 
@@ -21,60 +15,69 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // a. Account name (unique)
+    // a. Account name (unique, not null)
     @NotNull
-    @Column(name = "accountName", nullable = false)
+    @Column(name = "account_name", nullable = false, unique = true)
     private String accountName;
 
-    // b. Account number (only digits, no decimals, unique)
+    // b. Account number (unique, not null)
     @NotNull
-    @Pattern(regexp="\\d+", message="Account number must be numeric with no decimals")
-    @Column(name = "accountNumber", nullable = false)
+    @Column(name = "account_number", nullable = false, unique = true)
     private String accountNumber;
 
-    // c. Account description
+    // c. Account description (optional)
+    @Column(name = "account_description")
     private String accountDescription;
 
-    // d. Normal side (e.g., debit or credit side)
+    // d. Normal side (optional)
+    @Column(name = "normal_side")
     private String normalSide;
 
-    // e. Account category (e.g., asset)
+    // e. Account category (optional)
+    @Column(name = "account_category")
     private String accountCategory;
 
-    // f. Account subcategory (e.g., current assets)
+    // f. Account subcategory (optional)
+    @Column(name = "account_subcategory")
     private String accountSubcategory;
 
-    // g. Initial balance
-    @Digits(integer = 15, fraction = 2)
-    private BigDecimal initialBalance;
+    // g. Initial balance (with two decimal precision)
+    @Column(name = "initial_balance", precision = 15, scale = 2)
+    private BigDecimal initialBalance = BigDecimal.ZERO;
 
-    // h. Debit
-    @Digits(integer = 15, fraction = 2)
-    private BigDecimal debit;
+    // h. Debit (with two decimal precision)
+    @Column(name = "debit", precision = 15, scale = 2)
+    private BigDecimal debit = BigDecimal.ZERO;
 
-    // i. Credit
-    @Digits(integer = 15, fraction = 2)
-    private BigDecimal credit;
+    // i. Credit (with two decimal precision)
+    @Column(name = "credit", precision = 15, scale = 2)
+    private BigDecimal credit = BigDecimal.ZERO;
 
-    // j. Balance
-    @Digits(integer = 15, fraction = 2)
-    private BigDecimal balance;
+    // j. Balance (with two decimal precision)
+    @Column(name = "balance", precision = 15, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
 
     // k. Date/time account added
-    private LocalDateTime dateAdded;
+    @Column(name = "date_added")
+    private LocalDateTime dateAdded = LocalDateTime.now();
 
-    // l. User id (creator/owner)
+    // l. User id (the creator/owner; optional)
+    @Column(name = "user_id")
     private Long userId;
 
-    // m. Order (e.g., "01" for cash)
-    private String accountOrder;
+    // m. Order (optional; use Integer for numeric order)
+    @Column(name = "account_order")
+    private Integer accountOrder;
 
-    // n. Statement (e.g., "IS", "BS", "RE")
+    // n. Statement (optional)
+    @Column(name = "statement")
     private String statement;
 
-    // o. Comment
+    // o. Comment (optional; NVARCHAR(MAX))
+    @Column(name = "comment", columnDefinition = "NVARCHAR(MAX)")
     private String comment;
 
-    // Flag to indicate if the account is active or deactivated
+    // Active flag; true for active, false for deactivated
+    @Column(name = "active")
     private boolean active = true;
 }
