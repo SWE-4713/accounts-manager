@@ -38,7 +38,7 @@ public class AccountController {
     }
     
     // View individual account details (req. 7)
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/account-view")
     public String viewAccount(@PathVariable Long id, Model model, Authentication authentication) {
         model.addAttribute("username", authentication.getName());
         Account account = accountService.getAccountById(id);

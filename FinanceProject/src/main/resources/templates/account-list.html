@@ -308,7 +308,7 @@
                 <tr th:each="account : ${accounts}">
                     <td th:text="${account.id}"></td>
                     <td>
-                        <a th:href="@{'/accounts/' + ${account.id} + '/ledger'}" th:text="${account.accountName}"></a>
+                        <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountName}"></a>
                     </td>
                     <td th:text="${account.accountNumber}"></td>
                     <td th:text="${account.accountDescription}"></td>
