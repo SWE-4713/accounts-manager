@@ -3,13 +3,64 @@
 <head>
     <title>Account List</title>
     <style>
-      table { border-collapse: collapse; width: 90%; margin-bottom: 20px; }
-      table, th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+        .nav-buttons a {
+            margin-right: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 90%;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .disabled-button {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
     </style>
+    <!-- Include any JavaScript libraries or CSS as needed for an enhanced calendar -->
 </head>
 <body>
-    <h1>Accounts</h1>
+    <!-- Header with logo, username, calendar and navigation buttons -->
+    <header>
+        <div>
+            <img src="https://i.imgur.com/aBKRRy2.png" alt="Software Logo" style="height:50px;"/>
+        </div>
+        <div>
+            <span th:text="'Welcome, ' + ${username}">Welcome, User</span>
+        </div>
+        <div>
+            <input type="date" id="popupCalendar" />
+        </div>
+        <div class="nav-buttons">
+            <a th:href="@{/accounts}" >Chart of Accounts</a>
+            <a th:href="@{/journal}" >Journal</a>
+            <a th:href="@{/event-logs}" >Event Logs</a>
+        </div>
+    </header>
+    
+    <h1>Chart of Accounts</h1>
+    
+    <!-- Search/Filter Form -->
+    <form method="get" th:action="@{/accounts}">
+        <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc." 
+               th:value="${param.query}" />
+        <button type="submit">Search</button>
+    </form>
+    
     <a th:href="@{/accounts/add}">Add New Account</a>
+    
     <table>
         <thead>
             <tr>
@@ -36,7 +87,11 @@
         <tbody>
             <tr th:each="account : ${accounts}">
                 <td th:text="${account.id}"></td>
-                <td th:text="${account.accountName}"></td>
+                <!-- Account name is now a link to the ledger view -->
+                <td>
+                    <a th:href="@{'/accounts/' + ${account.id} + '/ledger'}"
+                       th:text="${account.accountName}"></a>
+                </td>
                 <td th:text="${account.accountNumber}"></td>
                 <td th:text="${account.accountDescription}"></td>
                 <td th:text="${account.normalSide}"></td>
@@ -54,9 +109,21 @@
                 <td th:text="${account.active}"></td>
                 <td>
                     <a th:href="@{/accounts/edit(id=${account.id})}">Edit</a>
+                    <!-- Only allow deactivation if balance equals zero -->
                     <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
                         <input type="hidden" name="id" th:value="${account.id}" />
-                        <button type="submit" onclick="return confirm('Are you sure you want to deactivate this account?');">Deactivate</button>
+                        <button type="submit" 
+                                th:if="${account.balance.compareTo(0) == 0}"
+                                onclick="return confirm('Are you sure you want to deactivate this account?');">
+                            Deactivate
+                        </button>
+                        <button type="button" 
+                                th:if="${account.balance.compareTo(0) > 0}" 
+                                class="disabled-button" 
+                                title="Accounts with balance greater than zero cannot be deactivated."
+                                disabled>
+                            Deactivate
+                        </button>
                     </form>
                 </td>
             </tr>
