@@ -2,11 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>User Dashboard</title>
+    <style>
+        .nav-buttons {
+            margin-top: 20px;
+        }
+        .nav-buttons a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-buttons a:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Welcome, user!</h1>
     <p>This page is viewable to anyone.</p>
+    
+    <div class="nav-buttons">
+        <!-- Navigation for account management -->
+        <a th:href="@{/accounts}">Account List</a>
+    </div>
 
     <p><a href="/logout">Logout</a></p> <!-- Provide a logout link -->
 </body>

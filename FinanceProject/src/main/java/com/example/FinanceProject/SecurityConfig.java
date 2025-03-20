@@ -46,6 +46,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "password-reset-success", "/api/password/forgot", "/api/password/reset/validate", "/api/password/reset", "/password-expired").permitAll() // Allow public access
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Restrict admin routes
+                .requestMatchers("/accounts/add").hasRole("ADMIN") // Only admin can access account-add
                 .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN") // Restrict user routes
                 .anyRequest().authenticated()
             )
