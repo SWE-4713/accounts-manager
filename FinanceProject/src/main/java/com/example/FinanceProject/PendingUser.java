@@ -18,7 +18,7 @@ public class PendingUser {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column
     private String password;
 
     private String role;
