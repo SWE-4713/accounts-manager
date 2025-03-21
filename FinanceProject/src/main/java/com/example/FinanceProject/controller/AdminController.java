@@ -2,6 +2,7 @@ package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.User;
 import com.example.FinanceProject.service.EmailService;
+import com.example.FinanceProject.service.PasswordExpirationReportService;
 import com.example.FinanceProject.service.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @Secured("ROLE_ADMIN")
@@ -23,6 +30,9 @@ public class AdminController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PasswordExpirationReportService passwordExpirationReportService;
+
     // Serve the admin landing page with both active and pending users
     @GetMapping
     public String adminLandingPage(Model model) {
@@ -31,6 +41,40 @@ public class AdminController {
         model.addAttribute("username", authentication.getName());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
+    }
+
+    @GetMapping("/password/expired-report")
+    public ResponseEntity<Map<String, Object>> generateExpiredPasswordsReport() {
+        List<User> expiredUsers = passwordExpirationReportService.findUsersWithExpiredPasswords();
+
+        List<Map<String, Object>> usersList = expiredUsers.stream()
+                .map(user -> {
+                    Map<String, Object> userMap = new HashMap<>();
+                    userMap.put("username", user.getUsername());
+                    userMap.put("email", user.getEmail());
+                    userMap.put("lastPasswordChange", user.getPasswordLastChanged());
+
+                    // Calculate days expired
+                    long diffInMillies = new Date().getTime() - user.getPasswordLastChanged().getTime();
+                    long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+                    userMap.put("daysExpired", diffInDays);
+
+                    return userMap;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("count", expiredUsers.size());
+        response.put("users", usersList);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/password/expired-report/email")
+    public ResponseEntity<String> emailExpiredPasswordsReport() {
+        System.out.println("Sending expired passwords report to admin email");
+        passwordExpirationReportService.sendExpiredPasswordsReport();
+        return ResponseEntity.ok("Expired passwords report sent to admin email");
     }
 
     @PostMapping("/send-email")
