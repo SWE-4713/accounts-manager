@@ -262,6 +262,57 @@
             text-decoration: none;
             font-size: 14px;
         }
+        /* Button Styles */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a5a8a;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        /* For disabled buttons */
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
         .btn i {
             margin-right: 5px;
@@ -361,6 +412,65 @@
         .dropdown:hover .dropbtn {
             background-color: #3e8e41;
         }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 60%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalOpen 0.3s ease-out;
+        }
+
+        @keyframes modalOpen {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Make usernames clickable */
+        .clickable-username {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .clickable-username:hover {
+            color: #3a5a8a;
+        }
     </style>
 </head>
 
@@ -444,7 +554,32 @@
             </form>
         </div>
 
-        <!-- Section for active users -->
+        <!-- email composition modal -->
+        <div id="emailModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Send Email</h2>
+                <form id="emailForm" th:action="@{/admin/send-email}" method="post">
+                    <div class="form-group">
+                        <label for="recipient">To:</label>
+                        <input type="text" id="recipient" name="recipient" readonly>
+                        <input type="hidden" id="recipientUsername" name="recipientUsername">
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject:</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" rows="6" required></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">Send Email</button>
+                        <button type="button" class="btn btn-secondary cancel-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- Section for active users -->
         <div class="section">
             <h2><i class="fas fa-users"></i> Active Users</h2>
@@ -461,7 +596,14 @@
                 <tbody>
                     <tr th:each="user, iterStat : ${users}">
                         <td th:text="${iterStat.index + 1}"></td>
-                        <td th:text="${user.username}"></td>
+                        <td>
+                            <span class="clickable-username"
+                                  th:text="${user.username}"
+                                  th:data-username="${user.username}"
+                                  th:data-email="${user.email}">
+                                username
+                            </span>
+                        </td>
                         <td th:text="${user.role}"></td>
                         <td th:text="${user.status}"></td>
                         <td class="action-buttons">
@@ -529,5 +671,45 @@
         </div>
     </div>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('emailModal');
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+
+        // Function to open the modal
+        function openEmailModal(username, email) {
+            document.getElementById('recipient').value = email;
+            document.getElementById('recipientUsername').value = username;
+            modal.style.display = 'block';
+        }
+
+        // Close modal when clicking X
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking Cancel
+        cancelBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside the modal
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Set up event listeners for username links
+        document.querySelectorAll('.clickable-username').forEach(function(link) {
+            link.addEventListener('click', function() {
+                const username = this.getAttribute('data-username');
+                const email = this.getAttribute('data-email');
+                openEmailModal(username, email);
+            });
+        });
+    });
+</script>
 
 </html>

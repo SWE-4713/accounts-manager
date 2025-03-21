@@ -1,6 +1,7 @@
 package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.User;
+import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.UserService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EmailService emailService;
+
     // Serve the admin landing page with both active and pending users
     @GetMapping
     public String adminLandingPage(Model model) {
@@ -28,7 +32,34 @@ public class AdminController {
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "admin-landing";
     }
-    
+
+    @PostMapping("/send-email")
+    public String sendEmail(
+            @RequestParam("recipientUsername") String username,
+            @RequestParam("subject") String subject,
+            @RequestParam("message") String message,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            // Get user email from username
+            User user = userService.findUserByUsername(username);
+            if (user == null) {
+                redirectAttributes.addFlashAttribute("error", "User not found");
+                return "redirect:/admin";
+            }
+
+            // Send email
+            emailService.sendSimpleEmail(user.getEmail(), subject, message);
+
+            // Add success message
+            redirectAttributes.addFlashAttribute("message", "Email sent successfully to " + username);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to send email: " + e.getMessage());
+        }
+
+        return "redirect:/admin";
+    }
+
     // Handle the creation of a new user via admin form
     @PostMapping("/users/create")
     public String createUser(@RequestParam String username,
