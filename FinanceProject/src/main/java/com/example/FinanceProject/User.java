@@ -32,6 +32,13 @@ public class User {
     @Column(name = "password_update_date")
     private Date passwordUpdateDate;
 
+    /**
+     * Gets the date when the password was last changed
+     * @return the date of the last password change
+     */
+    public Date getPasswordLastChanged() {
+        return passwordUpdateDate;
+    }
 
     @Column(nullable = false)
     private String password;
