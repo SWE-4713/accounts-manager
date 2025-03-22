@@ -38,6 +38,10 @@ public class Account {
     @Column(name = "account_category")
     private String accountCategory;
 
+    // e. Account category (optional)
+    @Column(name = "account_type")
+    private String accountType;
+
     // f. Account subcategory (optional)
     @Column(name = "account_subcategory")
     private String accountSubcategory;
