@@ -117,7 +117,8 @@
 
         .nav-links button {
             display: inline-block;
-            padding: 10px 15px;
+            font-size: 16px;
+            padding: 13px 15px;
             margin-right: 10px;
             background-color: var(--primary);
             color: white;
@@ -470,9 +471,8 @@
 <header th:replace="fragments/navbar :: navbar"></header>
 <div class="container">
         <div class="nav-links">
-            <a th:href="@{/accounts}"><i class="fas fa-list"></i> Account List</a>
-            <button id="getExpiredPasswordReport" class="btn btn-link p-0" style="text-decoration: none;">
-                <i class="fas fa-list"></i> Get Expired Password Report
+            <button id="getExpiredPasswordReport" style="text-decoration: none;">
+                Get Expired Password Report
             </button>
         </div>
         <!-- Feedback messages -->
