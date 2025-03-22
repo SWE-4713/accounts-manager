@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<!-- Navbar Fragment -->
+<div th:fragment="navbar">
+<header th:fragment="navbar" class="header">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/aBKRRy2.png">
+    <div class="container header-content">
+        <div class="logo">
+            <img src="https://i.imgur.com/aBKRRy2.png" width="40px">
+            <span th:text="${#dates.format(#dates.createNow(), 'MMMM dd, yyyy')}"></span>
+        </div>
+
+        <div class="nav-menu">
+            <!-- Accounting Dropdown -->
+            <div class="nav-dropdown">
+                <button class="nav-dropbtn">Accounting <i class="fas fa-caret-down"></i></button>
+                <div class="nav-dropdown-content">
+                    <a href="/accounts">Chart of Accounts</a>
+                    <a href="/journal">Journal Entries</a>
+                    <a href="/ledger">General Ledger</a>
+                </div>
+            </div>
+
+            <!-- Reports Dropdown -->
+            <div class="nav-dropdown">
+                <button class="nav-dropbtn">Reports <i class="fas fa-caret-down"></i></button>
+                <div class="nav-dropdown-content">
+                    <a href="/reports/financial">Financial Reports</a>
+                    <a href="/reports/balance-sheet">Balance Sheet</a>
+                    <a href="/reports/income-statement">Income Statement</a>
+                </div>
+            </div>
+
+            <!-- Settings Dropdown -->
+            <div class="nav-dropdown">
+                <button class="nav-dropbtn">Settings <i class="fas fa-caret-down"></i></button>
+                <div class="nav-dropdown-content">
+                    <a href="/settings/general">General Settings</a>
+                    <a href="/admin">User Management</a>
+                    <a href="/settings/company">Company Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Dropdown -->
+        <div class="dropdown">
+            <button class="dropbtn" th:text="${username}"></button>
+            <div class="dropdown-content">
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+</header>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .logout-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Navigation Menu Styles */
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Navigation Dropdown Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .nav-dropbtn {
+            background-color: transparent;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .nav-dropdown-content a {
+            color: var(--dark);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s;
+        }
+
+        .nav-dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+
+        .nav-dropdown:hover .nav-dropbtn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Existing User Dropdown Styles */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: transparent;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .dropdown-content a {
+            color: var(--dark);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover .dropbtn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</div>
+</body>
+</html>
