@@ -19,12 +19,13 @@ DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     account_name VARCHAR(255) NOT NULL,
-    account_number VARCHAR(50) NOT NULL,
+    -- Auto-generated 10-digit account_number computed from the id
+    account_number AS RIGHT('0000000000' + CAST(id AS VARCHAR(10)), 10) PERSISTED,
     account_description VARCHAR(500) NULL,
     normal_side VARCHAR(50) NULL,
     account_category VARCHAR(100) NULL,
     account_subcategory VARCHAR(100) NULL,
-    initial_balance DECIMAL(15,2) NOT NULL DEFAULT (0.00),
+    -- Removed initial_balance column
     debit DECIMAL(15,2) NOT NULL DEFAULT (0.00),
     credit DECIMAL(15,2) NOT NULL DEFAULT (0.00),
     balance DECIMAL(15,2) NOT NULL DEFAULT (0.00),
@@ -34,6 +35,6 @@ CREATE TABLE accounts (
     statement VARCHAR(500) NULL,
     comment NVARCHAR(MAX) NULL,
     active BIT NOT NULL DEFAULT (1),
-    CONSTRAINT unique_account_name UNIQUE (account_name),
-    CONSTRAINT unique_account_number UNIQUE (account_number)
+    CONSTRAINT unique_account_name UNIQUE (account_name)
+    -- account_number is computed from id so it will be unique as id is unique.
 );
