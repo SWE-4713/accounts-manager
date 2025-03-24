@@ -236,8 +236,11 @@
         </div>
 
         <div class="form-group">
-            <label for="normalSide">Normal Side</label>
-            <input type="text" id="normalSide" th:field="*{normalSide}" required />
+            <label for="normalSide">Account Type</label>
+            <select id="normalSide" th:field="*{normalSide}" required>
+                <option value="Left">Left</option>
+                <option value="Right">Right</option>
+            </select>
             <div class="error-message" th:if="${#fields.hasErrors('normalSide')}" th:errors="*{normalSide}"></div>
         </div>
 
