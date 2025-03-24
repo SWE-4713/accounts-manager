@@ -241,7 +241,7 @@
                 <tr>
                     <th>Account Number</th>
                     <th>Description</th>
-                    <th>Type</th>
+                    <th>Category</th>
                     <th>Financial Statement</th>
                     <th>Actions</th>
                 </tr>
@@ -252,7 +252,7 @@
                         <a th:href="@{'/accounts/' + ${account.accountNumber} + '/account-view'}" th:text="${account.accountNumber}"></a>
                     </td>
                     <td th:text="${account.accountDescription}"></td>
-                    <td th:text="${account.accountType}"></td>
+                    <td th:text="${account.accountCategory}"></td>
                     <td th:text="${account.statement}"></td>
                     <td class="action-links">
                         <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
