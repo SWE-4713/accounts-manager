@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
 </head>
@@ -41,7 +42,7 @@
                 <button class="nav-dropbtn">Settings <i class="fas fa-caret-down"></i></button>
                 <div class="nav-dropdown-content">
                     <a href="/settings/general">General Settings</a>
-                    <a href="/admin">User Management</a>
+                    <a sec:authorize="hasRole('ROLE_ADMIN')" href="/admin/user-management">User Management</a>
                     <a href="/settings/company">Company Profile</a>
                 </div>
             </div>

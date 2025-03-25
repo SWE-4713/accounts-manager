@@ -1,7 +1,7 @@
 // AccountController.java
 package com.example.FinanceProject.controller;
 
-import com.example.FinanceProject.Account;
+import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@Secured({"ROLE_ADMIN", "ROLE_USER"})  // Accessible to both roles
+@Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGER"})
 @RequestMapping("/accounts")
 public class AccountController {
     
@@ -33,7 +33,7 @@ public class AccountController {
             accounts = accountService.getAllAccounts();
         }
         model.addAttribute("accounts", accounts);
-        return "account-list";  // Your Thymeleaf template should include the logo (req. 10),
+        return "chart-of-accounts";  // Your Thymeleaf template should include the logo (req. 10),
                                 // filter options (req. 12), calendar (req. 13), and navigation buttons (req. 14)
     }
     
