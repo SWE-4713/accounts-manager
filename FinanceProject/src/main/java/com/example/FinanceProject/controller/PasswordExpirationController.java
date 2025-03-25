@@ -1,6 +1,6 @@
 package com.example.FinanceProject.controller;
 
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.PasswordExpirationService;
 import com.example.FinanceProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

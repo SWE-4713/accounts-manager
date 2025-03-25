@@ -1,7 +1,7 @@
 package com.example.FinanceProject.repository;
 
-import com.example.FinanceProject.PasswordResetToken;
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.PasswordResetToken;
+import com.example.FinanceProject.entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.CrudRepository;

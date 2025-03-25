@@ -1,7 +1,7 @@
 // EventLogRepository.java
 package com.example.FinanceProject.repository;
 
-import com.example.FinanceProject.EventLog;
+import com.example.FinanceProject.entity.EventLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EventLogRepo extends JpaRepository<EventLog, Long> {

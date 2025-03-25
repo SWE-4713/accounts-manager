@@ -1,10 +1,10 @@
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.PasswordHistory;
-import com.example.FinanceProject.PasswordResetToken;
-import com.example.FinanceProject.PendingUser;
+import com.example.FinanceProject.entity.PasswordHistory;
+import com.example.FinanceProject.entity.PasswordResetToken;
+import com.example.FinanceProject.entity.PendingUser;
 import com.example.FinanceProject.dto.RegistrationRequest;
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.PasswordHistoryRepository;
 import com.example.FinanceProject.repository.PasswordResetTokenRepository;
 import com.example.FinanceProject.repository.PendingUserRepo;

@@ -1,7 +1,7 @@
 package com.example.FinanceProject.repository;
 
-import com.example.FinanceProject.PasswordHistory;
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.PasswordHistory;
+import com.example.FinanceProject.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

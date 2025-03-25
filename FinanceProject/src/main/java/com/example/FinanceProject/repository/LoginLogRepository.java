@@ -1,7 +1,7 @@
 package com.example.FinanceProject.repository;
 
-import com.example.FinanceProject.LoginLog;
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.LoginLog;
+import com.example.FinanceProject.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

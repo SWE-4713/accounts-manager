@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 
 <head>
     <meta charset="UTF-8">
@@ -218,7 +219,7 @@
 <body>
 <header th:replace="fragments/navbar :: navbar"></header>
 <div class="container">
-    <div class="nav-links">
+    <div sec:authorize="hasRole('ROLE_ADMIN')" class="nav-links">
         <a th:href="@{/event-logs}">Event Logs</a>
     </div>
 
@@ -232,7 +233,7 @@
             <button type="submit"><i class="fas fa-search"></i> Search</button>
         </form>
 
-        <a class="add-btn" th:href="@{/accounts/add}"><i class="fas fa-plus"></i> Add New Account</a>
+        <a class="add-btn" sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/accounts/add}"><i class="fas fa-plus"></i> Add New Account</a>
 
         <!-- Table with horizontal scrolling -->
         <div class="table-responsive">
@@ -243,7 +244,7 @@
                     <th>Description</th>
                     <th>Category</th>
                     <th>Financial Statement</th>
-                    <th>Actions</th>
+                    <th sec:authorize="hasRole('ROLE_ADMIN')">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -254,7 +255,7 @@
                     <td th:text="${account.accountDescription}"></td>
                     <td th:text="${account.accountCategory}"></td>
                     <td th:text="${account.statement}"></td>
-                    <td class="action-links">
+                    <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
                         <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
                         <!-- Only allow deactivation if balance equals zero -->
                         <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
