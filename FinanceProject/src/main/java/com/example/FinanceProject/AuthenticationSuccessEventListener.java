@@ -7,7 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.stereotype.Component;
 
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.UserRepo;
 
 @Component

@@ -1,6 +1,6 @@
 package com.example.FinanceProject.controller;
 
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.PasswordExpirationReportService;
 import com.example.FinanceProject.service.UserService;
@@ -40,7 +40,16 @@ public class AdminController {
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("username", authentication.getName());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "redirect:/accounts";
+    }
+
+    @GetMapping("/user-management")
+    public String userManagement(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("username", authentication.getName());
+        model.addAttribute("pendingUsers", userService.getAllPendingUsers());
+        return "user-management";
     }
 
     @GetMapping("/password/expired-report")
@@ -89,7 +98,7 @@ public class AdminController {
             User user = userService.findUserByUsername(username);
             if (user == null) {
                 redirectAttributes.addFlashAttribute("error", "User not found");
-                return "redirect:/admin";
+                return "redirect:/user-management";
             }
 
             // Send email
@@ -101,7 +110,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Failed to send email: " + e.getMessage());
         }
 
-        return "redirect:/admin";
+        return "redirect:/user-management";
     }
 
     // Handle the creation of a new user via admin form
@@ -123,7 +132,7 @@ public class AdminController {
         }
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "user-management";
     }
 
     // Accept a pending registration
@@ -137,7 +146,7 @@ public class AdminController {
         }
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "user-management";
     }
 
     // Deny a pending registration
@@ -151,7 +160,7 @@ public class AdminController {
         }
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "user-management";
     }
     
     @PostMapping("/users/suspend")
@@ -164,7 +173,7 @@ public class AdminController {
         }
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "user-management";
     }
     
     @PostMapping("/users/unsuspend")
@@ -177,7 +186,7 @@ public class AdminController {
         }
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
-        return "admin-landing";
+        return "user-management";
     }
 
     @GetMapping("/users/edit")
@@ -202,6 +211,6 @@ public class AdminController {
         
         userService.updateUser(id, username, role, firstName, lastName, address, dob, email);
         redirectAttributes.addFlashAttribute("message", "User updated successfully");
-        return "redirect:/admin";
+        return "redirect:/user-management";
     }
 }

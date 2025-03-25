@@ -1,7 +1,7 @@
 // AccountService.java
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.Account;
+import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

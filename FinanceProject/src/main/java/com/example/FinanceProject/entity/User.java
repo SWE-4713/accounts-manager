@@ -1,4 +1,4 @@
-package com.example.FinanceProject;
+package com.example.FinanceProject.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

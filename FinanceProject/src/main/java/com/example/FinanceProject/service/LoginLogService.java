@@ -1,7 +1,7 @@
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.LoginLog;
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.LoginLog;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.LoginLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

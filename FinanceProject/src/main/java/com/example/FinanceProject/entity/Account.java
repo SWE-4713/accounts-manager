@@ -1,4 +1,4 @@
-package com.example.FinanceProject;
+package com.example.FinanceProject.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -37,10 +37,6 @@ public class Account {
     // e. Account category (optional)
     @Column(name = "account_category")
     private String accountCategory;
-
-    // e. Account category (optional)
-    @Column(name = "account_type")
-    private String accountType;
 
     // f. Account subcategory (optional)
     @Column(name = "account_subcategory")

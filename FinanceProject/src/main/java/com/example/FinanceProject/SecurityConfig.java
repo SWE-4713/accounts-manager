@@ -1,5 +1,6 @@
 package com.example.FinanceProject;
 
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.UserRepo;
 import com.example.FinanceProject.service.LoginAttemptService;
 import com.example.FinanceProject.service.PasswordExpirationService;
@@ -78,8 +79,16 @@ public class SecurityConfig {
                 // Check if the logged in user has ROLE_ADMIN
                 boolean isAdmin = authentication.getAuthorities().stream()
                                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+                boolean isManager = authentication.getAuthorities().stream()
+                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MANAGER"));
+                boolean isUser = authentication.getAuthorities().stream()
+                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"));
                 if (isAdmin) {
                     response.sendRedirect("/admin");
+                } else if (isManager) {
+                    response.sendRedirect("/manager");
+                } else if (isUser) {
+                    response.sendRedirect("/accountant");
                 } else {
                     // For non-admin users, redirect to a default user page or home page
                     response.sendRedirect("/user");

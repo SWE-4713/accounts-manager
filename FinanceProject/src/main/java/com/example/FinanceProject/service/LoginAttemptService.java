@@ -1,6 +1,6 @@
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.User;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;

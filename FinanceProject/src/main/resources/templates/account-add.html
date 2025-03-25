@@ -208,8 +208,8 @@
         </div>
 
         <div class="form-group">
-            <label for="accountType">Account Type</label>
-            <select id="accountType" th:field="*{accountType}" required>
+            <label for="accountCategory">Account Category</label>
+            <select id="accountCategory" th:field="*{accountCategory}" required>
                 <option value="Asset">Asset</option>
                 <option value="Liability">Liability</option>
                 <option value="Equity">Equity</option>
@@ -217,7 +217,13 @@
                 <option value="Expense">Expense</option>
                 <option value="Other">Other</option>
             </select>
-            <div class="error-message" th:if="${#fields.hasErrors('accountType')}" th:errors="*{accountType}"></div>
+            <div class="error-message" th:if="${#fields.hasErrors('accountCategory')}" th:errors="*{accountCategory}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="accountSubcategory">Account Subcategory</label>
+            <input type="text" id="accountSubcategory" th:field="*{accountSubcategory}" required />
+            <div class="error-message" th:if="${#fields.hasErrors('accountSubcategory')}" th:errors="*{accountSubcategory}"></div>
         </div>
 
         <div class="form-group">
@@ -237,20 +243,11 @@
 
         <div class="form-group">
             <label for="normalSide">Normal Side</label>
-            <input type="text" id="normalSide" th:field="*{normalSide}" required />
+            <select id="normalSide" th:field="*{normalSide}" required>
+                <option value="Left">Left</option>
+                <option value="Right">Right</option>
+            </select>
             <div class="error-message" th:if="${#fields.hasErrors('normalSide')}" th:errors="*{normalSide}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountCategory">Account Category</label>
-            <input type="text" id="accountCategory" th:field="*{accountCategory}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountCategory')}" th:errors="*{accountCategory}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountSubcategory">Account Subcategory</label>
-            <input type="text" id="accountSubcategory" th:field="*{accountSubcategory}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountSubcategory')}" th:errors="*{accountSubcategory}"></div>
         </div>
 
         <div class="form-group">
