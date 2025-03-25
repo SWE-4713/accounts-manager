@@ -250,7 +250,7 @@
                 <tbody>
                 <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
                     <td>
-                        <a th:href="@{'/accounts/' + ${account.accountNumber} + '/account-view'}" th:text="${account.accountNumber}"></a>
+                        <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
                     </td>
                     <td th:text="${account.accountDescription}"></td>
                     <td th:text="${account.accountCategory}"></td>
