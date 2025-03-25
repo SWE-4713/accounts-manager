@@ -193,104 +193,48 @@
 <body>
     <header th:replace="fragments/navbar :: navbar"></header>
     <div class="container">
-    <h1>Add New Account</h1>
-    <form th:action="@{/accounts/add}" th:object="${account}" method="post">
-        <div class="form-group">
-            <label for="accountNumber">Account Number</label>
-            <input type="text" id="accountNumber" th:field="*{accountNumber}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountNumber')}" th:errors="*{accountNumber}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountDescription">Account Description</label>
-            <input type="text" id="accountDescription" th:field="*{accountDescription}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountDescription')}" th:errors="*{accountDescription}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountCategory">Account Category</label>
-            <select id="accountCategory" th:field="*{accountCategory}" required>
-                <option value="Asset">Asset</option>
-                <option value="Liability">Liability</option>
-                <option value="Equity">Equity</option>
-                <option value="Revenue">Revenue</option>
-                <option value="Expense">Expense</option>
-                <option value="Other">Other</option>
-            </select>
-            <div class="error-message" th:if="${#fields.hasErrors('accountCategory')}" th:errors="*{accountCategory}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountSubcategory">Account Subcategory</label>
-            <input type="text" id="accountSubcategory" th:field="*{accountSubcategory}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountSubcategory')}" th:errors="*{accountSubcategory}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="statement">Financial Statement</label>
-            <select id="statement" th:field="*{statement}" required>
-                <option value="BalanceSheet">BalanceSheet</option>
-                <option value="IncomeStatement">IncomeStatement</option>
-            </select>
-            <div class="error-message" th:if="${#fields.hasErrors('statement')}" th:errors="*{statement}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountName">Account Name</label>
-            <input type="text" id="accountName" th:field="*{accountName}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountName')}" th:errors="*{accountName}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="normalSide">Normal Side</label>
-            <select id="normalSide" th:field="*{normalSide}" required>
-                <option value="Left">Left</option>
-                <option value="Right">Right</option>
-            </select>
-            <div class="error-message" th:if="${#fields.hasErrors('normalSide')}" th:errors="*{normalSide}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="initialBalance">Initial Balance</label>
-            <input type="number" step="0.01" id="initialBalance" th:field="*{initialBalance}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('initialBalance')}" th:errors="*{initialBalance}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="debit">Debit</label>
-            <input type="number" step="0.01" id="debit" th:field="*{debit}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('debit')}" th:errors="*{debit}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="credit">Credit</label>
-            <input type="number" step="0.01" id="credit" th:field="*{credit}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('credit')}" th:errors="*{credit}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="balance">Balance</label>
-            <input type="number" step="0.01" id="balance" th:field="*{balance}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('balance')}" th:errors="*{balance}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="userId">User ID</label>
-            <input type="number" id="userId" th:field="*{userId}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}"></div>
-        </div>
-
-        <div class="form-group">
-            <label for="accountOrder">Order</label>
-            <input type="number" id="accountOrder" th:field="*{accountOrder}" required />
-            <div class="error-message" th:if="${#fields.hasErrors('accountOrder')}" th:errors="*{accountOrder}"></div>
-        </div>
-
-        <label>Comment</label>
-        <textarea th:field="*{comment}"></textarea><br/>
-
-        <button type="submit">Add Account</button>
-    </form>
+        <h1>Add New Account</h1>
+        <form th:action="@{/accounts/add}" th:object="${account}" method="post">
+            <div class="form-group">
+                <label for="accountNumber">Account Number</label>
+                <input type="text" id="accountNumber" th:field="*{accountNumber}" required />
+            </div>
+            <div class="form-group">
+                <label for="accountName">Account Name</label>
+                <input type="text" id="accountName" th:field="*{accountName}" required />
+            </div>
+            <div class="form-group">
+                <label for="accountCategory">Account Category</label>
+                <select id="accountCategory" th:field="*{accountCategory}" required>
+                    <option value="Asset">Asset</option>
+                    <option value="Liability">Liability</option>
+                    <option value="Equity">Equity</option>
+                    <option value="Revenue">Revenue</option>
+                    <option value="Expense">Expense</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="normalSide">Normal Side</label>
+                <select id="normalSide" th:field="*{normalSide}" required>
+                    <option value="Debit">Debit</option>
+                    <option value="Credit">Credit</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="statement">Financial Statement</label>
+                <select id="statement" th:field="*{statement}" required>
+                    <option value="BalanceSheet">BalanceSheet</option>
+                    <option value="IncomeStatement">IncomeStatement</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="balance">Balance</label>
+                <input type="number" step="0.01" id="balance" th:field="*{balance}" required />
+            </div>
+            <!-- Active flag is set to true by default on add, so not editable here -->
+            <button type="submit" class="btn">Add Account</button>
+        </form>
     </div>
 </body>
 </html>

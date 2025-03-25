@@ -241,8 +241,10 @@
                 <thead>
                 <tr>
                     <th>Account Number</th>
-                    <th>Description</th>
+                    <th>Account Name</th>
                     <th>Category</th>
+                    <th>Normal Side</th>
+                    <th>Balance</th>
                     <th>Financial Statement</th>
                     <th sec:authorize="hasRole('ROLE_ADMIN')">Actions</th>
                 </tr>
@@ -250,11 +252,13 @@
                 <tbody>
                 <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
                     <td>
-                        <a th:href="@{'/accounts/' + ${account.accountNumber} + '/account-view'}" th:text="${account.accountNumber}"></a>
+                        <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
                     </td>
-                    <td th:text="${account.accountDescription}"></td>
+                    <td th:text="${account.accountName}"></td>
                     <td th:text="${account.accountCategory}"></td>
+                    <td th:text="${account.normalSide}"></td>
                     <td th:text="${account.statement}"></td>
+                    <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
                     <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
                         <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
                         <!-- Only allow deactivation if balance equals zero -->
