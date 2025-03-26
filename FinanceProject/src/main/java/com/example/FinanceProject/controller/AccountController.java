@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 
 @Controller
@@ -20,21 +21,34 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
     
-    // List all accounts (chart of accounts with optional search/filter)
     @GetMapping
-    public String listAccounts(@RequestParam(value="query", required=false) String query,
-                               Model model, Authentication authentication) {
-        model.addAttribute("username", authentication.getName()); // Requirement 9
-        
+    public String listAccounts(
+            @RequestParam(value="query", required=false) String query,
+            @RequestParam(value="category", required=false) String category,
+            @RequestParam(value="sortField", required=false, defaultValue="accountNumber") String sortField,
+            @RequestParam(value="sortDir", required=false, defaultValue="asc") String sortDir,
+            Model model, Authentication authentication) {
+
+        model.addAttribute("username", authentication.getName());
+
+        // Create a Sort object using the provided parameters.
+        Sort sort = Sort.by(sortField);
+        sort = sortDir.equalsIgnoreCase("desc") ? sort.descending() : sort.ascending();
+
         List<Account> accounts;
-        if (query != null && !query.trim().isEmpty()) {
-            accounts = accountService.searchAccounts(query);
+        if (query != null && !query.trim().isEmpty() && category != null && !category.trim().isEmpty()) {
+            accounts = accountService.searchAndFilterAccounts(query, category, sort);
+        } else if (query != null && !query.trim().isEmpty()) {
+            accounts = accountService.searchAccounts(query, sort);
+        } else if (category != null && !category.trim().isEmpty()) {
+            accounts = accountService.filterAccountsByCategory(category, sort);
         } else {
-            accounts = accountService.getAllAccounts();
+            accounts = accountService.getAllAccounts(sort);
         }
         model.addAttribute("accounts", accounts);
-        return "chart-of-accounts";  // Your Thymeleaf template should include the logo (req. 10),
-                                // filter options (req. 12), calendar (req. 13), and navigation buttons (req. 14)
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        return "chart-of-accounts";
     }
     
     // View individual account details (req. 7)
