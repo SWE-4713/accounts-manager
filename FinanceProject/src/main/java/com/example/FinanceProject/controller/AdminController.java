@@ -98,7 +98,7 @@ public class AdminController {
             User user = userService.findUserByUsername(username);
             if (user == null) {
                 redirectAttributes.addFlashAttribute("error", "User not found");
-                return "redirect:/user-management";
+                return "redirect:/admin/user-management";
             }
 
             // Send email
@@ -110,7 +110,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Failed to send email: " + e.getMessage());
         }
 
-        return "redirect:/user-management";
+        return "redirect:/admin/user-management";
     }
 
     // Handle the creation of a new user via admin form
@@ -211,6 +211,6 @@ public class AdminController {
         
         userService.updateUser(id, username, role, firstName, lastName, address, dob, email);
         redirectAttributes.addFlashAttribute("message", "User updated successfully");
-        return "redirect:/user-management";
+        return "redirect:/admin/user-management";
     }
 }

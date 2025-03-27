@@ -2,6 +2,7 @@
 package com.example.FinanceProject.service;
 
 import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -142,5 +143,20 @@ public class AccountService {
         return searched.stream()
                        .filter(a -> a.getAccountCategory().equalsIgnoreCase(category))
                        .toList();
+    }
+
+    public void updateLedgerForApprovedEntry(JournalEntry entry) {
+        Account account = entry.getAccount();
+        if (entry.getDebit() != null && entry.getDebit().compareTo(BigDecimal.ZERO) > 0) {
+            // Increase debit
+            account.setDebit(account.getDebit().add(entry.getDebit()));
+            account.setBalance(account.getBalance().add(entry.getDebit()));
+        }
+        if (entry.getCredit() != null && entry.getCredit().compareTo(BigDecimal.ZERO) > 0) {
+            // Increase credit
+            account.setCredit(account.getCredit().add(entry.getCredit()));
+            account.setBalance(account.getBalance().subtract(entry.getCredit()));
+        }
+        accountRepo.save(account);
     }
 }
