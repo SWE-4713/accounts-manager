@@ -1,25 +1,163 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Journal</title>
+    <title>General Journal</title>
     <style>
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #ccc;
-            padding: 10px;
+        /* Basic styling to look like your provided image, 
+           without changing the site’s color or overall layout. */
+
+        .journal-container {
+            width: 90%;
+            margin: 0 auto;
         }
-        .nav-buttons a {
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        /* For data cells (td) in debit and credit columns */
+        td.debit-col, td.credit-col {
+            text-align: right;
+        }
+
+        /* For header cells (th) in those columns */
+        th.debit-col, th.credit-col {
+            text-align: center !important;
+        }
+        /* Make the date column narrower, etc. */
+        .date-col {
+            width: 10%;
+        }
+        .acct-col {
+            width: 30%;
+        }
+        .debit-col, .credit-col {
+            width: 15%;
+            text-align: right;
+        }
+        .comment-col {
+            width: 30%;
+        }
+
+        /* Form styling */
+        .entry-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .entry-form input, .entry-form select {
+            padding: 8px;
+        }
+        .entry-form button {
+            padding: 8px 15px;
+        }
+        .status-tabs {
+            margin-bottom: 20px;
+        }
+        .status-tabs a {
             margin-right: 10px;
+            text-decoration: none;
+            padding: 6px 10px;
+            background-color: #ccc;
+            color: #333;
+            border-radius: 4px;
+        }
+        .status-tabs a:hover {
+            background-color: #bbb;
         }
     </style>
 </head>
 <body>
-    <header th:replace="fragments/navbar :: navbar"></header>
+<header th:replace="fragments/navbar :: navbar"></header>
 
-    <h1>Journalizing</h1>
-    <p>This page will contain functionality for journal entries. (To be implemented.)</p>
-    <a th:href="@{/accounts}">Back to Accounts</a>
+<div class="journal-container">
+    <h1>General Journal</h1>
+
+    <!-- If user is an Accountant (ROLE_USER or ROLE_ACCOUNTANT), show form to create a new journal entry -->
+    <div sec:authorize="hasRole('ROLE_USER')">
+        <form class="entry-form" th:action="@{/journal/create}" method="post">
+            <input type="date" name="entryDate" required />
+            
+            <!-- Account selection from chart of accounts -->
+            <select name="accountId" required>
+                <option value="">Select Account</option>
+                <option th:each="acct : ${accounts}" 
+                        th:value="${acct.id}" 
+                        th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}">
+                </option>
+            </select>
+
+            <input type="number" step="0.01" name="debit" placeholder="Debit" />
+            <input type="number" step="0.01" name="credit" placeholder="Credit" />
+            <input type="text" name="description" placeholder="Description" />
+            <button type="submit">Submit Entry</button>
+        </form>
+    </div>
+
+    <!-- Manager can navigate to see pending, approved, or rejected, with date filter. -->
+    <div sec:authorize="hasRole('ROLE_MANAGER')" class="status-tabs">
+        <a th:href="@{/journal/pending}">Pending</a>
+        <a th:href="@{/journal/approved}">Approved</a>
+        <a th:href="@{/journal/rejected}">Rejected</a>
+    </div>
+
+    <!-- If you want to show some table of entries here, you can. 
+         Or you might show them in separate templates (like journal-entries.html). 
+         Example table below: -->
+    <table>
+        <thead>
+            <tr>
+                <th class="date-col">Date</th>
+                <th class="acct-col">Account Title</th>
+                <th class="debit-col">Debit</th>
+                <th class="credit-col">Credit</th>
+                <th>Status</th>
+                <th class="comment-col">Comment</th>
+                <th sec:authorize="hasRole('ROLE_MANAGER')">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="entry : ${entries}">
+                <td th:text="${entry.entryDate}"></td>
+                <td th:text="${entry.account.accountName}"></td>
+                <td th:text="${entry.debit}"></td>
+                <td th:text="${entry.credit}"></td>
+                <td th:text="${entry.status}"></td>
+                <td th:text="${entry.comment}"></td>
+                <td sec:authorize="hasRole('ROLE_MANAGER')">
+                    <div th:if="${entry.status.name() == 'PENDING'}">
+                        <!-- Approve/Reject forms -->
+                        <form th:action="@{/journal/approve}" method="post" style="display:inline;">
+                            <input type="hidden" name="entryId" th:value="${entry.id}" />
+                            <button type="submit">Approve</button>
+                        </form>
+                        <form th:action="@{/journal/reject}" method="post" style="display:inline;">
+                            <input type="hidden" name="entryId" th:value="${entry.id}" />
+                            <input type="text" name="reason" placeholder="Reason for rejection" />
+                            <button type="submit">Reject</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${entries == null or #lists.isEmpty(entries)}">
+                <td colspan="7">No journal entries found.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>
