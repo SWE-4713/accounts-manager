@@ -253,7 +253,7 @@
             <table style="table-layout: fixed; width: 100%;">
                 <thead>
                     <tr>
-                        <!-- Each header is a link that toggles the sort direction if the user clicks it. 
+                        <!-- Each header is a link that toggles the sort direction if the user clicks it.
                              We also show an up/down arrow if this is the current sortField. -->
                         <th>
                             <a th:href="@{/accounts(sortField='accountNumber', sortDir=${sortField=='accountNumber' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
