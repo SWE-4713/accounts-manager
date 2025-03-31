@@ -1,7 +1,7 @@
 CREATE TABLE password_reset_token (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    token VARCHAR(255),
+    id BIGINT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    token VARCHAR(255) NOT NULL,
     user_id BIGINT NOT NULL,
-    expiry_date TIMESTAMP,
-    CONSTRAINT fk_password_reset_token_user FOREIGN KEY (user_id) REFERENCES user(id)
+    expiryDate DATETIME NOT NULL
+    CONSTRAINT fk_password_reset_token_user FOREIGN KEY (user_id) REFERENCES dbo.[user](id)
 );

@@ -233,38 +233,108 @@
             <button type="submit"><i class="fas fa-search"></i> Search</button>
         </form>
 
+        <form method="get" th:action="@{/accounts}" style="display:inline-block;">
+            <select name="category">
+                <option value="">Filter by Category</option>
+                <option value="Asset" th:selected="${param.category} == 'Asset'">Asset</option>
+                <option value="Liability" th:selected="${param.category} == 'Liability'">Liability</option>
+                <option value="Equity" th:selected="${param.category} == 'Equity'">Equity</option>
+                <option value="Revenue" th:selected="${param.category} == 'Revenue'">Revenue</option>
+                <option value="Expense" th:selected="${param.category} == 'Expense'">Expense</option>
+                <option value="Other" th:selected="${param.category} == 'Other'">Other</option>
+            </select>
+            <button type="submit">Apply</button>
+        </form>
+
         <a class="add-btn" sec:authorize="hasRole('ROLE_ADMIN')" th:href="@{/accounts/add}"><i class="fas fa-plus"></i> Add New Account</a>
 
         <!-- Table with horizontal scrolling -->
-        <div class="table-responsive">
-            <table>
+        <div class="table-responsive" style="clear: both;">
+            <table style="table-layout: fixed; width: 100%;">
                 <thead>
-                <tr>
-                    <th>Account Number</th>
-                    <th>Description</th>
-                    <th>Category</th>
-                    <th>Financial Statement</th>
-                    <th sec:authorize="hasRole('ROLE_ADMIN')">Actions</th>
-                </tr>
+                    <tr>
+                        <!-- Each header is a link that toggles the sort direction if the user clicks it.
+                             We also show an up/down arrow if this is the current sortField. -->
+                        <th>
+                            <a th:href="@{/accounts(sortField='accountNumber', sortDir=${sortField=='accountNumber' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Number
+                                <!-- Show arrow if currently sorting by 'accountNumber' -->
+                                <i th:if="${sortField=='accountNumber'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='accountName', sortDir=${sortField=='accountName' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Name
+                                <i th:if="${sortField=='accountName'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='accountCategory', sortDir=${sortField=='accountCategory' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Category
+                                <i th:if="${sortField=='accountCategory'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='statement', sortDir=${sortField=='statement' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Financial Statement
+                                <i th:if="${sortField=='statement'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='normalSide', sortDir=${sortField=='normalSide' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Normal Side
+                                <i th:if="${sortField=='normalSide'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='balance', sortDir=${sortField=='balance' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Balance
+                                <i th:if="${sortField=='balance'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a th:href="@{/accounts(sortField='active', sortDir=${sortField=='active' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                                Active
+                                <i th:if="${sortField=='active'}"
+                                   th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
+                            </a>
+                        </th>
+                        <th sec:authorize="hasRole('ROLE_ADMIN')">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
-                    <td>
-                        <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
-                    </td>
-                    <td th:text="${account.accountDescription}"></td>
-                    <td th:text="${account.accountCategory}"></td>
-                    <td th:text="${account.statement}"></td>
-                    <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
-                        <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
-                        <!-- Only allow deactivation if balance equals zero -->
-                        <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${account.id}" />
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    th:disabled="${account.balance == 0}" th:style="${!account.active} ? @{background-color: #6c757d;}">Deactivate</button>
-                        </form>
-                    </td>
-                </tr>
+                    <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
+                        <td>
+                            <!-- Link uses account ID to match your controller's /accounts/{id}/account-view mapping -->
+                            <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
+                        </td>
+                        <td th:text="${account.accountName}"></td>
+                        <td th:text="${account.accountCategory}"></td>
+                        <td th:text="${account.statement}"></td>
+                        <td th:text="${account.normalSide}"></td>
+                        <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td>
+                            <span th:if="${account.active}" style="color: green;">Yes</span>
+                            <span th:if="${!account.active}" style="color: red;">No</span>
+                        </td>
+                        <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
+                            <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
+                            <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${account.id}" />
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        th:disabled="${account.balance != 0}"
+                                        th:style="${!account.active} ? @{background-color: #6c757d;}">
+                                    Deactivate
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

@@ -5,6 +5,7 @@ import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -51,8 +52,8 @@ public class AccountService {
         return saved;
     }
     
-    public List<Account> getAllAccounts() {
-        return accountRepo.findAll();
+    public List<Account> getAllAccounts(Sort sort) {
+        return accountRepo.findAll(sort);
     }
     
     public Account getAccountById(Long id) {
@@ -126,8 +127,20 @@ public class AccountService {
     }
     
     // 8 & 12. Search/filter accounts by various tokens (account name, number, category, etc.)
-    public List<Account> searchAccounts(String query) {
+    public List<Account> searchAccounts(String query, Sort sort) {
         // For simplicity, we use a contains search on both account number and name.
-        return accountRepo.findByAccountNumberContainingOrAccountNameContaining(query, query);
+        return accountRepo.findByAccountNumberContainingOrAccountNameContaining(query, query, sort);
+    }
+    
+    public List<Account> filterAccountsByCategory(String category, Sort sort) {
+        return accountRepo.findByAccountCategory(category, sort);
+    }
+    
+    public List<Account> searchAndFilterAccounts(String query, String category, Sort sort) {
+        // Combine search and filter – here we perform search then filter in memory.
+        List<Account> searched = searchAccounts(query, sort);
+        return searched.stream()
+                       .filter(a -> a.getAccountCategory().equalsIgnoreCase(category))
+                       .toList();
     }
 }
