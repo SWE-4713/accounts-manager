@@ -17,7 +17,7 @@
 
 DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
-    id BIGINT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    id BIGINT NOT NULL auto_increment PRIMARY KEY,
     account_number VARCHAR(255) NOT NULL UNIQUE,
     account_name VARCHAR(255) NOT NULL,
     account_category VARCHAR(255),

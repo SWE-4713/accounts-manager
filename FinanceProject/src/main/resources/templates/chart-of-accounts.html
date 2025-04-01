@@ -309,7 +309,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
+                    <tr th:each="account : ${accounts}" th:style="${!account.active} ? 'background-color: lightgrey;' : ''">
                         <td>
                             <!-- Link uses account ID to match your controller's /accounts/{id}/account-view mapping -->
                             <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
@@ -329,7 +329,7 @@
                                 <input type="hidden" name="id" th:value="${account.id}" />
                                 <button type="submit" class="btn btn-sm btn-danger"
                                         th:disabled="${account.balance != 0}"
-                                        th:style="${!account.active} ? @{background-color: #6c757d;}">
+                                        th:style="${!account.active} ? 'background-color: lightgrey;' : ''">
                                     Deactivate
                                 </button>
                             </form>

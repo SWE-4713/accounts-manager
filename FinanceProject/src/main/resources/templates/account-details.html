@@ -15,13 +15,22 @@
     <header th:replace="fragments/navbar :: navbar"></header>
     <h1>Account Details</h1>
     <div>
-        <p class="detail-item"><strong>Number:</strong> <span th:text="${account.accountNumber}"></span></p>
+        <p class="detail-item"><strong>Account Number:</strong> <span th:text="${account.accountNumber}"></span></p>
         <p class="detail-item"><strong>Name:</strong> <span th:text="${account.accountName}"></span></p>
+        <p class="detail-item"><strong>Description:</strong> <span th:text="${account.accountDescription}"></span></p>
         <p class="detail-item"><strong>Category:</strong> <span th:text="${account.accountCategory}"></span></p>
+        <p class="detail-item"><strong>Subcategory:</strong> <span th:text="${account.accountSubcategory}"></span></p>
         <p class="detail-item"><strong>Normal Side:</strong> <span th:text="${account.normalSide}"></span></p>
-        <p class="detail-item"><strong>Financial Statement:</strong> <span th:text="${account.statement}"></span></p>
+        <p class="detail-item"><strong>Initial Balance:</strong> <span th:text="${#numbers.formatDecimal(account.initialBalance, 1, 'COMMA', 2, 'POINT')}"></span></p>
+        <p class="detail-item"><strong>Debit:</strong> <span th:text="${#numbers.formatDecimal(account.debit, 1, 'COMMA', 2, 'POINT')}"></span></p>
+        <p class="detail-item"><strong>Credit:</strong> <span th:text="${#numbers.formatDecimal(account.credit, 1, 'COMMA', 2, 'POINT')}"></span></p>
         <p class="detail-item"><strong>Balance:</strong> <span th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></span></p>
-        <p class="detail-item"><strong>Active:</strong> 
+        <p class="detail-item"><strong>Date/Time Added:</strong> <span th:text="${#dates.format(account.dateAdded, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+        <p class="detail-item"><strong>Created By:</strong> <span th:text="${account.user != null ? account.user.id : 'N/A'}"></span></p>
+        <p class="detail-item"><strong>Order:</strong> <span th:text="${account.accountOrder}"></span></p>
+        <p class="detail-item"><strong>Financial Statement:</strong> <span th:text="${account.statement}"></span></p>
+        <p class="detail-item"><strong>Comment:</strong> <span th:text="${account.comment}"></span></p>
+        <p class="detail-item"><strong>Active:</strong>
             <span th:text="${account.active} ? 'Yes' : 'No'"></span>
         </p>
     </div>

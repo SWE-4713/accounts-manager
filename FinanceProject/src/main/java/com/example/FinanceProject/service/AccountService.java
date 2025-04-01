@@ -5,11 +5,15 @@ import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.example.FinanceProject.entity.User;
 import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 @Service
 public class AccountService {
@@ -20,18 +24,16 @@ public class AccountService {
     @Autowired
     private EventLogService eventLogService; // Inject our event log service
 
+    private UserService userService;
+
     public Account addAccount(Account account) {
-        // Check for duplicate account number and name
-        if (accountRepo.findByAccountNumber(account.getAccountNumber()).isPresent()) {
-            throw new IllegalArgumentException("Account number already exists.");
-        }
-        if (accountRepo.findByAccountName(account.getAccountName()).isPresent()) {
-            throw new IllegalArgumentException("Account name already exists.");
-        }
-        
-        // Set date/time when account is added
+        // Generate account number (as previously defined)
+        String generatedNumber = generateAccountNumber(account);
+        account.setAccountNumber(generatedNumber);
+
+        // Set the date/time account was added
         account.setDateAdded(LocalDateTime.now());
-        
+
         // Ensure monetary values have two decimals
         if (account.getInitialBalance() != null) {
             account.setInitialBalance(account.getInitialBalance().setScale(2, RoundingMode.HALF_UP));
@@ -45,11 +47,58 @@ public class AccountService {
         if (account.getBalance() != null) {
             account.setBalance(account.getBalance().setScale(2, RoundingMode.HALF_UP));
         }
-        
+
+        // Set the current user as the creator of the account
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !auth.getName().equals("anonymousUser")) {
+            User currentUser = userService.findUserByUsername(auth.getName());
+            account.setUser(currentUser);
+        }
+
         Account saved = accountRepo.save(account);
-        // Log event: since this is a new record, beforeImage is null.
         eventLogService.logEvent(null, saved, saved.getUserId(), "ADD");
         return saved;
+    }
+
+    private String generateAccountNumber(Account account) {
+        // Determine the first digit based on account category (adjust these as needed)
+        String category = account.getAccountCategory();
+        char firstDigit;
+        switch (category.toLowerCase()) {
+            case "asset":
+                firstDigit = '1';
+                break;
+            case "liability":
+                firstDigit = '2';
+                break;
+            case "equity":
+                firstDigit = '3';
+                break;
+            case "revenue":
+                firstDigit = '4';
+                break;
+            case "expense":
+                firstDigit = '5';
+                break;
+            default:
+                firstDigit = '6';
+                break;
+        }
+        String prefix = String.valueOf(firstDigit);
+
+        // Query for the last account with this prefix
+        Optional<Account> lastAccountOpt = accountRepo.findTopByAccountNumberStartingWithOrderByAccountNumberDesc(prefix);
+        long newNumber;
+        if (lastAccountOpt.isPresent()) {
+            String lastNumberStr = lastAccountOpt.get().getAccountNumber();
+            long lastNumber = Long.parseLong(lastNumberStr);
+            newNumber = lastNumber + 10;
+        } else {
+            // Starting value when none exists (for example, for assets: 1000000010)
+            newNumber = Long.parseLong(prefix + "000000010");
+        }
+        // Format as a 10-digit string (will pad with zeros if needed)
+        return String.format("%010d", newNumber);
     }
     
     public List<Account> getAllAccounts(Sort sort) {
