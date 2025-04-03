@@ -11,6 +11,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.service.JournalEntryService;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @Secured("ROLE_USER")
@@ -26,6 +31,9 @@ public class AccountantController {
     @Autowired
     private PasswordExpirationReportService passwordExpirationReportService;
 
+    @Autowired
+    private JournalEntryService journalEntryService;
+
     // Serve the admin landing page with both active and pending users
     @GetMapping
     public String managerLandingPage(Model model) {
@@ -34,5 +42,32 @@ public class AccountantController {
         model.addAttribute("username", authentication.getName());
         model.addAttribute("pendingUsers", userService.getAllPendingUsers());
         return "redirect:/accounts";
+    }
+
+    // Display the journal entry creation page
+    @GetMapping("/journal/create")
+    public String createJournalEntryForm(Model model) {
+        model.addAttribute("journalEntry", new JournalEntry());
+        return "journal-create"; // Create the Thymeleaf template
+    }
+
+    // Handle journal entry submission with file attachment (source documents)
+    @PostMapping("/journal/create")
+    public String submitJournalEntry(@ModelAttribute JournalEntry journalEntry,
+                                     @RequestParam("attachment") MultipartFile attachment,
+                                     Model model, RedirectAttributes redirectAttributes) {
+        try {
+            // Validate and process the attachment (store in file system or database)
+            // For example, call a fileService.upload(attachment)
+            // Set the attachment reference in journalEntry if needed.
+
+            // Submit journal entry
+            JournalEntry savedEntry = journalEntryService.submitJournalEntry(journalEntry);
+            redirectAttributes.addFlashAttribute("message", "Journal entry submitted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Submission failed: " + e.getMessage());
+            return "redirect:/accountant/journal/create";
+        }
+        return "redirect:/accountant/journal/create";
     }
 }

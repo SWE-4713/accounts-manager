@@ -27,14 +27,22 @@ public class AccountService {
     private UserService userService;
 
     public Account addAccount(Account account) {
-        // Generate account number (as previously defined)
+        // Check for duplicate names if needed
+        if (accountRepo.findByAccountName(account.getAccountName()).isPresent()) {
+            throw new IllegalArgumentException("Account name already exists.");
+        }
+
+        // Auto-generate the account number
         String generatedNumber = generateAccountNumber(account);
         account.setAccountNumber(generatedNumber);
 
         // Set the date/time account was added
         account.setDateAdded(LocalDateTime.now());
 
-        // Ensure monetary values have two decimals
+        // Set active flag explicitly if needed
+        account.setActive(true);
+
+        // Format monetary values to two decimals
         if (account.getInitialBalance() != null) {
             account.setInitialBalance(account.getInitialBalance().setScale(2, RoundingMode.HALF_UP));
         }
@@ -48,20 +56,21 @@ public class AccountService {
             account.setBalance(account.getBalance().setScale(2, RoundingMode.HALF_UP));
         }
 
-        // Set the current user as the creator of the account
+        // Set the current user (the creator) on the account
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && !auth.getName().equals("anonymousUser")) {
             User currentUser = userService.findUserByUsername(auth.getName());
             account.setUser(currentUser);
         }
 
+        // Save account and log event
         Account saved = accountRepo.save(account);
         eventLogService.logEvent(null, saved, saved.getUserId(), "ADD");
         return saved;
     }
 
     private String generateAccountNumber(Account account) {
-        // Determine the first digit based on account category (adjust these as needed)
+        // Map account category to a first digit
         String category = account.getAccountCategory();
         char firstDigit;
         switch (category.toLowerCase()) {
@@ -85,19 +94,16 @@ public class AccountService {
                 break;
         }
         String prefix = String.valueOf(firstDigit);
-
-        // Query for the last account with this prefix
-        Optional<Account> lastAccountOpt = accountRepo.findTopByAccountNumberStartingWithOrderByAccountNumberDesc(prefix);
+        Optional<Account> lastOpt = accountRepo.findTopByAccountNumberStartingWithOrderByAccountNumberDesc(prefix);
         long newNumber;
-        if (lastAccountOpt.isPresent()) {
-            String lastNumberStr = lastAccountOpt.get().getAccountNumber();
-            long lastNumber = Long.parseLong(lastNumberStr);
+        if (lastOpt.isPresent()) {
+            String lastStr = lastOpt.get().getAccountNumber();
+            long lastNumber = Long.parseLong(lastStr);
             newNumber = lastNumber + 10;
         } else {
-            // Starting value when none exists (for example, for assets: 1000000010)
+            // e.g., start with 1000000010 for assets (if firstDigit == '1')
             newNumber = Long.parseLong(prefix + "000000010");
         }
-        // Format as a 10-digit string (will pad with zeros if needed)
         return String.format("%010d", newNumber);
     }
     
@@ -127,10 +133,20 @@ public class AccountService {
         
         // Capture before-image for event log
         Account beforeUpdate = new Account();
-        beforeUpdate.setId(existing.getId());
-        beforeUpdate.setAccountName(existing.getAccountName());
-        beforeUpdate.setAccountNumber(existing.getAccountNumber());
-        beforeUpdate.setBalance(existing.getBalance());
+        beforeUpdate.setAccountName(updatedAccount.getAccountName());
+        beforeUpdate.setAccountNumber(updatedAccount.getAccountNumber());
+        beforeUpdate.setAccountDescription(updatedAccount.getAccountDescription());
+        beforeUpdate.setNormalSide(updatedAccount.getNormalSide());
+        beforeUpdate.setAccountCategory(updatedAccount.getAccountCategory());
+        beforeUpdate.setAccountSubcategory(updatedAccount.getAccountSubcategory());
+        beforeUpdate.setInitialBalance(updatedAccount.getInitialBalance().setScale(2, RoundingMode.HALF_UP));
+        beforeUpdate.setDebit(updatedAccount.getDebit().setScale(2, RoundingMode.HALF_UP));
+        beforeUpdate.setCredit(updatedAccount.getCredit().setScale(2, RoundingMode.HALF_UP));
+        beforeUpdate.setBalance(updatedAccount.getBalance().setScale(2, RoundingMode.HALF_UP));
+        beforeUpdate.setUserId(updatedAccount.getUserId());
+        beforeUpdate.setAccountOrder(updatedAccount.getAccountOrder());
+        beforeUpdate.setStatement(updatedAccount.getStatement());
+        beforeUpdate.setComment(updatedAccount.getComment());
         // (Copy other fields as needed)
 
         // Update fields (other fields such as dateAdded remain unchanged)
@@ -154,27 +170,21 @@ public class AccountService {
         eventLogService.logEvent(beforeUpdate, saved, saved.getUserId(), "MODIFY");
         return saved;
     }
-    
+
     public void deactivateAccount(Long id) {
         Account account = getAccountById(id);
-        // 6. Check that balance is zero before deactivation
         if (account.getBalance().compareTo(BigDecimal.ZERO) > 0) {
             throw new IllegalArgumentException("Accounts with balance greater than zero cannot be deactivated.");
         }
-        
-        // Capture before-image for event log
         Account beforeDeactivation = new Account();
         beforeDeactivation.setId(account.getId());
         beforeDeactivation.setActive(account.isActive());
-        // (Copy additional fields if needed)
-        
         account.setActive(false);
         Account saved = accountRepo.save(account);
-        
-        // Log event: record deactivation event
-        eventLogService.logEvent(beforeDeactivation, saved, saved.getUserId(), "DEACTIVATE");
+        eventLogService.logEvent(beforeDeactivation, saved, saved.getUser() != null ? saved.getUser().getId() : null, "DEACTIVATE");
     }
-    
+
+
     // 8 & 12. Search/filter accounts by various tokens (account name, number, category, etc.)
     public List<Account> searchAccounts(String query, Sort sort) {
         // For simplicity, we use a contains search on both account number and name.

@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.Sort;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -66,8 +68,7 @@ public class AccountController {
         model.addAttribute("username", authentication.getName());
         Account account = accountService.getAccountById(id);
         model.addAttribute("account", account);
-        // For demonstration, assume you have a ledgerService to fetch ledger entries:
-        // model.addAttribute("ledgerEntries", ledgerService.getEntriesByAccountId(id));
+        model.addAttribute("ledgerEntries", new ArrayList<>());
         return "account-ledger"; // Create a template to display the account ledger
     }
     

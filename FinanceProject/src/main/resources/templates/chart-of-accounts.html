@@ -264,6 +264,10 @@
                             </a>
                         </th>
                         <th>
+                            <a th:href="@{'/accounts/' + ${accounts.id} + '/ledger'}"
+                               th:text="${accounts.accountName}"></a>
+                        </th>
+                        <th>
                             <a th:href="@{/accounts(sortField='accountName', sortDir=${sortField=='accountName' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
                                 Name
                                 <i th:if="${sortField=='accountName'}"
@@ -314,7 +318,9 @@
                             <!-- Link uses account ID to match your controller's /accounts/{id}/account-view mapping -->
                             <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
                         </td>
-                        <td th:text="${account.accountName}"></td>
+                        <td>
+                            <a th:href="@{'/accounts/' + ${account.id} + '/ledger'}" th:text="${account.accountName}"></a>
+                        </td>
                         <td th:text="${account.accountCategory}"></td>
                         <td th:text="${account.statement}"></td>
                         <td th:text="${account.normalSide}"></td>

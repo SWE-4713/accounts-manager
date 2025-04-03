@@ -185,14 +185,14 @@
                 <input type="text" id="accountDescription" th:field="*{accountDescription}" required />
             </div>
             <div class="form-group">
-                <label for="accountCategory">Account Category</label>
+                <label for="accountCategory">Account Category:</label>
                 <select id="accountCategory" th:field="*{accountCategory}" required>
-                    <option value="Asset">Asset</option>
-                    <option value="Liability">Liability</option>
-                    <option value="Equity">Equity</option>
-                    <option value="Revenue">Revenue</option>
-                    <option value="Expense">Expense</option>
-                    <option value="Other">Other</option>
+                    <option value="Asset" th:selected="${account.accountCategory=='Asset'}">Asset</option>
+                    <option value="Liability" th:selected="${account.accountCategory=='Liability'}">Liability</option>
+                    <option value="Equity" th:selected="${account.accountCategory=='Equity'}">Equity</option>
+                    <option value="Revenue" th:selected="${account.accountCategory=='Revenue'}">Revenue</option>
+                    <option value="Expense" th:selected="${account.accountCategory=='Expense'}">Expense</option>
+                    <option value="Other" th:selected="${account.accountCategory=='Other'}">Other</option>
                 </select>
             </div>
             <div class="form-group">
@@ -236,11 +236,11 @@
                 <input type="text" id="accountOrder" th:field="*{accountOrder}" required />
             </div>
             <div class="form-group">
-                <label for="statement">Statement</label>
+                <label for="statement">Statement:</label>
                 <select id="statement" th:field="*{statement}" required>
-                    <option value="IS">IS (Income Statement)</option>
-                    <option value="BS">BS (Balance Sheet)</option>
-                    <option value="RE">RE (Retained Earnings)</option>
+                    <option value="IS" th:selected="${account.statement=='IS'}">Income Statement</option>
+                    <option value="BS" th:selected="${account.statement=='BS'}">Balance Sheet</option>
+                    <option value="RE" th:selected="${account.statement=='RE'}">Retained Earnings</option>
                 </select>
             </div>
             <div class="form-group">
