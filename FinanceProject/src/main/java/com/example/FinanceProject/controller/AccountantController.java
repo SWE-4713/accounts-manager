@@ -9,8 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import java.util.*;
+
 import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.service.JournalEntryService;
 import org.springframework.web.bind.annotation.*;
@@ -52,18 +52,23 @@ public class AccountantController {
     }
 
     // Handle journal entry submission with file attachment (source documents)
+    // AccountantController.java
     @PostMapping("/journal/create")
     public String submitJournalEntry(@ModelAttribute JournalEntry journalEntry,
-                                     @RequestParam("attachment") MultipartFile attachment,
-                                     Model model, RedirectAttributes redirectAttributes) {
+                                    @RequestParam("attachment") MultipartFile attachment,
+                                    Model model, RedirectAttributes redirectAttributes) {
         try {
-            // Validate and process the attachment (store in file system or database)
-            // For example, call a fileService.upload(attachment)
-            // Set the attachment reference in journalEntry if needed.
-
-            // Submit journal entry
-            JournalEntry savedEntry = journalEntryService.submitJournalEntry(journalEntry);
-            redirectAttributes.addFlashAttribute("message", "Journal entry submitted successfully.");
+            // Validate and process the attachment if provided.
+            if (attachment != null && !attachment.isEmpty()) {
+                String filePath = journalEntryService.storeAttachment(attachment);
+                journalEntry.setAttachmentPath(filePath);
+            }
+            
+            // Submit journal entry: each line is saved as an independent record.
+            List<JournalEntry> savedEntries = journalEntryService.submitJournalEntry(journalEntry);
+            
+            redirectAttributes.addFlashAttribute("message", 
+                savedEntries.size() + " journal entry line(s) submitted successfully.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Submission failed: " + e.getMessage());
             return "redirect:/accountant/journal/create";

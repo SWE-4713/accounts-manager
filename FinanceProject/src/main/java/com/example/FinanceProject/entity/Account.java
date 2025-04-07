@@ -30,12 +30,12 @@ public class Account {
     @Column(name = "account_description")
     private String accountDescription;
 
-    // d. Normal side (optional)
-    @Column(name = "normal_side")
+    @NotNull
+    @Column(name = "normal_side", nullable = false)
     private String normalSide;
 
-    // e. Account category (optional)
-    @Column(name = "account_category")
+    @NotNull
+    @Column(name = "account_category", nullable = false)
     private String accountCategory;
 
     // f. Account subcategory (optional)

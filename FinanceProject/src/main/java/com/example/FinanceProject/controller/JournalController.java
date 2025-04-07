@@ -1,20 +1,28 @@
 package com.example.FinanceProject.controller;
 
 import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+
+import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.entity.JournalEntryLine;
+import com.example.FinanceProject.entity.JournalStatus;
+import com.example.FinanceProject.service.AccountService;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.JournalEntryService;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;    
 
 
 @Controller
-@Secured({"ROLE_MANAGER", "ROLE_USER"})
+@Secured({"ROLE_ADMIN", "ROLE_MANAGER", "ROLE_USER"})
 @RequestMapping("/journal")
 public class JournalController {
 
@@ -24,39 +32,62 @@ public class JournalController {
     @Autowired
     private EmailService emailService;
 
-    // Show form for creating a new journal entry
-    @GetMapping("/new")
-    public String newJournalEntry(Model model) {
-        // Load list of accounts (using AccountService, not shown here) to populate the form
-        model.addAttribute("journalEntry", new JournalEntry());
-        return "journal-entry-form"; // Create a Thymeleaf template for the journal entry form
+    @Autowired
+    private AccountService accountService;
+
+    @GetMapping
+    public String showAllJournalEntries(@RequestParam(required = false) String status,
+                                        @RequestParam(required = false) String startDate,
+                                        @RequestParam(required = false) String endDate,
+                                        @RequestParam(required = false) String search,
+                                        Model model) {
+        // If you want to filter by status/date, do so in your service:
+        List<JournalEntry> entries = journalEntryService.getAllEntriesFiltered(status, startDate, endDate, search);
+        
+        // Put them in the model
+        model.addAttribute("entries", entries);
+        return "journal"; // The single table from above
     }
 
-    // Submit (or save) a journal entry. For accountants: they can attach a file.
+    @GetMapping("/new")
+    public String newJournalEntry(Model model) {
+        if (!model.containsAttribute("journalEntry")) {
+            model.addAttribute("journalEntry", new JournalEntry());
+        }
+        List<Account> accounts = accountService.getAllAccounts(Sort.by("accountNumber"));
+        model.addAttribute("accounts", accounts);
+        return "journal-entry-form";
+    }
+
+    // JournalController.java
     @PostMapping("/submit")
-    public String submitJournalEntry(@ModelAttribute JournalEntry journalEntry,
-                                     @RequestParam(value = "attachment", required = false) MultipartFile attachment,
-                                     Model model) {
+    public String submitJournalEntry(
+            @ModelAttribute JournalEntry journalEntry,
+            @RequestParam(value = "attachment", required = false) MultipartFile attachment,
+            Model model, RedirectAttributes redirectAttributes) {
         try {
-            // Handle file attachment if provided (store the file and set attachmentPath)
+            // Handle file attachment if provided.
             if (attachment != null && !attachment.isEmpty()) {
-                // For example, save the file to disk and get the file path
                 String filePath = journalEntryService.storeAttachment(attachment);
                 journalEntry.setAttachmentPath(filePath);
             }
 
-            // Validate journal entry: must have at least one debit and one credit, and debits equal credits
-            JournalEntry submittedEntry = journalEntryService.submitJournalEntry(journalEntry);
+            // Process each line as an independent journal entry.
+            List<JournalEntry> savedEntries = journalEntryService.submitJournalEntry(journalEntry);
 
-            // Send notification email to manager upon submission (notification logic can be more advanced)
+            // Optionally notify the manager.
             emailService.sendSimpleEmail("manager@example.com", "New Journal Entry Submitted",
-                    "A new journal entry has been submitted for your approval. Please review it in the system.");
+                    "New journal entry lines have been submitted for approval. Please review them in the system.");
 
-            model.addAttribute("message", "Journal entry submitted successfully and sent for approval.");
-            return "redirect:/journal/pending";
+            redirectAttributes.addFlashAttribute("message", 
+                    savedEntries.size() + " journal entry line(s) submitted successfully.");
+            return "redirect:/journal";  // Redirect to the journal page
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "journal-entry-form";
+            // Pass the error message to the view.
+            redirectAttributes.addFlashAttribute("error", "Submission failed: " + e.getMessage());
+            List<Account> accounts = accountService.getAllAccounts(Sort.by("accountNumber"));
+            model.addAttribute("accounts", accounts);
+            return "journal-entry-form";  // Re-display the entry form in case of error
         }
     }
 
@@ -70,7 +101,7 @@ public class JournalController {
         List<JournalEntry> entries = journalEntryService.getJournalEntriesByStatus(status, dateFrom, dateTo, search);
         model.addAttribute("entries", entries);
         model.addAttribute("status", status);
-        return "journal-list"; // Create a Thymeleaf template that lists journal entries
+        return "journal";
     }
 
     // Approve a journal entry (for manager)

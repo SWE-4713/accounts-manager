@@ -2,7 +2,9 @@
 package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.AccountService;
+import com.example.FinanceProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
@@ -14,6 +16,8 @@ import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Controller
 @Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGER"})
@@ -22,6 +26,9 @@ public class AccountController {
     
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private UserService userService;
     
     @GetMapping
     public String listAccounts(
@@ -47,6 +54,10 @@ public class AccountController {
         } else {
             accounts = accountService.getAllAccounts(sort);
         }
+        // Filter out any null elements:
+        accounts = accounts.stream()
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
         model.addAttribute("accounts", accounts);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
@@ -87,7 +98,8 @@ public class AccountController {
     public String addAccount(@ModelAttribute("account") Account account,
                              RedirectAttributes redirectAttributes) {
         try {
-            accountService.addAccount(account);
+            Account savedAccount = accountService.addAccount(account);
+            System.out.println("Account saved with ID: " + savedAccount.getId());
             redirectAttributes.addFlashAttribute("message", "Account added successfully.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error adding account: " + e.getMessage());
@@ -132,5 +144,22 @@ public class AccountController {
             redirectAttributes.addFlashAttribute("error", "Error deactivating account: " + e.getMessage());
         }
         return "redirect:/accounts";
+    }
+
+    @GetMapping("/ledger")
+    public String generalLedger(Model model, Authentication authentication) {
+        // Retrieve the current user
+        User user = userService.findUserByUsername(authentication.getName());
+        
+        // Get accounts for the user; assuming you add a method in AccountService to fetch only the user's accounts
+        List<Account> userAccounts = accountService.getAccountsForUser(user);
+        if (userAccounts != null && !userAccounts.isEmpty()) {
+            // For example, pick the first account as the default ledger view
+            Account defaultAccount = userAccounts.get(0);
+            return "redirect:/" + defaultAccount.getId() + "/ledger";
+        } else {
+            model.addAttribute("error", "No accounts found for ledger view.");
+            return "error";
+        }
     }
 }

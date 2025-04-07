@@ -19,6 +19,10 @@ public class JournalEntryLine {
     @JoinColumn(name = "account_id")
     private Account account;
 
+    // Transient property to bind account id from the form
+    @Transient
+    private Long accountId;
+
     // Debit amount (if applicable)
     @Column(precision = 15, scale = 2)
     private BigDecimal debit;
@@ -32,4 +36,3 @@ public class JournalEntryLine {
     @JoinColumn(name = "journal_entry_id")
     private JournalEntry journalEntry;
 }
-

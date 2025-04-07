@@ -17,16 +17,16 @@
 
 DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
-    id BIGINT NOT NULL auto_increment PRIMARY KEY,
-    account_number VARCHAR(255) NOT NULL UNIQUE,
-    account_name VARCHAR(255) NOT NULL,
-    account_category VARCHAR(255),
-    normal_side VARCHAR(255),
-    balance DECIMAL(15,2),
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    account_number VARCHAR (255) NOT NULL UNIQUE,
+    account_name VARCHAR (255) NOT NULL,
+    account_category VARCHAR (255),
+    normal_side VARCHAR (255),
+    balance DECIMAL (15,2),
     active BIT NOT NULL DEFAULT 1,
 
     -- Any other columns you need:
-    account_description VARCHAR(255),
+    account_description VARCHAR (255),
     statement VARCHAR(255),
     initial_balance DECIMAL(15,2),
     debit DECIMAL(15,2),

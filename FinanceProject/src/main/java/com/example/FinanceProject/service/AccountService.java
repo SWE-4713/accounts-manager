@@ -24,7 +24,8 @@ public class AccountService {
     @Autowired
     private EventLogService eventLogService; // Inject our event log service
 
-    private UserService userService;
+    @Autowired
+    private UserService userService;    
 
     public Account addAccount(Account account) {
         // Check for duplicate names if needed
@@ -201,5 +202,9 @@ public class AccountService {
         return searched.stream()
                        .filter(a -> a.getAccountCategory().equalsIgnoreCase(category))
                        .toList();
+    }
+
+    public List<Account> getAccountsForUser(User user) {
+        return accountRepo.findByUser(user);
     }
 }

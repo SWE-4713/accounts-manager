@@ -1,7 +1,7 @@
 -- Create Errors Table (for storing error messages)
 DROP TABLE IF EXISTS Errors;
-CREATE TABLE errors (
-                        `Error Id` INT NOT NULL,
-                        `Error Description` VARCHAR(255),
-                        PRIMARY KEY (`Error Id`)
+CREATE TABLE Errors (
+    error_id INT NOT NULL,
+    error_description VARCHAR(255),
+    PRIMARY KEY (error_id)
 );

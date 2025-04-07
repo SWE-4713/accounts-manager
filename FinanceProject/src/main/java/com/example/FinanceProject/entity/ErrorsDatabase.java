@@ -1,20 +1,32 @@
 package com.example.FinanceProject.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "Errors")
-@Getter
-@Setter
 public class ErrorsDatabase {
     @Id
-    @Column(name = "Error Id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "`error id`")
+    private Long errorId;
 
-    @Column(name = "Error Description")
-    private String description;
+    @Column(name = "`error description`")
+    private String errorDescription;
+
+    public Long getErrorId() {
+        return errorId;
+    }
+
+    public void setErrorId(Long errorId) {
+        this.errorId = errorId;
+    }
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
+
+    public void setErrorDescription(String errorDescription) {
+        this.errorDescription = errorDescription;
+    }
 }
-
 

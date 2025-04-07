@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Journal Entry Details</title>
+  <style>
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .entry-details p {
+      margin-bottom: 10px;
+    }
+    .entry-details label {
+      font-weight: bold;
+      display: inline-block;
+      width: 150px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table th, table td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    table th {
+      background-color: #f5f5f5;
+    }
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header th:replace="fragments/navbar :: navbar"></header>
+  <div class="container">
+    <h1>Journal Entry Details</h1>
+    <div class="entry-details">
+      <p><label>Entry Date:</label> <span th:text="${journalEntry.entryDate}"></span></p>
+      <p><label>Account:</label> <span th:text="${journalEntry.account.accountName}"></span></p>
+      <p><label>Debit:</label> <span th:text="${journalEntry.debit}"></span></p>
+      <p><label>Credit:</label> <span th:text="${journalEntry.credit}"></span></p>
+      <p><label>Status:</label> <span th:text="${journalEntry.status}"></span></p>
+      <p><label>Comment:</label> <span th:text="${journalEntry.comment}"></span></p>
+      <p><label>Post Reference:</label> <span th:text="${journalEntry.postReference}"></span></p>
+    </div>
+    <h2>Journal Entry Lines</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Line #</th>
+          <th>Account</th>
+          <th>Debit</th>
+          <th>Credit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="line, stat : ${journalEntry.lines}">
+          <td th:text="${stat.index + 1}"></td>
+          <td th:text="${line.account.accountName}"></td>
+          <td th:text="${line.debit}"></td>
+          <td th:text="${line.credit}"></td>
+        </tr>
+        <tr th:if="${journalEntry.lines == null or #lists.isEmpty(journalEntry.lines)}">
+          <td colspan="4" style="text-align: center;">No journal entry lines available.</td>
+        </tr>
+      </tbody>
+    </table>
+    <a class="back-link" th:href="@{/journal}">Back to Journal Dashboard</a>
+  </div>
+</body>
+</html>
+
