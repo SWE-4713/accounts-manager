@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,34 +19,29 @@
             --warning: #ffc107;
             --info: #17a2b8;
         }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         body {
             background-color: #f5f8fa;
             color: #333;
             line-height: 1.6;
             padding-bottom: 40px;
         }
-
         .container {
             width: 90%;
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
         }
-
         .user-info {
             display: flex;
             align-items: center;
             gap: 15px;
         }
-
         .calendar-picker input {
             padding: 8px;
             border-radius: 4px;
@@ -55,11 +49,9 @@
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
         }
-
         .nav-links {
             margin-bottom: 20px;
         }
-
         .nav-links a {
             display: inline-block;
             padding: 10px 15px;
@@ -70,11 +62,9 @@
             border-radius: 4px;
             transition: background-color 0.3s;
         }
-
         .nav-links a:hover {
             background-color: #3a5a8a;
         }
-
         .section {
             background-color: white;
             border-radius: 8px;
@@ -82,25 +72,21 @@
             padding: 25px;
             margin-bottom: 30px;
         }
-
         h1, h2 {
             color: var(--dark);
             margin-bottom: 20px;
         }
-
         h2 {
             position: relative;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border);
         }
-
         /* Form Styles */
         form {
             display: flex;
             margin-bottom: 20px;
             gap: 10px;
         }
-
         input[type="text"] {
             padding: 10px;
             border: 1px solid var(--border);
@@ -108,7 +94,6 @@
             flex-grow: 1;
             max-width: 500px;
         }
-
         button {
             padding: 10px 15px;
             background-color: var(--primary);
@@ -118,11 +103,9 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
         button:hover {
             background-color: #3a5a8a;
         }
-
         .add-btn {
             display: inline-block;
             padding: 10px 15px;
@@ -133,11 +116,9 @@
             margin-bottom: 20px;
             transition: background-color 0.3s;
         }
-
         .add-btn:hover {
             background-color: #218838;
         }
-
         /* Table container with horizontal scroll */
         .table-responsive {
             overflow-x: auto;
@@ -146,21 +127,28 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             border-radius: 8px;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
             min-width: 1200px; /* Ensures table maintains minimum width */
+            table-layout: fixed;
         }
-
+        /* Use colgroup to explicitly define column widths */
+        table colgroup col:nth-child(1) { width: 12%; }
+        table colgroup col:nth-child(2) { width: 18%; }
+        table colgroup col:nth-child(3) { width: 15%; }
+        table colgroup col:nth-child(4) { width: 15%; }
+        table colgroup col:nth-child(5) { width: 15%; }
+        table colgroup col:nth-child(6) { width: 10%; }
+        table colgroup col:nth-child(7) { width: 8%; }
+        table colgroup col:nth-child(8) { width: 14%; }
         th, td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border);
             white-space: nowrap; /* Prevents text wrapping in cells */
         }
-
         th {
             background-color: #f8f9fa;
             color: var(--dark);
@@ -168,46 +156,37 @@
             position: sticky;
             top: 0; /* For when adding vertical scroll */
         }
-
         tr:hover {
             background-color: #f5f8fa;
         }
-
         .action-links a {
             color: var(--primary);
             margin-right: 10px;
             text-decoration: none;
         }
-
         .action-links a:hover {
             text-decoration: underline;
         }
-
         .disabled-button {
             background-color: #ccc;
             color: #666;
             cursor: not-allowed;
         }
-
         /* Custom scrollbar styling for better UX */
         .table-responsive::-webkit-scrollbar {
             height: 8px;
         }
-
         .table-responsive::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 4px;
         }
-
         .table-responsive::-webkit-scrollbar-thumb {
             background: #c1c1c1;
             border-radius: 4px;
         }
-
         .table-responsive::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
-
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -222,26 +201,24 @@
     <div sec:authorize="hasRole('ROLE_ADMIN')" class="nav-links">
         <a th:href="@{/event-logs}">Event Logs</a>
     </div>
-
     <div class="section">
         <h1>Chart of Accounts</h1>
 
         <!-- Search/Filter Form -->
         <form method="get" th:action="@{/accounts}">
-            <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc."
-                   th:value="${param.query}" />
+            <input type="text" name="query" placeholder="Search by account name, number, category, subcategory, etc." th:value="${param?.query}" />
             <button type="submit"><i class="fas fa-search"></i> Search</button>
         </form>
 
         <form method="get" th:action="@{/accounts}" style="display:inline-block;">
             <select name="category">
                 <option value="">Filter by Category</option>
-                <option value="Asset" th:selected="${param.category} == 'Asset'">Asset</option>
-                <option value="Liability" th:selected="${param.category} == 'Liability'">Liability</option>
-                <option value="Equity" th:selected="${param.category} == 'Equity'">Equity</option>
-                <option value="Revenue" th:selected="${param.category} == 'Revenue'">Revenue</option>
-                <option value="Expense" th:selected="${param.category} == 'Expense'">Expense</option>
-                <option value="Other" th:selected="${param.category} == 'Other'">Other</option>
+                <option value="Asset" th:selected="${param?.category} == 'Asset'">Asset</option>
+                <option value="Liability" th:selected="${param?.category} == 'Liability'">Liability</option>
+                <option value="Equity" th:selected="${param?.category} == 'Equity'">Equity</option>
+                <option value="Revenue" th:selected="${param?.category} == 'Revenue'">Revenue</option>
+                <option value="Expense" th:selected="${param?.category} == 'Expense'">Expense</option>
+                <option value="Other" th:selected="${param?.category} == 'Other'">Other</option>
             </select>
             <button type="submit">Apply</button>
         </form>
@@ -250,56 +227,63 @@
 
         <!-- Table with horizontal scrolling -->
         <div class="table-responsive" style="clear: both;">
-            <table style="table-layout: fixed; width: 100%;">
+            <table>
+                <colgroup>
+                    <col style="width: 12%;">
+                    <col style="width: 18%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                    <col style="width: 10%;">
+                    <col style="width: 8%;">
+                    <col style="width: 14%;">
+                </colgroup>
                 <thead>
                     <tr>
-                        <!-- Each header is a link that toggles the sort direction if the user clicks it.
-                             We also show an up/down arrow if this is the current sortField. -->
                         <th>
-                            <a th:href="@{/accounts(sortField='accountNumber', sortDir=${sortField=='accountNumber' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='accountNumber', sortDir=${sortField=='accountNumber' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Number
-                                <!-- Show arrow if currently sorting by 'accountNumber' -->
                                 <i th:if="${sortField=='accountNumber'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='accountName', sortDir=${sortField=='accountName' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='accountName', sortDir=${sortField=='accountName' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Name
                                 <i th:if="${sortField=='accountName'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='accountCategory', sortDir=${sortField=='accountCategory' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='accountCategory', sortDir=${sortField=='accountCategory' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Category
                                 <i th:if="${sortField=='accountCategory'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='statement', sortDir=${sortField=='statement' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='statement', sortDir=${sortField=='statement' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Financial Statement
                                 <i th:if="${sortField=='statement'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='normalSide', sortDir=${sortField=='normalSide' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='normalSide', sortDir=${sortField=='normalSide' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Normal Side
                                 <i th:if="${sortField=='normalSide'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='balance', sortDir=${sortField=='balance' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='balance', sortDir=${sortField=='balance' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Balance
                                 <i th:if="${sortField=='balance'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
                             </a>
                         </th>
                         <th>
-                            <a th:href="@{/accounts(sortField='active', sortDir=${sortField=='active' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param.query}, category=${param.category})}">
+                            <a th:href="@{/accounts(sortField='active', sortDir=${sortField=='active' and sortDir=='asc' ? 'desc' : 'asc'}, query=${param?.query}, category=${param?.category})}">
                                 Active
                                 <i th:if="${sortField=='active'}"
                                    th:classappend="${sortDir=='asc'} ? 'fas fa-caret-up sort-arrow' : 'fas fa-caret-down sort-arrow'"></i>
@@ -309,29 +293,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="account : ${accounts}" th:style="${!account.active} ? @{background-color: lightgrey;}">
+                    <tr th:each="account : ${accounts}" th:style="${!account?.active} ? @{background-color: lightgrey;}">
                         <td>
-                            <!-- Link uses account ID to match your controller's /accounts/{id}/account-view mapping -->
-                            <a th:href="@{'/accounts/' + ${account.id} + '/account-view'}" th:text="${account.accountNumber}"></a>
+                            <a th:href="@{'/accounts/' + ${account?.id} + '/account-view'}" th:text="${account?.accountNumber}"></a>
                         </td>
-                        <td th:text="${account.accountName}"></td>
-                        <td th:text="${account.accountCategory}"></td>
-                        <td th:text="${account.statement}"></td>
-                        <td th:text="${account.normalSide}"></td>
-                        <td th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td>
-                            <span th:if="${account.active}" style="color: green;">Yes</span>
-                            <span th:if="${!account.active}" style="color: red;">No</span>
+                            <a th:href="@{'/accounts/' + ${account.id} + '/ledger'}" th:text="${account?.accountName}"></a>
                         </td>
+                        <td th:text="${account?.accountCategory}"></td>
+                        <td th:text="${account?.statement}"></td>
+                        <td th:text="${account?.normalSide}"></td>
+                        <td th:text="${account?.balance}"></td>
+                        <td th:text="${account?.active} ? 'Yes' : 'No'"></td>
                         <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
-                            <a th:href="@{/accounts/edit(id=${account.id})}" class="btn btn-sm btn-primary">Edit</a>
+                            <a th:href="@{/accounts/edit(id=${account?.id})}" class="btn btn-sm btn-primary">Edit</a>
+                            <!-- Only allow deactivation if balance equals zero -->
                             <form th:action="@{/accounts/deactivate}" method="post" style="display:inline;">
                                 <input type="hidden" name="id" th:value="${account.id}" />
                                 <button type="submit" class="btn btn-sm btn-danger"
-                                        th:disabled="${account.balance != 0}"
-                                        th:style="${!account.active} ? @{background-color: #6c757d;}">
-                                    Deactivate
-                                </button>
+                                        th:disabled="${account?.balance == 0}" th:style="${!account?.active} ? @{background-color: #6c757d;}">Deactivate</button>
                             </form>
                         </td>
                     </tr>

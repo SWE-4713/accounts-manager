@@ -4,6 +4,7 @@ import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.PasswordExpirationReportService;
 import com.example.FinanceProject.service.UserService;
+import com.example.FinanceProject.service.EventLogService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
@@ -18,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.*;
+
+
 
 @Controller
 @Secured("ROLE_ADMIN")
@@ -32,6 +36,10 @@ public class AdminController {
 
     @Autowired
     private PasswordExpirationReportService passwordExpirationReportService;
+
+    @Autowired
+    private EventLogService eventLogService;
+
 
     // Serve the admin landing page with both active and pending users
     @GetMapping
@@ -212,5 +220,13 @@ public class AdminController {
         userService.updateUser(id, username, role, firstName, lastName, address, dob, email);
         redirectAttributes.addFlashAttribute("message", "User updated successfully");
         return "redirect:/admin/user-management";
+    }
+
+    // Endpoint to view event logs
+    @GetMapping("/event-logs")
+    public String eventLogs(Model model) {
+        model.addAttribute("eventLogs", eventLogService.getAllEventLogs());
+        model.addAttribute("username", SecurityContextHolder.getContext().getAuthentication().getName());
+        return "event-logs";
     }
 }

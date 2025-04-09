@@ -2,7 +2,11 @@
 package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.AccountService;
+import com.example.FinanceProject.service.JournalEntryService;
+import com.example.FinanceProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
@@ -11,7 +15,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.Sort;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Controller
 @Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGER"})
@@ -20,6 +28,12 @@ public class AccountController {
     
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JournalEntryService journalEntryService;
     
     @GetMapping
     public String listAccounts(
@@ -45,6 +59,10 @@ public class AccountController {
         } else {
             accounts = accountService.getAllAccounts(sort);
         }
+        // Filter out any null elements:
+        accounts = accounts.stream()
+                   .filter(Objects::nonNull)
+                   .collect(Collectors.toList());
         model.addAttribute("accounts", accounts);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
@@ -66,8 +84,7 @@ public class AccountController {
         model.addAttribute("username", authentication.getName());
         Account account = accountService.getAccountById(id);
         model.addAttribute("account", account);
-        // For demonstration, assume you have a ledgerService to fetch ledger entries:
-        // model.addAttribute("ledgerEntries", ledgerService.getEntriesByAccountId(id));
+        model.addAttribute("ledgerEntries", new ArrayList<>());
         return "account-ledger"; // Create a template to display the account ledger
     }
     
@@ -86,7 +103,8 @@ public class AccountController {
     public String addAccount(@ModelAttribute("account") Account account,
                              RedirectAttributes redirectAttributes) {
         try {
-            accountService.addAccount(account);
+            Account savedAccount = accountService.addAccount(account);
+            System.out.println("Account saved with ID: " + savedAccount.getId());
             redirectAttributes.addFlashAttribute("message", "Account added successfully.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error adding account: " + e.getMessage());
@@ -131,5 +149,14 @@ public class AccountController {
             redirectAttributes.addFlashAttribute("error", "Error deactivating account: " + e.getMessage());
         }
         return "redirect:/accounts";
+    }
+
+    @GetMapping("/{id}/history")
+    public String viewAccountHistory(@PathVariable Long id, Model model, Authentication authentication) {
+        Account account = accountService.getAccountById(id);
+        List<JournalEntry> entries = journalEntryService.getJournalEntriesByAccountId(id);
+        model.addAttribute("account", account);
+        model.addAttribute("entries", entries);
+        return "account-ledger";
     }
 }
