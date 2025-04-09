@@ -12,7 +12,6 @@ import java.util.Optional;
 public interface JournalEntryRepo extends JpaRepository<JournalEntry, Long> {
     List<JournalEntry> findByStatus(JournalStatus statusEnum);
     List<JournalEntry> findByEntryDateBetween(LocalDateTime start, LocalDateTime end);
-    Optional<JournalEntry> findByPostReference(String postReference);
     // Additional search methods by account name or amount can be defined using @Query
     List<JournalEntry> findByStatusAndEntryDateBetween(JournalStatus status, LocalDate start, LocalDate end);
 }

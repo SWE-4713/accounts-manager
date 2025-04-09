@@ -58,59 +58,55 @@
     </style>
 </head>
 <body>
-<header th:replace="fragments/navbar :: navbar"></header>
-
-<div class="journal-container">
-    <h1>Journal Entries</h1>
-
-    <!-- Button to create a new journal entry -->
-    <div class="top-bar">
-        <a th:href="@{/journal/new}">Create New Journal Entry</a>
+    <header th:replace="fragments/navbar :: navbar"></header>
+    <div class="journal-container">
+        <h1>Journal Entries</h1>
+        <!-- Table with new headers -->
+        <!-- Button to create a new journal entry -->
+        <div class="top-bar">
+            <a th:href="@{/journal/new}">Create New Journal Entry</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${entries}">
+                    <td>
+                        <!-- Clicking on the ID navigates to the detail view -->
+                        <a th:href="@{'/journal/view/' + ${entry.id}}" th:text="${entry.id}"></a>
+                    </td>
+                    <td th:text="${entry.entryDate}"></td>
+                    <td th:text="${entry.description}"></td>
+                    <td th:text="${entry.status}"></td>
+                    <td th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td>
+                        <!-- Example action buttons for managers -->
+                        <div sec:authorize="hasRole('ROLE_MANAGER')">
+                            <form th:action="@{/manager/journal/approve}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${entry.id}" />
+                                <button type="submit">Approve</button>
+                            </form>
+                            <form th:action="@{/manager/journal/reject}" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${entry.id}" />
+                                <input type="text" name="comment" placeholder="Enter reason" required />
+                                <button type="submit">Reject</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="6">No journal entries found.</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-
-    <!-- Single table showing all journal entries -->
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Account Title</th>
-                <th class="right">Debit</th>
-                <th class="right">Credit</th>
-                <th>Status</th>
-                <!-- Show manager comment here -->
-                <th>Comment</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="entry : ${entries}">
-                <td th:text="${entry.entryDate}"></td>
-                <td th:text="${entry.account != null ? entry.account.accountName : 'N/A'}"></td>
-                <td class="right" th:text="${entry.debit}"></td>
-                <td class="right" th:text="${entry.credit}"></td>
-                <td th:text="${entry.status}">PENDING</td>
-                <!-- Manager comment column now shows managerComment -->
-                <td th:text="${entry.managerComment}">Manager Comment Here</td>
-                <td>
-                    <!-- If the user is a manager and the entry is PENDING, show Approve/Reject in place -->
-                    <div th:if="${entry.status?.name() == 'PENDING'}" sec:authorize="hasRole('ROLE_MANAGER')">
-                        <form th:action="@{/manager/journal/approve}" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${entry.id}" />
-                            <button type="submit">Approve</button>
-                        </form>
-                        <form class="reject-form" th:action="@{/manager/journal/reject}" method="post">
-                            <input type="hidden" name="id" th:value="${entry.id}" />
-                            <input type="text" name="comment" placeholder="Enter reason" required />
-                            <button type="submit">Reject</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            <tr th:if="${entries == null or #lists.isEmpty(entries)}">
-                <td colspan="7">No journal entries found.</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 </body>
 </html>

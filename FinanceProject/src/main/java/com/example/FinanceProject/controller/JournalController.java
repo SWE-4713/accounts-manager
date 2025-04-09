@@ -1,5 +1,6 @@
 package com.example.FinanceProject.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,11 @@ import com.example.FinanceProject.entity.JournalStatus;
 import com.example.FinanceProject.service.AccountService;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.JournalEntryService;
+import com.example.FinanceProject.repository.JournalEntryRepo;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.core.Authentication;    
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;    
 
 
 @Controller
@@ -52,43 +55,45 @@ public class JournalController {
     @GetMapping("/new")
     public String newJournalEntry(Model model) {
         if (!model.containsAttribute("journalEntry")) {
-            model.addAttribute("journalEntry", new JournalEntry());
+            JournalEntry newEntry = new JournalEntry();
+            newEntry.setEntryDate(LocalDate.now());
+            // Preload with two empty lines
+            newEntry.getLines().add(new JournalEntryLine());
+            newEntry.getLines().add(new JournalEntryLine());
+            model.addAttribute("journalEntry", newEntry);
         }
+        // Get the list of accounts to populate the select list in the form.
         List<Account> accounts = accountService.getAllAccounts(Sort.by("accountNumber"));
         model.addAttribute("accounts", accounts);
         return "journal-entry-form";
     }
 
-    // JournalController.java
     @PostMapping("/submit")
-    public String submitJournalEntry(
-            @ModelAttribute JournalEntry journalEntry,
-            @RequestParam(value = "attachment", required = false) MultipartFile attachment,
-            Model model, RedirectAttributes redirectAttributes) {
+    public String submitJournalEntry(@ModelAttribute JournalEntry journalEntry,
+                                    @RequestParam(value = "attachment", required = false) MultipartFile attachment,
+                                    Model model, RedirectAttributes redirectAttributes) {
         try {
-            // Handle file attachment if provided.
             if (attachment != null && !attachment.isEmpty()) {
                 String filePath = journalEntryService.storeAttachment(attachment);
                 journalEntry.setAttachmentPath(filePath);
             }
-
-            // Process each line as an independent journal entry.
-            List<JournalEntry> savedEntries = journalEntryService.submitJournalEntry(journalEntry);
-
-            // Optionally notify the manager.
-            emailService.sendSimpleEmail("manager@example.com", "New Journal Entry Submitted",
-                    "New journal entry lines have been submitted for approval. Please review them in the system.");
-
-            redirectAttributes.addFlashAttribute("message", 
-                    savedEntries.size() + " journal entry line(s) submitted successfully.");
-            return "redirect:/journal";  // Redirect to the journal page
+            
+            JournalEntry savedEntry = journalEntryService.submitJournalEntry(journalEntry);
+            
+            redirectAttributes.addFlashAttribute("message", "Journal entry submitted successfully with ID: " + savedEntry.getId());
         } catch (Exception e) {
-            // Pass the error message to the view.
             redirectAttributes.addFlashAttribute("error", "Submission failed: " + e.getMessage());
-            List<Account> accounts = accountService.getAllAccounts(Sort.by("accountNumber"));
-            model.addAttribute("accounts", accounts);
-            return "journal-entry-form";  // Re-display the entry form in case of error
+            return "redirect:/journal/new";
         }
+        return "redirect:/journal";
+    }
+
+    // View journal entry details by post reference (e.g., clicking the entry ID from the list)
+    @GetMapping("/view/{id}")
+    public String viewJournalEntryById(@PathVariable Long id, Model model) {
+        JournalEntry entry = journalEntryService.getJournalEntryById(id);
+        model.addAttribute("journalEntry", entry);
+        return "journal-entry-view";
     }
 
     // List journal entries by status (pending, approved, rejected), with optional filtering by date or search term.
@@ -101,28 +106,27 @@ public class JournalController {
         List<JournalEntry> entries = journalEntryService.getJournalEntriesByStatus(status, dateFrom, dateTo, search);
         model.addAttribute("entries", entries);
         model.addAttribute("status", status);
-        return "journal";
+        return "redirect:/journal";
     }
 
     // Approve a journal entry (for manager)
     @PostMapping("/approve")
     public String approveJournalEntry(@RequestParam Long id) {
         journalEntryService.approveEntry(id);
-        return "redirect:/journal/pending";
+        return "redirect:/journal";
     }
 
     // Reject a journal entry (for manager); the manager must supply a comment (reason)
     @PostMapping("/reject")
     public String rejectJournalEntry(@RequestParam Long id, @RequestParam String comment) {
         journalEntryService.rejectEntry(id, comment);
-        return "redirect:/journal/pending";
+        return "journal";
     }
 
-    // View journal entry details by post reference
-    @GetMapping("/view/{postReference}")
-    public String viewJournalEntryByPostReference(@PathVariable String postReference, Model model) {
-        JournalEntry entry = journalEntryService.getJournalEntryByPostReference(postReference);
-        model.addAttribute("journalEntry", entry);
-        return "journal-entry-view"; // Create a view for showing the journal entry details
+    @GetMapping("/general-ledger")
+    public String showGeneralLedger(Model model) {
+        List<JournalEntry> entries = journalEntryService.findAllJournalEntries();
+        model.addAttribute("entries", entries);
+        return "journal-general-ledger";
     }
 }

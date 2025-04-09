@@ -1,51 +1,60 @@
 package com.example.FinanceProject.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
 @Getter
 @Setter
+@Entity
 @Table(name= "journal_entries")
 public class JournalEntry {
 
-    @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;  // Auto-incremented journal entry ID
 
     private LocalDate entryDate;
 
-    private BigDecimal debit;
-    private BigDecimal credit;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private JournalStatus status; // PENDING, APPROVED, REJECTED
+    private JournalStatus status; // e.g., PENDING, APPROVED, REJECTED
 
-    @Column(length = 500)
-    private String managerComment; // manager's comment if rejected
+    // Manager comment (for approvals/rejections) remains if needed.
+    private String managerComment;
 
-    // Optionally: description or reference fields, e.g. "Service Revenue"
+    // Header-level description and the optional comment entered at creation.
     private String description;
+    private String entryComment;
 
-    // List of transaction lines
+    // Path to the file attachment (optional)
+    @Column(name = "attachment_path")
+    private String attachmentPath;
+
+    // New field to store the username of the user that created this entry.
+    private String createdBy;
+    
+    // One-to-Many relationship with lines (each representing a debit or a credit)
     @OneToMany(mappedBy = "journalEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JournalEntryLine> lines = new ArrayList<>();
 
-    // Reference code to link back to account ledger
-    private String postReference;
+    // Transient getters to calculate totals from the lines.
+    @Transient
+    public BigDecimal getTotalDebit() {
+        return lines.stream()
+                .map(line -> line.getDebit() != null ? line.getDebit() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 
-    // New field to store the attachment path for source documents
-    @Column(name = "attachment_path")
-    private String attachmentPath;
+    @Transient
+    public BigDecimal getTotalCredit() {
+        return lines.stream()
+                .map(line -> line.getCredit() != null ? line.getCredit() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

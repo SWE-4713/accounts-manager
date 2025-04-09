@@ -6,5 +6,6 @@ CREATE TABLE journal_entries (
     description VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     manager_comment VARCHAR(255),
-    post_reference VARCHAR(50)
+    entry_comment VARCHAR(500),
+    created_by VARCHAR(255)
 );

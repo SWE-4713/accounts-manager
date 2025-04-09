@@ -9,4 +9,4 @@ CREATE TABLE journal_entry_lines (
     PRIMARY KEY (id),
     CONSTRAINT fk_account FOREIGN KEY (account_id) REFERENCES accounts(id),
     CONSTRAINT fk_journal_entry FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id)
-) ENGINE=InnoDB;
+) 

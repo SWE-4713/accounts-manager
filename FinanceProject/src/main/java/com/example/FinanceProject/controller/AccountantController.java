@@ -58,17 +58,16 @@ public class AccountantController {
                                     @RequestParam("attachment") MultipartFile attachment,
                                     Model model, RedirectAttributes redirectAttributes) {
         try {
-            // Validate and process the attachment if provided.
             if (attachment != null && !attachment.isEmpty()) {
                 String filePath = journalEntryService.storeAttachment(attachment);
                 journalEntry.setAttachmentPath(filePath);
             }
             
-            // Submit journal entry: each line is saved as an independent record.
-            List<JournalEntry> savedEntries = journalEntryService.submitJournalEntry(journalEntry);
+            // Updated: now returns a single JournalEntry
+            JournalEntry savedEntry = journalEntryService.submitJournalEntry(journalEntry);
             
             redirectAttributes.addFlashAttribute("message", 
-                savedEntries.size() + " journal entry line(s) submitted successfully.");
+                "Journal entry submitted successfully with ID: " + savedEntry.getId());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Submission failed: " + e.getMessage());
             return "redirect:/accountant/journal/create";

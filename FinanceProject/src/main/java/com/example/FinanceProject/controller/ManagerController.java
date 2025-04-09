@@ -51,7 +51,7 @@ public class ManagerController {
         List<JournalEntry> pendingEntries = journalEntryService.findByStatus("PENDING");
         model.addAttribute("journalEntries", pendingEntries);
         model.addAttribute("username", SecurityContextHolder.getContext().getAuthentication().getName());
-        return "journal-pending"; // Create a corresponding Thymeleaf template
+        return "redirect:/journal"; // Create a corresponding Thymeleaf template
     }
 
     // Approve a journal entry
@@ -63,7 +63,7 @@ public class ManagerController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/manager/journal/pending";
+        return "redirect:/journal";
     }
 
     // Reject a journal entry (with comment)
@@ -77,6 +77,6 @@ public class ManagerController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/manager/journal/pending";
+        return "redirect:/journal";
     }
 }

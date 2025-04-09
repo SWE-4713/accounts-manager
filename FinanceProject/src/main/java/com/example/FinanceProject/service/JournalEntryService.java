@@ -1,21 +1,19 @@
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.entity.Account;
-import com.example.FinanceProject.entity.ErrorsDatabase;
 import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.entity.JournalEntryLine;
 import com.example.FinanceProject.entity.JournalStatus;
-import com.example.FinanceProject.repository.ErrorDatabaseRepo;
+import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.ErrorsDatabase;
 import com.example.FinanceProject.repository.JournalEntryRepo;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.example.FinanceProject.repository.ErrorDatabaseRepo;
 import org.springframework.stereotype.Service;
-import com.example.FinanceProject.entity.JournalEntry;
-import com.example.FinanceProject.entity.JournalStatus;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,58 +39,57 @@ public class JournalEntryService {
     @Autowired
     private AccountService accountService;
     
-    // JournalEntryService.java
-    public List<JournalEntry> submitJournalEntry(JournalEntry entry) {
-        // Calculate total debits and credits from the submitted lines
+    public JournalEntry submitJournalEntry(JournalEntry entry) {
+        // Validate that there is at least one line item.
+        if(entry.getLines() == null || entry.getLines().isEmpty()){
+            throw new IllegalArgumentException("At least one journal entry line is required.");
+        }
         BigDecimal totalDebit = BigDecimal.ZERO;
         BigDecimal totalCredit = BigDecimal.ZERO;
-        for (JournalEntryLine line : entry.getLines()) {
-            totalDebit = totalDebit.add(line.getDebit() != null ? line.getDebit() : BigDecimal.ZERO);
-            totalCredit = totalCredit.add(line.getCredit() != null ? line.getCredit() : BigDecimal.ZERO);
-        }
-        
-        // Validate that at least one debit and one credit is provided.
-        if (totalDebit.compareTo(BigDecimal.ZERO) <= 0 || totalCredit.compareTo(BigDecimal.ZERO) <= 0) {
-            saveError("Each journal entry must have at least one debit and one credit.");
-            throw new IllegalArgumentException("Each journal entry must have at least one debit and one credit.");
-        }
-        
-        // Validate that the total debits equal the total credits.
-        if (totalDebit.compareTo(totalCredit) != 0) {
-            saveError("Total debits (" + totalDebit + ") do not equal total credits (" + totalCredit + ").");
-            throw new IllegalArgumentException("Total debits do not equal total credits.");
-        }
-
-        List<JournalEntry> savedEntries = new ArrayList<>();
-
-        // Process each line as an independent journal entry.
-        for (JournalEntryLine line : entry.getLines()) {
-            // Validate that an account is provided.
-            if (line.getAccountId() == null) {
-                throw new IllegalArgumentException("Account is required for each line.");
+        // Loop over each line to validate and compute totals.
+        for(JournalEntryLine line : entry.getLines()){
+            // Convert transient accountId to Account entity if not already set.
+            if (line.getAccount() == null) {
+                // Assuming you have a getter for a transient property called accountId:
+                Long accountId = line.getAccountId();  
+                if (accountId == null) {
+                    throw new IllegalArgumentException("Each line must have an account selected.");
+                }
+                // Retrieve the Account using the accountService
+                Account account = accountService.getAccountById(accountId);
+                if (account == null) {
+                    throw new IllegalArgumentException("Account not found for id: " + accountId);
+                }
+                line.setAccount(account);
             }
-            Account account = accountService.getAccountById(line.getAccountId());
-            if (account == null) {
-                throw new IllegalArgumentException("Account not found for ID: " + line.getAccountId());
+            BigDecimal debit = line.getDebit() != null ? line.getDebit() : BigDecimal.ZERO;
+            BigDecimal credit = line.getCredit() != null ? line.getCredit() : BigDecimal.ZERO;
+            // If one field has a positive amount, the other must be zero.
+            if(debit.compareTo(BigDecimal.ZERO) > 0 && credit.compareTo(BigDecimal.ZERO) > 0){
+                throw new IllegalArgumentException("A line cannot have both a debit and a credit amount.");
             }
-
-            // Create a new JournalEntry record for the line.
-            JournalEntry newEntry = new JournalEntry();
-            newEntry.setEntryDate(entry.getEntryDate());              // Copy header entry date
-            newEntry.setDescription(entry.getDescription());            // Copy description if available
-            newEntry.setStatus(JournalStatus.PENDING);                  // Set default status
-            newEntry.setAttachmentPath(entry.getAttachmentPath());      // Copy attachment if provided
-            newEntry.setDebit(line.getDebit());                         // Set debit from the line
-            newEntry.setCredit(line.getCredit());                       // Set credit from the line
-            newEntry.setAccount(account);                               // Associate the account
-
-            // Save the new entry and set a post reference.
-            JournalEntry savedEntry = journalEntryRepository.save(newEntry);
-            savedEntry.setPostReference("PR" + savedEntry.getId());
-            savedEntry = journalEntryRepository.save(savedEntry);
-            savedEntries.add(savedEntry);
+            totalDebit = totalDebit.add(debit);
+            totalCredit = totalCredit.add(credit);
+            // Set back-reference:
+            line.setJournalEntry(entry);
         }
-        return savedEntries;
+        // The journal entry must be balanced.
+        if(totalDebit.compareTo(totalCredit) != 0){
+            throw new IllegalArgumentException("Total debits must equal total credits.");
+        }
+        entry.setStatus(JournalStatus.PENDING);  // Default status
+
+        // Capture the current username from the security context.
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth != null && !auth.getName().equals("anonymousUser")){
+            entry.setCreatedBy(auth.getName());
+        }
+
+        // Save the journal entry and cascade to the lines.
+        JournalEntry saved = journalEntryRepository.save(entry);
+        // Optionally, set a post reference if needed, e.g., "PR" + id.
+        saved.setDescription(entry.getDescription());
+        return saved;
     }
 
     private void saveError(String description) {
@@ -118,18 +115,30 @@ public class JournalEntryService {
         return journalEntryRepository.save(entry);
     }
 
-    // Dummy implementation of file attachment storage
     public String storeAttachment(MultipartFile file) throws IOException {
-        // In production, use a robust file storage mechanism
-        String uploadsDir = "/uploads/journal/";
+        // Check allowed file types here, e.g., by MIME type or extension.
+        String[] allowedExtensions = {"pdf", "doc", "docx", "xls", "xlsx", "csv", "jpg", "jpeg", "png"};
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null) {
+            String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+            boolean allowed = false;
+            for(String allowedExt : allowedExtensions){
+                if(allowedExt.equals(ext)){
+                    allowed = true;
+                    break;
+                }
+            }
+            if(!allowed) {
+                throw new IllegalArgumentException("File type not allowed.");
+            }
+        }
+
+        String uploadsDir = "/uploads/journal/"; // Adjust your storage path as needed
         File dir = new File(uploadsDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
-        }
-        String filePath = uploadsDir + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String filePath = uploadsDir + System.currentTimeMillis() + "_" + originalFilename;
         file.transferTo(new File(filePath));
         return filePath;
     }
@@ -138,12 +147,6 @@ public class JournalEntryService {
     public List<JournalEntry> getJournalEntriesByStatus(String status, String dateFrom, String dateTo, String search) {
         JournalStatus statusEnum = JournalStatus.valueOf(status.toUpperCase());
         return journalEntryRepository.findByStatus(statusEnum);
-    }
-
-    public JournalEntry getJournalEntryByPostReference(String postReference) {
-        // Implement a lookup by postReference (assuming uniqueness)
-        return journalEntryRepository.findByPostReference(postReference)
-                .orElseThrow(() -> new IllegalArgumentException("Journal entry not found"));
     }
 
     public List<JournalEntry> findByStatus(String status) {
@@ -179,11 +182,28 @@ public class JournalEntryService {
                 (e.getLines().stream().anyMatch(line -> 
                     line.getAccount() != null && 
                     line.getAccount().getAccountName().toLowerCase().contains(lowerSearch)))
-                || (e.getDebit() != null && e.getDebit().toString().contains(lowerSearch))
-                || (e.getCredit() != null && e.getCredit().toString().contains(lowerSearch))
+                || (e.getTotalDebit() != null && e.getTotalDebit().toString().contains(lowerSearch))
+                || (e.getTotalCredit() != null && e.getTotalCredit().toString().contains(lowerSearch))
                 || (e.getEntryDate() != null && e.getEntryDate().toString().contains(lowerSearch))
             ).collect(Collectors.toList());
         }
         return entries;
     }
+
+    public JournalEntry getJournalEntryById(Long id) {
+        return journalEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Journal entry not found with id: " + id));
+    }
+
+    public List<JournalEntry> findAllJournalEntries() {
+        return journalEntryRepository.findAll();
+    }
+
+    public List<JournalEntry> getJournalEntriesByAccountId(Long accountId) {
+        return journalEntryRepository.findAll().stream()
+           .filter(entry -> entry.getLines().stream()
+               .anyMatch(line -> line.getAccount() != null && line.getAccount().getId().equals(accountId))
+           ).collect(Collectors.toList());
+    }
+    
 }

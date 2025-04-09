@@ -2,8 +2,10 @@
 package com.example.FinanceProject.controller;
 
 import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.service.AccountService;
+import com.example.FinanceProject.service.JournalEntryService;
 import com.example.FinanceProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
@@ -29,6 +31,9 @@ public class AccountController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JournalEntryService journalEntryService;
     
     @GetMapping
     public String listAccounts(
@@ -146,20 +151,12 @@ public class AccountController {
         return "redirect:/accounts";
     }
 
-    @GetMapping("/ledger")
-    public String generalLedger(Model model, Authentication authentication) {
-        // Retrieve the current user
-        User user = userService.findUserByUsername(authentication.getName());
-        
-        // Get accounts for the user; assuming you add a method in AccountService to fetch only the user's accounts
-        List<Account> userAccounts = accountService.getAccountsForUser(user);
-        if (userAccounts != null && !userAccounts.isEmpty()) {
-            // For example, pick the first account as the default ledger view
-            Account defaultAccount = userAccounts.get(0);
-            return "redirect:/" + defaultAccount.getId() + "/ledger";
-        } else {
-            model.addAttribute("error", "No accounts found for ledger view.");
-            return "error";
-        }
+    @GetMapping("/{id}/history")
+    public String viewAccountHistory(@PathVariable Long id, Model model, Authentication authentication) {
+        Account account = accountService.getAccountById(id);
+        List<JournalEntry> entries = journalEntryService.getJournalEntriesByAccountId(id);
+        model.addAttribute("account", account);
+        model.addAttribute("entries", entries);
+        return "account-ledger";
     }
 }

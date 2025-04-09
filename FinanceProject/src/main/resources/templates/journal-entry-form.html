@@ -66,88 +66,170 @@
     <header th:replace="fragments/navbar :: navbar"></header>
     <div class="container">
         <h2>Create New Journal Entry</h2>
-        <form th:action="@{/journal/submit}" method="post" enctype="multipart/form-data" th:object="${journalEntry}">
-            <div th:if="${error}" class="error-message">
-                <p th:text="${error}"></p>
-            </div>
-            <!-- Header-level fields -->
-            <div>
+        <form th:action="@{/journal/submit}" method="post" enctype="multipart/form-data" id="journalEntryForm" th:object="${journalEntry}">
+            <!-- Header fields -->
+            <div class="form-group">
                 <label for="entryDate">Entry Date</label>
                 <input type="date" id="entryDate" th:field="*{entryDate}" required />
             </div>
-            <!-- Container for Journal Entry Lines -->
-            <div id="linesContainer">
-                <div class="line">
-                    <select name="lines[0].accountId" required>
-                        <option value="" disabled selected>Select Account</option>
-                        <th:block th:each="acct : ${accounts}">
-                            <option th:value="${acct.id}" 
-                                    th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
-                        </th:block>
-                    </select>
-                    <input type="number" step="0.01" name="lines[0].debit" placeholder="Debit" />
-                    <input type="number" step="0.01" name="lines[0].credit" placeholder="Credit" />
-                    <input type="text" name="lines[0].description" placeholder="Line Description" />
-                    <button type="button" class="btn remove-line-btn" onclick="removeLine(this)">Remove</button>
-                </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" th:field="*{description}" required></textarea>
             </div>
-            <!-- Hidden container with account options -->
-            <div id="hiddenAccountOptions" style="display: none;">
-                <select id="accountOptions">
-                    <option value="">Select Account</option>
-                    <th:block th:each="acct : ${accounts}">
-                        <option th:value="${acct.id}" 
-                                th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
-                    </th:block>
-                </select>
+            <div class="form-group">
+                <label for="entryComment">Comment (optional)</label>
+                <textarea id="entryComment" th:field="*{entryComment}"></textarea>
             </div>
-            <button type="button" class="btn add-line-btn" onclick="addLine()">Add Line</button>
-            <div style="text-align: center;">
-                <button type="submit" class="btn">Submit Entry</button>
+            <div class="form-group">
+                <label for="attachment">File Attachment (optional)</label>
+                <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png" />
             </div>
+
+            <!-- Journal Entry Lines -->
+            <h3>Journal Entry Lines</h3>
+            <table id="linesTable">
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Debit</th>
+                        <th>Credit</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="linesBody">
+                    <!-- Preload two line items -->
+                    <tr class="line">
+                        <td>
+                            <select name="lines[0].accountId" class="account-select" required>
+                                <option value="">Select Account</option>
+                                <th:block th:each="acct : ${accounts}">
+                                    <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.01" name="lines[0].debit" class="debit-input" value="0"/></td>
+                        <td><input type="number" step="0.01" name="lines[0].credit" class="credit-input" value="0"/></td>
+                        <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
+                    </tr>
+                    <tr class="line">
+                        <td>
+                            <select name="lines[1].accountId" class="account-select" required>
+                                <option value="">Select Account</option>
+                                <th:block th:each="acct : ${accounts}">
+                                    <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.01" name="lines[1].debit" class="debit-input" value="0"/></td>
+                        <td><input type="number" step="0.01" name="lines[1].credit" class="credit-input" value="0"/></td>
+                        <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="add-line-btn" onclick="addLine()">Add Line</button>
+
+            <!-- Totals -->
+            <div>
+                <p>Total Debit: <span id="totalDebit">0.00</span></p>
+                <p>Total Credit: <span id="totalCredit">0.00</span></p>
+                <p>Difference: <span id="difference">0.00</span></p>
+            </div>
+
+            <button type="submit" id="submitEntryBtn">Submit Journal Entry</button>
         </form>
-        <div th:if="${error}" style="color:red; text-align: center; margin-top: 10px;" th:text="${error}"></div>
     </div>
 
-    <script th:inline="javascript">
-        let lineIndex = 0; // Track based on current line count
+    <script>
+        function updateTotals() {
+            let totalDebit = 0, totalCredit = 0;
+            document.querySelectorAll('.debit-input').forEach(input => {
+                totalDebit += parseFloat(input.value) || 0;
+            });
+            document.querySelectorAll('.credit-input').forEach(input => {
+                totalCredit += parseFloat(input.value) || 0;
+            });
+            document.getElementById('totalDebit').innerText = totalDebit.toFixed(2);
+            document.getElementById('totalCredit').innerText = totalCredit.toFixed(2);
+            let diff = totalDebit - totalCredit;
+            document.getElementById('difference').innerText = diff.toFixed(2);
+            // Disable submit if difference is nonzero
+            document.getElementById('submitEntryBtn').disabled = (diff !== 0);
+        }
+
+        // Disable the opposing field if one is > 0
+        function updateFieldStates(row) {
+            const debitInput = row.querySelector('.debit-input');
+            const creditInput = row.querySelector('.credit-input');
+            if (parseFloat(debitInput.value) > 0) {
+                creditInput.disabled = true;
+                creditInput.classList.add('disabled');
+            } else {
+                creditInput.disabled = false;
+                creditInput.classList.remove('disabled');
+            }
+            if (parseFloat(creditInput.value) > 0) {
+                debitInput.disabled = true;
+                debitInput.classList.add('disabled');
+            } else {
+                debitInput.disabled = false;
+                debitInput.classList.remove('disabled');
+            }
+        }
+
+        // Attach event listeners to inputs
+        function attachListeners(row) {
+            row.querySelectorAll('.debit-input, .credit-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    updateFieldStates(row);
+                    updateTotals();
+                });
+            });
+        }
+
+        // Initialize listeners for existing rows
+        document.querySelectorAll('.line').forEach(row => {
+            attachListeners(row);
+        });
 
         function addLine() {
-            const container = document.getElementById("linesContainer");
-            const newIndex = container.querySelectorAll(".line").length; // Get current line count
-
-            const newLine = document.createElement("div");
-            newLine.className = "line";
-            newLine.innerHTML = `
-                <select name="lines[${newIndex}].accountId" required onchange="console.log('Line ${newIndex} accountId:', this.value)">
-                    <option value="" disabled selected>Select Account</option>
-                    ${document.getElementById("accountOptions").innerHTML}
-                </select>
-                <input type="number" step="0.01" name="lines[${newIndex}].debit" placeholder="Debit" />
-                <input type="number" step="0.01" name="lines[${newIndex}].credit" placeholder="Credit" />
-                <input type="text" name="lines[${newIndex}].description" placeholder="Line Description" />
-                <button type="button" class="btn remove-line-btn" onclick="removeLine(this)">Remove</button>
+            const linesBody = document.getElementById('linesBody');
+            const newIndex = linesBody.children.length;
+            const newRow = document.createElement('tr');
+            newRow.className = 'line';
+            newRow.innerHTML = `
+                <td>
+                    <select name="lines[${newIndex}].accountId" class="account-select" required>
+                        <option value="">Select Account</option>
+                        ${document.querySelector('.account-select').innerHTML}
+                    </select>
+                </td>
+                <td><input type="number" step="0.01" name="lines[${newIndex}].debit" class="debit-input" value="0"/></td>
+                <td><input type="number" step="0.01" name="lines[${newIndex}].credit" class="credit-input" value="0"/></td>
+                <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
             `;
-            container.appendChild(newLine);
+            linesBody.appendChild(newRow);
+            attachListeners(newRow);
         }
 
         function removeLine(btn) {
-            const line = btn.closest(".line");
-            line.remove();
-
-            // Reindex all lines
-            const lines = document.querySelectorAll("#linesContainer .line");
-            lines.forEach((lineElement, index) => {
-                const select = lineElement.querySelector("select");
-                select.name = `lines[${index}].accountId`;
-                console.log(`Reindexed line ${index} accountId:`, select.value); // Log values
-
-                const inputs = lineElement.querySelectorAll("input");
-                inputs[0].name = `lines[${index}].debit`;
-                inputs[1].name = `lines[${index}].credit`;
-                inputs[2].name = `lines[${index}].description`;
+            const row = btn.closest('.line');
+            row.remove();
+            // Re-index names
+            const rows = document.querySelectorAll('#linesBody .line');
+            rows.forEach((row, index) => {
+                row.querySelectorAll('select, input').forEach(input => {
+                    const nameAttr = input.getAttribute('name');
+                    if(nameAttr) {
+                        const newName = nameAttr.replace(/lines\[\d+\]/, `lines[${index}]`);
+                        input.setAttribute('name', newName);
+                    }
+                });
             });
+            updateTotals();
         }
+
+        // Update totals on page load
+        updateTotals();
     </script>
-</body>
+    </body>
 </html>

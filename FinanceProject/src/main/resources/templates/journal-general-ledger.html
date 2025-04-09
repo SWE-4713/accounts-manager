@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>General Ledger</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        a.post-ref {
+            text-decoration: none;
+            color: #007bff;
+        }
+        a.post-ref:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header th:replace="~{fragments/navbar :: navbar}"></header>
+    <div class="container">
+        <h1>General Ledger – Journal Entry History</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Post Reference</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${entries}">
+                    <td th:text="${entry.id}"></td>
+                    <td th:text="${entry.entryDate}"></td>
+                    <td th:text="${entry.description}"></td>
+                    <td th:text="${entry.status}"></td>
+                    <!-- We assume debit and credit are balanced so display total debit -->
+                    <td th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td>
+                        <a th:href="@{'/journal/view/' + ${entry.id}}"
+                            class="post-ref"
+                            th:text="'PR' + ${entry.id}">View</a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(entries)}">
+                    <td colspan="6">No journal entries found.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
