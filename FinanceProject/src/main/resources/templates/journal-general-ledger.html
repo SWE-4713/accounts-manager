@@ -24,12 +24,36 @@
         a.post-ref:hover {
             text-decoration: underline;
         }
+        /* Filtering form styles */
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .filter-form input,
+        .filter-form select {
+            margin-right: 10px;
+            padding: 6px;
+        }
     </style>
 </head>
 <body>
     <header th:replace="~{fragments/navbar :: navbar}"></header>
     <div class="container">
         <h1>General Ledger – Journal Entry History</h1>
+
+        <!-- Filter/Search Form with Status Dropdown -->
+        <form class="filter-form" th:action="@{/journal/general-ledger}" method="get">
+            <select name="status">
+                <option value="" th:selected="${status == null or status == ''}">All Statuses</option>
+                <option value="PENDING" th:selected="${status == 'PENDING'}">Pending</option>
+                <option value="APPROVED" th:selected="${status == 'APPROVED'}">Approved</option>
+                <option value="REJECTED" th:selected="${status == 'REJECTED'}">Rejected</option>
+            </select>
+            <input type="date" name="startDate" placeholder="Start Date" th:value="${startDate}" />
+            <input type="date" name="endDate" placeholder="End Date" th:value="${endDate}" />
+            <input type="text" name="search" placeholder="Search by description, account name, or amount" th:value="${search}" />
+            <button type="submit">Filter/Search</button>
+        </form>
+
         <table>
             <thead>
                 <tr>
@@ -47,12 +71,11 @@
                     <td th:text="${entry.entryDate}"></td>
                     <td th:text="${entry.description}"></td>
                     <td th:text="${entry.status}"></td>
-                    <!-- We assume debit and credit are balanced so display total debit -->
                     <td th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
                     <td>
                         <a th:href="@{'/journal/view/' + ${entry.id}}"
-                            class="post-ref"
-                            th:text="'PR' + ${entry.id}">View</a>
+                           class="post-ref"
+                           th:text="'PR' + ${entry.id}">View</a>
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(entries)}">

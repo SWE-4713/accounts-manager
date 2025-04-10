@@ -12,6 +12,8 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
@@ -206,5 +208,49 @@ public class AccountService {
 
     public List<Account> getAccountsForUser(User user) {
         return accountRepo.findByUser(user);
+    }
+
+    public List<Account> filterAccountsExtended(String query, String category, String statement,
+                                                  String normalSide, String active,
+                                                  BigDecimal balanceMin, BigDecimal balanceMax,
+                                                  Sort sort) {
+        List<Account> accounts = getAllAccounts(sort);
+        
+        return accounts.stream().filter(a -> {
+            boolean matches = true;
+            
+            if (query != null && !query.trim().isEmpty()) {
+                String lowerQuery = query.toLowerCase();
+                matches = matches && (a.getAccountName().toLowerCase().contains(lowerQuery)
+                                       || a.getAccountNumber().toLowerCase().contains(lowerQuery));
+            }
+            
+            if (category != null && !category.trim().isEmpty()) {
+                matches = matches && a.getAccountCategory().equalsIgnoreCase(category);
+            }
+            
+            if (statement != null && !statement.trim().isEmpty()) {
+                // Assuming statement field is not null – adjust as needed.
+                matches = matches && (a.getStatement() != null && a.getStatement().equalsIgnoreCase(statement));
+            }
+            
+            if (normalSide != null && !normalSide.trim().isEmpty()) {
+                matches = matches && (a.getNormalSide() != null && a.getNormalSide().equalsIgnoreCase(normalSide));
+            }
+            
+            if (active != null && !active.trim().isEmpty()) {
+                boolean filterActive = active.equalsIgnoreCase("true");
+                matches = matches && (a.isActive() == filterActive);
+            }
+            
+            if (balanceMin != null) {
+                matches = matches && (a.getBalance().compareTo(balanceMin) >= 0);
+            }
+            if (balanceMax != null) {
+                matches = matches && (a.getBalance().compareTo(balanceMax) <= 0);
+            }
+            
+            return matches;
+        }).collect(Collectors.toList());
     }
 }

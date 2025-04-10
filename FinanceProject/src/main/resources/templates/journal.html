@@ -3,7 +3,6 @@
 <head>
     <title>Journal Entries</title>
     <style>
-        /* Minimal styling, consistent with your existing color/layout */
         .journal-container {
             width: 90%;
             margin: 0 auto;
@@ -12,7 +11,18 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        /* NEW: Adjust the filter form spacing */
+        .filter-form {
+            margin-bottom: 20px;
+        }
+        .filter-form input,
+        .filter-form select {
+            margin-right: 10px;
+            padding: 6px;
+        }
+        /* Move the top-bar (button container) further down */
         .top-bar {
+            margin-top: 20px;  /* Increased from default spacing */
             margin-bottom: 20px;
         }
         .top-bar a {
@@ -46,23 +56,27 @@
         .right {
             text-align: right;
         }
-        /* Form for rejecting an entry */
-        .reject-form {
-            display: inline-block;
-            margin-left: 5px;
-        }
-        .reject-form input[type="text"] {
-            width: 150px;
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body>
     <header th:replace="fragments/navbar :: navbar"></header>
     <div class="journal-container">
-        <h1>Journal Entries</h1>
+        <h1>Journal Entry</h1>
         <!-- Table with new headers -->
         <!-- Button to create a new journal entry -->
+        <form class="filter-form" th:action="@{/journal}" method="get">
+            <select name="status">
+                <option value="" th:selected="${status == null or status == ''}">All Statuses</option>
+                <option value="PENDING" th:selected="${status == 'PENDING'}">Pending</option>
+                <option value="APPROVED" th:selected="${status == 'APPROVED'}">Approved</option>
+                <option value="REJECTED" th:selected="${status == 'REJECTED'}">Rejected</option>
+                <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Cancelled</option>
+            </select>
+            <input type="date" name="startDate" placeholder="Start Date" th:value="${startDate}" />
+            <input type="date" name="endDate" placeholder="End Date" th:value="${endDate}" />
+            <input type="text" name="search" placeholder="Search by description, account, amount or date" th:value="${search}" />
+            <button type="submit">Filter/Search</button>
+        </form>
         <div class="top-bar">
             <a th:href="@{/journal/new}">Create New Journal Entry</a>
         </div>

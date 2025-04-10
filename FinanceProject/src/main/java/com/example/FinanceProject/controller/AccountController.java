@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,18 +40,31 @@ public class AccountController {
     public String listAccounts(
             @RequestParam(value="query", required=false) String query,
             @RequestParam(value="category", required=false) String category,
+            @RequestParam(value="statement", required=false) String statement,
+            @RequestParam(value="normalSide", required=false) String normalSide,
+            @RequestParam(value="active", required=false) String active,
+            @RequestParam(value="balanceMin", required=false) BigDecimal balanceMin,
+            @RequestParam(value="balanceMax", required=false) BigDecimal balanceMax,
             @RequestParam(value="sortField", required=false, defaultValue="accountNumber") String sortField,
             @RequestParam(value="sortDir", required=false, defaultValue="asc") String sortDir,
             Model model, Authentication authentication) {
 
         model.addAttribute("username", authentication.getName());
 
-        // Create a Sort object using the provided parameters.
         Sort sort = Sort.by(sortField);
         sort = sortDir.equalsIgnoreCase("desc") ? sort.descending() : sort.ascending();
 
         List<Account> accounts;
-        if (query != null && !query.trim().isEmpty() && category != null && !category.trim().isEmpty()) {
+        // If any of the new parameters are provided then use the extended filter.
+        if ((query != null && !query.trim().isEmpty()) ||
+            (category != null && !category.trim().isEmpty()) ||
+            (statement != null && !statement.trim().isEmpty()) ||
+            (normalSide != null && !normalSide.trim().isEmpty()) ||
+            (active != null && !active.trim().isEmpty()) ||
+            balanceMin != null || balanceMax != null) {
+
+            accounts = accountService.filterAccountsExtended(query, category, statement, normalSide, active, balanceMin, balanceMax, sort);
+        } else if (query != null && !query.trim().isEmpty() && category != null && !category.trim().isEmpty()) {
             accounts = accountService.searchAndFilterAccounts(query, category, sort);
         } else if (query != null && !query.trim().isEmpty()) {
             accounts = accountService.searchAccounts(query, sort);
@@ -59,13 +73,21 @@ public class AccountController {
         } else {
             accounts = accountService.getAllAccounts(sort);
         }
-        // Filter out any null elements:
+        
         accounts = accounts.stream()
                    .filter(Objects::nonNull)
                    .collect(Collectors.toList());
         model.addAttribute("accounts", accounts);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
+        // Also pass back extra filter parameters so the view can pre-populate the form.
+        model.addAttribute("query", query);
+        model.addAttribute("category", category);
+        model.addAttribute("statement", statement);
+        model.addAttribute("normalSide", normalSide);
+        model.addAttribute("active", active);
+        model.addAttribute("balanceMin", balanceMin);
+        model.addAttribute("balanceMax", balanceMax);
         return "chart-of-accounts";
     }
     
