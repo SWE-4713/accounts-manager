@@ -155,36 +155,52 @@ public class JournalEntryService {
     }
 
     public List<JournalEntry> getAllEntriesFiltered(String status, String startDate, String endDate, String search) {
+        // Process status filter: if provided, parse into JournalStatus.
         JournalStatus journalStatus = null;
         if (status != null && !status.isEmpty()) {
             try {
                 journalStatus = JournalStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
-                // If status is invalid, leave journalStatus as null to ignore filtering by status
+                // If status is invalid, leave journalStatus as null to ignore filtering by status.
             }
         }
         
+        // Process date filtering.
         LocalDate start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : LocalDate.MIN;
         LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : LocalDate.now();
-
+        
+        // Retrieve entries filtered by status and date.
         List<JournalEntry> entries;
         if (journalStatus != null) {
             entries = journalEntryRepository.findByStatusAndEntryDateBetween(journalStatus, start, end);
         } else {
             entries = journalEntryRepository.findAll().stream()
-                    .filter(e -> !e.getEntryDate().isBefore(start) && !e.getEntryDate().isAfter(end))
-                    .collect(Collectors.toList());
+                        .filter(e -> !e.getEntryDate().isBefore(start) && !e.getEntryDate().isAfter(end))
+                        .collect(Collectors.toList());
         }
-
+        
+        // If a search term is provided, filter entries based on description,
+        // account name (from its lines), debit and credit amounts, and entry date.
         if (search != null && !search.trim().isEmpty()) {
-            String lowerSearch = search.toLowerCase();
-            entries = entries.stream().filter(e -> 
-                (e.getLines().stream().anyMatch(line -> 
-                    line.getAccount() != null && 
-                    line.getAccount().getAccountName().toLowerCase().contains(lowerSearch)))
-                || (e.getTotalDebit() != null && e.getTotalDebit().toString().contains(lowerSearch))
-                || (e.getTotalCredit() != null && e.getTotalCredit().toString().contains(lowerSearch))
-                || (e.getEntryDate() != null && e.getEntryDate().toString().contains(lowerSearch))
+            String lowerSearch = search.toLowerCase().replaceAll("\\s+", ""); // remove spaces in search term
+            entries = entries.stream().filter(e ->
+                // Check description field ignoring spaces.
+                (e.getDescription() != null && e.getDescription().replaceAll("\\s+", "").toLowerCase().contains(lowerSearch))
+                ||
+                // Check account name from journal lines.
+                (e.getLines().stream().anyMatch(line ->
+                    line.getAccount() != null &&
+                    line.getAccount().getAccountName().replaceAll("\\s+", "").toLowerCase().contains(lowerSearch)
+                ))
+                ||
+                // Check debit amount.
+                (e.getTotalDebit() != null && e.getTotalDebit().toString().contains(lowerSearch))
+                ||
+                // Check credit amount.
+                (e.getTotalCredit() != null && e.getTotalCredit().toString().contains(lowerSearch))
+                ||
+                // Check entry date (as string).
+                (e.getEntryDate() != null && e.getEntryDate().toString().contains(lowerSearch))
             ).collect(Collectors.toList());
         }
         return entries;

@@ -44,13 +44,17 @@ public class JournalController {
                                         @RequestParam(required = false) String endDate,
                                         @RequestParam(required = false) String search,
                                         Model model) {
-        // If you want to filter by status/date, do so in your service:
+        // Retrieve entries using our filtering method.
         List<JournalEntry> entries = journalEntryService.getAllEntriesFiltered(status, startDate, endDate, search);
-        
-        // Put them in the model
         model.addAttribute("entries", entries);
-        return "journal"; // The single table from above
+        // Pass the parameters back to the view to pre-populate the filter form
+        model.addAttribute("status", status);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("search", search);
+        return "journal"; // This maps to journal.html
     }
+
 
     @GetMapping("/new")
     public String newJournalEntry(Model model) {
@@ -124,9 +128,20 @@ public class JournalController {
     }
 
     @GetMapping("/general-ledger")
-    public String showGeneralLedger(Model model) {
-        List<JournalEntry> entries = journalEntryService.findAllJournalEntries();
+    public String showGeneralLedger(@RequestParam(required = false) String status,
+                                    @RequestParam(required = false) String startDate,
+                                    @RequestParam(required = false) String endDate,
+                                    @RequestParam(required = false) String search,
+                                    Model model) {
+        // Pass the status filter, along with date and search parameters,
+        // so only entries that match the selected status are returned.
+        List<JournalEntry> entries = journalEntryService.getAllEntriesFiltered(status, startDate, endDate, search);
         model.addAttribute("entries", entries);
+        // Also pass back the filter values in case you want to display them.
+        model.addAttribute("status", status);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("search", search);
         return "journal-general-ledger";
     }
 }
