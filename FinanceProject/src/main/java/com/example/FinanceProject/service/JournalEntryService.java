@@ -38,24 +38,22 @@ public class JournalEntryService {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private EventLogService eventLogService;
     
     public JournalEntry submitJournalEntry(JournalEntry entry) {
-        // Validate that there is at least one line item.
         if(entry.getLines() == null || entry.getLines().isEmpty()){
             throw new IllegalArgumentException("At least one journal entry line is required.");
         }
         BigDecimal totalDebit = BigDecimal.ZERO;
         BigDecimal totalCredit = BigDecimal.ZERO;
-        // Loop over each line to validate and compute totals.
         for(JournalEntryLine line : entry.getLines()){
-            // Convert transient accountId to Account entity if not already set.
             if (line.getAccount() == null) {
-                // Assuming you have a getter for a transient property called accountId:
                 Long accountId = line.getAccountId();  
                 if (accountId == null) {
                     throw new IllegalArgumentException("Each line must have an account selected.");
                 }
-                // Retrieve the Account using the accountService
                 Account account = accountService.getAccountById(accountId);
                 if (account == null) {
                     throw new IllegalArgumentException("Account not found for id: " + accountId);
@@ -64,31 +62,30 @@ public class JournalEntryService {
             }
             BigDecimal debit = line.getDebit() != null ? line.getDebit() : BigDecimal.ZERO;
             BigDecimal credit = line.getCredit() != null ? line.getCredit() : BigDecimal.ZERO;
-            // If one field has a positive amount, the other must be zero.
             if(debit.compareTo(BigDecimal.ZERO) > 0 && credit.compareTo(BigDecimal.ZERO) > 0){
                 throw new IllegalArgumentException("A line cannot have both a debit and a credit amount.");
             }
             totalDebit = totalDebit.add(debit);
             totalCredit = totalCredit.add(credit);
-            // Set back-reference:
             line.setJournalEntry(entry);
         }
-        // The journal entry must be balanced.
         if(totalDebit.compareTo(totalCredit) != 0){
             throw new IllegalArgumentException("Total debits must equal total credits.");
         }
-        entry.setStatus(JournalStatus.PENDING);  // Default status
+        entry.setStatus(JournalStatus.PENDING);
 
-        // Capture the current username from the security context.
+        // Capture the current username (and ideally, convert to a numeric userId)
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(auth != null && !auth.getName().equals("anonymousUser")){
-            entry.setCreatedBy(auth.getName());
-        }
+        String username = (auth != null && !auth.getName().equals("anonymousUser")) ? auth.getName() : "system";
+        entry.setCreatedBy(username);
 
-        // Save the journal entry and cascade to the lines.
         JournalEntry saved = journalEntryRepository.save(entry);
-        // Optionally, set a post reference if needed, e.g., "PR" + id.
         saved.setDescription(entry.getDescription());
+        
+        // Log the creation event for the journal entry.
+        // Replace 0L with actual user id if available.
+        eventLogService.logJournalEvent(saved, 0L, "CREATE");
+        
         return saved;
     }
 

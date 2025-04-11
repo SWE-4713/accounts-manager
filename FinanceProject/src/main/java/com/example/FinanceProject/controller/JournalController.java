@@ -43,7 +43,8 @@ public class JournalController {
                                         @RequestParam(required = false) String startDate,
                                         @RequestParam(required = false) String endDate,
                                         @RequestParam(required = false) String search,
-                                        Model model) {
+                                        Model model,
+                                        Authentication authentication) {
         // Retrieve entries using our filtering method.
         List<JournalEntry> entries = journalEntryService.getAllEntriesFiltered(status, startDate, endDate, search);
         model.addAttribute("entries", entries);
@@ -52,12 +53,13 @@ public class JournalController {
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("search", search);
+        model.addAttribute("username", authentication.getName());
         return "journal"; // This maps to journal.html
     }
 
 
     @GetMapping("/new")
-    public String newJournalEntry(Model model) {
+    public String newJournalEntry(Model model, Authentication authentication) {
         if (!model.containsAttribute("journalEntry")) {
             JournalEntry newEntry = new JournalEntry();
             newEntry.setEntryDate(LocalDate.now());
@@ -69,6 +71,8 @@ public class JournalController {
         // Get the list of accounts to populate the select list in the form.
         List<Account> accounts = accountService.getAllAccounts(Sort.by("accountNumber"));
         model.addAttribute("accounts", accounts);
+        // Pass logged-in username for display in the navbar
+        model.addAttribute("username", authentication.getName());
         return "journal-entry-form";
     }
 
@@ -94,9 +98,10 @@ public class JournalController {
 
     // View journal entry details by post reference (e.g., clicking the entry ID from the list)
     @GetMapping("/view/{id}")
-    public String viewJournalEntryById(@PathVariable Long id, Model model) {
+    public String viewJournalEntryById(@PathVariable Long id, Model model, Authentication authentication) {
         JournalEntry entry = journalEntryService.getJournalEntryById(id);
         model.addAttribute("journalEntry", entry);
+        model.addAttribute("username", authentication.getName());
         return "journal-entry-view";
     }
 
@@ -106,10 +111,12 @@ public class JournalController {
                                      @RequestParam(required = false) String dateFrom,
                                      @RequestParam(required = false) String dateTo,
                                      @RequestParam(required = false) String search,
-                                     Model model) {
+                                     Model model,
+                                     Authentication authentication) {
         List<JournalEntry> entries = journalEntryService.getJournalEntriesByStatus(status, dateFrom, dateTo, search);
         model.addAttribute("entries", entries);
         model.addAttribute("status", status);
+        model.addAttribute("username", authentication.getName());
         return "redirect:/journal";
     }
 
@@ -132,7 +139,8 @@ public class JournalController {
                                     @RequestParam(required = false) String startDate,
                                     @RequestParam(required = false) String endDate,
                                     @RequestParam(required = false) String search,
-                                    Model model) {
+                                    Model model,
+                                    Authentication authentication) {
         // Pass the status filter, along with date and search parameters,
         // so only entries that match the selected status are returned.
         List<JournalEntry> entries = journalEntryService.getAllEntriesFiltered(status, startDate, endDate, search);
@@ -142,6 +150,7 @@ public class JournalController {
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("search", search);
+        model.addAttribute("username", authentication.getName());
         return "journal-general-ledger";
     }
 }

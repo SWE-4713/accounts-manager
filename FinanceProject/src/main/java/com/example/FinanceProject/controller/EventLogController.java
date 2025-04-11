@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class EventLogController {
@@ -14,12 +15,17 @@ public class EventLogController {
     private EventLogService eventLogService;
     
     @GetMapping("/event-logs")
-    public String eventLogsPage(Model model, Authentication authentication) {
-        // Add the logged-in user's name to the model for display in the header.
+    public String eventLogsPage(@RequestParam(value = "tab", defaultValue = "accounts") String tab,
+                                Model model, Authentication authentication) {
+        // add the logged-in user's name
         model.addAttribute("username", authentication.getName());
-        // Add all event logs to the model (you might need to create a method in EventLogService to fetch all logs)
-        model.addAttribute("eventLogs", eventLogService.getAllEventLogs());
-        // Return the view name for event logs page (event-logs.html)
+        model.addAttribute("activeTab", tab);
+        // Based on the tab, filter event logs:
+        if ("journal".equals(tab)) {
+            model.addAttribute("eventLogs", eventLogService.getJournalEventLogs());
+        } else {
+            model.addAttribute("eventLogs", eventLogService.getAccountEventLogs());
+        }
         return "event-logs";
     }
 }

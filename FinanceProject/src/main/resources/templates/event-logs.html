@@ -33,6 +33,18 @@
     <header th:replace="fragments/navbar :: navbar"></header>
 
     <h1>Event Logs</h1>
+    <div class="nav-buttons">
+        <a th:href="@{'/event-logs?tab=accounts'}"
+        th:classappend="${activeTab == 'accounts'} ? ' active' : ''">
+        Accounts
+        </a>
+        <a th:href="@{'/event-logs?tab=journal'}"
+        th:classappend="${activeTab == 'journal'} ? ' active' : ''">
+        Journal Entries
+        </a>
+    </div>
+
+    <!-- Table displaying events; its contents depend on the active tab -->
     <table>
         <thead>
             <tr>
