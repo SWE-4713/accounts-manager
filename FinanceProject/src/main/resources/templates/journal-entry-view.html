@@ -72,21 +72,26 @@
         <thead>
             <tr>
                 <th>Account Name</th>
+                <th>Post Reference</th>
                 <th>Debit</th>
                 <th>Credit</th>
-                <th>Post Reference</th>
             </tr>
         </thead>
         <tbody>
             <tr th:each="line : ${journalEntry.lines}">
-                <td th:text="${line.account.accountName}"></td>
-                <td th:text="${line.debit}"></td>
-                <td th:text="${line.credit}"></td>
+              <td>
+                <span th:if="${line.credit != null and line.credit > 0}" style="margin-left:20px;" 
+                      th:text="${line.account.accountName}"></span>
+                <span th:unless="${line.credit != null and line.credit > 0}" 
+                      th:text="${line.account.accountName}"></span>
+              </td>
                 <td>
                   <a th:href="@{'/accounts/' + ${line.account.id} + '/history'}">
                     View Account
                   </a>
                 </td>
+                <td style="text-align: right;" th:text="${line.debit}"></td>
+                <td style="text-align: right;" th:text="${line.credit}"></td>
             </tr>
         </tbody>
         <tfoot>

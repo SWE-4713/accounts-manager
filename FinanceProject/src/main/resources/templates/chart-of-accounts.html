@@ -381,7 +381,7 @@
                         <td th:text="${account?.accountCategory}"></td>
                         <td th:text="${account?.statement}"></td>
                         <td th:text="${account?.normalSide}"></td>
-                        <td th:text="${account?.balance}"></td>
+                        <td style="text-align: right;" th:text="${#numbers.formatDecimal(account?.balance, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td th:text="${account?.active} ? 'Yes' : 'No'"></td>
                         <td sec:authorize="hasRole('ROLE_ADMIN')" class="action-links">
                             <a th:href="@{/accounts/edit(id=${account?.id})}" class="btn btn-sm btn-primary">Edit</a>

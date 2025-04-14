@@ -27,24 +27,27 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+        .text-green {
+            color: #218838;
+        }
+        .text-red {
+            color: #c82333;
+        }
     </style>
 </head>
 <body>
     <header th:replace="fragments/navbar :: navbar"></header>
-
     <h1>Event Logs</h1>
     <div class="nav-buttons">
         <a th:href="@{'/event-logs?tab=accounts'}"
-        th:classappend="${activeTab == 'accounts'} ? ' active' : ''">
-        Accounts
+           th:classappend="${activeTab == 'accounts'} ? ' active' : ''">
+            Accounts
         </a>
         <a th:href="@{'/event-logs?tab=journal'}"
-        th:classappend="${activeTab == 'journal'} ? ' active' : ''">
-        Journal Entries
+           th:classappend="${activeTab == 'journal'} ? ' active' : ''">
+            Journal Entries
         </a>
     </div>
-
-    <!-- Table displaying events; its contents depend on the active tab -->
     <table>
         <thead>
             <tr>
@@ -62,8 +65,14 @@
                 <td th:text="${log.userId}"></td>
                 <td th:text="${log.timestamp}"></td>
                 <td th:text="${log.action}"></td>
-                <td><pre th:text="${log.beforeImage}"></pre></td>
-                <td><pre th:text="${log.afterImage}"></pre></td>
+                <!-- Render before and after images with distinct classes -->
+                <td>
+                    <pre class="before-data" th:text="${log.beforeImage}"></pre>
+                </td>
+                <td>
+                    <!-- Initially render as plain text -->
+                    <pre class="after-data" th:text="${log.afterImage}"></pre>
+                </td>
             </tr>
             <tr th:if="${eventLogs == null or #lists.isEmpty(eventLogs)}">
                 <td colspan="6">No event logs available.</td>
@@ -71,5 +80,61 @@
         </tbody>
     </table>
     <a th:href="@{/accounts}">Back to Accounts</a>
+
+    <script>
+        // Utility: Attempt to parse a string as JSON if it looks like JSON; return null otherwise.
+        function tryParseJson(text) {
+            text = text.trim();
+            // Check basic JSON structure—starts with "{" or "[" and ends with "}" or "]"
+            if ((text.startsWith("{") && text.endsWith("}")) || (text.startsWith("[") && text.endsWith("]"))) {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error("Error parsing JSON:", e);
+                    return null;
+                }
+            }
+            return null;
+        }
+    
+        // This function compares two objects (assumes flat key/value properties).
+        // For each property in afterObj, if its value differs from beforeObj, wrap it in a red span;
+        // Otherwise, in a green span.
+        function diffProperties(beforeObj, afterObj) {
+            let html = "";
+            for (let key in afterObj) {
+                if (afterObj.hasOwnProperty(key)) {
+                    let beforeVal = beforeObj[key];
+                    let afterVal = afterObj[key];
+                    let colorClass = (String(beforeVal) !== String(afterVal)) ? "text-red" : "text-green";
+                    html += "<div><strong>" + key + ":</strong> <span class='" + colorClass + "'>" + afterVal + "</span></div>";
+                }
+            }
+            return html;
+        }
+    
+        // Process each row's after-image cell.
+        document.querySelectorAll("pre.after-data").forEach(function(afterPre) {
+            try {
+                // Find the corresponding before-data element in the same row
+                let beforePre = afterPre.parentNode.previousElementSibling.querySelector("pre.before-data");
+                let beforeText = beforePre.textContent;
+                let afterText = afterPre.textContent;
+                
+                // Attempt to parse both texts as JSON only if they look valid.
+                let beforeObj = tryParseJson(beforeText);
+                let afterObj = tryParseJson(afterText);
+                
+                // Only process diff if both texts are valid JSON.
+                if (beforeObj !== null && afterObj !== null) {
+                    afterPre.innerHTML = diffProperties(beforeObj, afterObj);
+                } else {
+                    // If not valid JSON, leave the text as-is.
+                }
+            } catch (e) {
+                console.error("Error processing event log JSON: ", e);
+            }
+        });
+    </script>    
 </body>
 </html>

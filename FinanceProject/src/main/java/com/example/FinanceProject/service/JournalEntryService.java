@@ -80,11 +80,10 @@ public class JournalEntryService {
         entry.setCreatedBy(username);
 
         JournalEntry saved = journalEntryRepository.save(entry);
-        saved.setDescription(entry.getDescription());
         
         // Log the creation event for the journal entry.
         // Replace 0L with actual user id if available.
-        eventLogService.logJournalEvent(saved, 0L, "CREATE");
+        eventLogService.logJournalEvent(null, saved, 0L, "CREATE");
         
         return saved;
     }
@@ -96,21 +95,75 @@ public class JournalEntryService {
         errorsDatabaseRepository.save(error);
     }
 
-    // Methods for manager to approve/reject
-    public JournalEntry approveEntry(Long id) {
-        JournalEntry entry = journalEntryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Journal entry not found."));
-        entry.setStatus(JournalStatus.APPROVED);
-        return journalEntryRepository.save(entry);
-    }
-
     public JournalEntry rejectEntry(Long id, String comment) {
-        JournalEntry entry = journalEntryRepository.findById(id)
+        // Retrieve existing entry (old state)
+        JournalEntry existing = journalEntryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Journal entry not found."));
-        entry.setStatus(JournalStatus.REJECTED);
-        entry.setManagerComment(comment);
-        return journalEntryRepository.save(entry);
+        
+        // Capture the before snapshot (deep copy relevant fields, including lines)
+        JournalEntry beforeUpdate = new JournalEntry();
+        beforeUpdate.setId(existing.getId());
+        beforeUpdate.setEntryDate(existing.getEntryDate());
+        beforeUpdate.setStatus(existing.getStatus());
+        beforeUpdate.setDescription(existing.getDescription());
+        beforeUpdate.setEntryComment(existing.getEntryComment());
+        beforeUpdate.setAttachmentPath(existing.getAttachmentPath());
+        beforeUpdate.setCreatedBy(existing.getCreatedBy());
+        // Deep copy the list of lines. (Assuming JournalEntryLine has no nested objects beyond account.)
+        List<JournalEntryLine> linesCopy = existing.getLines().stream().map(line -> {
+            JournalEntryLine copy = new JournalEntryLine();
+            copy.setId(line.getId());
+            copy.setDebit(line.getDebit());
+            copy.setCredit(line.getCredit());
+            copy.setAccount(line.getAccount());
+            // Note: accountId is transient so is not needed
+            return copy;
+        }).collect(Collectors.toList());
+        beforeUpdate.setLines(linesCopy);
+        
+        // Apply modifications: set status to REJECTED and add manager comment
+        existing.setStatus(JournalStatus.REJECTED);
+        existing.setManagerComment(comment);
+        JournalEntry updated = journalEntryRepository.save(existing);
+        
+        // Log event with action "REJECT"
+        eventLogService.logJournalEvent(beforeUpdate, updated, 0L, "REJECT");
+        return updated;
     }
+    
+    public JournalEntry approveEntry(Long id) {
+        // Retrieve existing entry (old state)
+        JournalEntry existing = journalEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Journal entry not found."));
+        
+        // Capture the before snapshot (deep copy)
+        JournalEntry beforeUpdate = new JournalEntry();
+        beforeUpdate.setId(existing.getId());
+        beforeUpdate.setEntryDate(existing.getEntryDate());
+        beforeUpdate.setStatus(existing.getStatus());
+        beforeUpdate.setDescription(existing.getDescription());
+        beforeUpdate.setEntryComment(existing.getEntryComment());
+        beforeUpdate.setAttachmentPath(existing.getAttachmentPath());
+        beforeUpdate.setCreatedBy(existing.getCreatedBy());
+        List<JournalEntryLine> linesCopy = existing.getLines().stream().map(line -> {
+            JournalEntryLine copy = new JournalEntryLine();
+            copy.setId(line.getId());
+            copy.setDebit(line.getDebit());
+            copy.setCredit(line.getCredit());
+            copy.setAccount(line.getAccount());
+            return copy;
+        }).collect(Collectors.toList());
+        beforeUpdate.setLines(linesCopy);
+        
+        // Update status to APPROVED
+        existing.setStatus(JournalStatus.APPROVED);
+        JournalEntry updated = journalEntryRepository.save(existing);
+        
+        // Log event with action "APPROVE"
+        eventLogService.logJournalEvent(beforeUpdate, updated, 0L, "APPROVE");
+        return updated;
+    }
+    
 
     public String storeAttachment(MultipartFile file) throws IOException {
         // Check allowed file types here, e.g., by MIME type or extension.
