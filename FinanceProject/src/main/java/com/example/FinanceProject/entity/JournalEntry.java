@@ -46,6 +46,10 @@ public class JournalEntry {
     @OneToMany(mappedBy = "journalEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JournalEntryLine> lines = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entry_type", nullable = false)
+    private JournalEntryType type = JournalEntryType.NORMAL;
+
     // Transient getters to calculate totals from the lines.
     @Transient
     public BigDecimal getTotalDebit() {

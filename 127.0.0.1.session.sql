@@ -1,1 +1,1 @@
-SELECT * FROM errors;
+Delete from journal_entries;

@@ -124,6 +124,16 @@
                     <input type="date" id="entryDate" th:field="*{entryDate}" required />
                 </div>
 
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" th:field="*{type}" required>
+                      <option th:value="NORMAL">Normal</option>
+                      <option th:value="ADJUSTING">Adjusting</option>
+                      <option th:value="CLOSING">Closing</option>
+                      <option th:value="REVERSING">Reversing</option>
+                    </select>
+                  </div>
+
                 <!-- Journal Entry Lines -->
                 <h3>Journal Entry Lines</h3>
                 <!-- Journal Entry Lines Table -->
