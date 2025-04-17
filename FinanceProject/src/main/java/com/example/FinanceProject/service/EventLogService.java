@@ -18,7 +18,6 @@ public class EventLogService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    // Existing method for accounts (kept for backward compatibility)
     public void logEvent(Object before, Object after, Long userId, String action) {
         EventLog log = new EventLog();
         log.setUserId(userId);
@@ -39,16 +38,23 @@ public class EventLogService {
     }
 
     // New method to log journal entry events (for creation, approval, rejection, etc.)
-    public void logJournalEvent(JournalEntry journalEntry, Long userId, String action) {
+    public void logJournalEvent(Object before, Object after, Long userId, String action) {
         EventLog log = new EventLog();
         log.setUserId(userId);
         log.setTimestamp(LocalDateTime.now());
         log.setAction(action);
         try {
-            log.setAfterImage(objectMapper.writeValueAsString(journalEntry));
+            if (before != null) {
+                log.setBeforeImage(objectMapper.writeValueAsString(before));
+            }
+            if (after != null) {
+                log.setAfterImage(objectMapper.writeValueAsString(after));
+            }
         } catch (Exception e) {
-            log.setAfterImage(journalEntry.toString());
+            log.setBeforeImage(before != null ? before.toString() : null);
+            log.setAfterImage(after != null ? after.toString() : null);
         }
+        eventLogRepository.save(log);
         // No "before" image on creation
         eventLogRepository.save(log);
     }

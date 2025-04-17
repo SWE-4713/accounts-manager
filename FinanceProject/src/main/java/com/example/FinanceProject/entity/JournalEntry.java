@@ -9,10 +9,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Getter
 @Setter
 @Entity
 @Table(name= "journal_entries")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class JournalEntry {
 
     @Id
@@ -42,6 +45,10 @@ public class JournalEntry {
     // One-to-Many relationship with lines (each representing a debit or a credit)
     @OneToMany(mappedBy = "journalEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JournalEntryLine> lines = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entry_type", nullable = false)
+    private JournalEntryType type = JournalEntryType.NORMAL;
 
     // Transient getters to calculate totals from the lines.
     @Transient

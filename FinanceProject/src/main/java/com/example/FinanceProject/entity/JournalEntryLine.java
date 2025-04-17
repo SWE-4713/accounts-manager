@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "journal_entry_lines")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class JournalEntryLine {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -45,7 +45,7 @@ public class AccountController {
             @RequestParam(value="active", required=false) String active,
             @RequestParam(value="balanceMin", required=false) BigDecimal balanceMin,
             @RequestParam(value="balanceMax", required=false) BigDecimal balanceMax,
-            @RequestParam(value="sortField", required=false, defaultValue="accountNumber") String sortField,
+            @RequestParam(value="sortField", required=false, defaultValue="accountOrder") String sortField,
             @RequestParam(value="sortDir", required=false, defaultValue="asc") String sortDir,
             Model model, Authentication authentication) {
 

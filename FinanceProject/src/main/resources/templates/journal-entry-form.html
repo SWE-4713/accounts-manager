@@ -21,9 +21,54 @@
             margin: 0 auto;
             padding: 0 15px;
         }
-        h2 {
+        /* New journal section style: blue background with white text */
+        .journal-section {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        /* Override text color for labels, headings, etc. inside journal section */
+        .journal-section h2,
+        .journal-section h3,
+        .journal-section label,
+        .journal-section p,
+        .journal-section td,
+        .journal-section th {
+            color: white;
+        }
+        /* Ensure button styles remain unchanged */
+        .btn {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             text-align: center;
-            margin-bottom: 20px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .add-line-btn {
+            background-color: #28a745; 
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+         .remove-line-btn {
+            background-color: #dc3545; /* red */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .indent {
+            transform: translateX(20px);
         }
         form {
             display: flex;
@@ -41,109 +86,135 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        .line {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr auto;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
+        /* Table formatting: remove borders & keep spacing */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
         }
-        .btn {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
+        th, td {
+            padding: 8px;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        }
+        colgroup col:nth-child(1) { width: 40%; }
+        colgroup col:nth-child(2) { width: 20%; }
+        colgroup col:nth-child(3) { width: 20%; }
+        colgroup col:nth-child(4) { width: 20%; }
+        thead th {
             text-align: center;
         }
-        .btn:hover {
-            background-color: #0056b3;
+        tbody td {
+            text-align: center;
         }
-        .add-line-btn {
-            background-color: #28a745;
-            margin-bottom: 15px;
-        }
-        .remove-line-btn {
-            background-color: #dc3545;
+        /* Right-align Debit and Credit cells */
+        td:nth-child(2), td:nth-child(3) {
+            text-align: right;
         }
     </style>
 </head>
 <body>
     <header th:replace="fragments/navbar :: navbar"></header>
     <div class="container">
-        <h2>Create New Journal Entry</h2>
-        <form th:action="@{/journal/submit}" method="post" enctype="multipart/form-data" id="journalEntryForm" th:object="${journalEntry}">
-            <!-- Header fields -->
-            <div class="form-group">
-                <label for="entryDate">Entry Date</label>
-                <input type="date" id="entryDate" th:field="*{entryDate}" required />
-            </div>
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" th:field="*{description}" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="entryComment">Comment (optional)</label>
-                <textarea id="entryComment" th:field="*{entryComment}"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="attachment">File Attachment (optional)</label>
-                <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png" />
-            </div>
+        <div class="journal-section">
+            <h2>Create New Journal Entry</h2>
+            <form th:action="@{/journal/submit}" method="post" enctype="multipart/form-data" id="journalEntryForm" th:object="${journalEntry}">
+                <!-- Header fields -->
+                <div class="form-group">
+                    <label for="entryDate">Entry Date</label>
+                    <input type="date" id="entryDate" th:field="*{entryDate}" required />
+                </div>
 
-            <!-- Journal Entry Lines -->
-            <h3>Journal Entry Lines</h3>
-            <table id="linesTable">
-                <thead>
-                    <tr>
-                        <th>Account</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="linesBody">
-                    <!-- Preload two line items -->
-                    <tr class="line">
-                        <td>
-                            <select name="lines[0].accountId" class="account-select" required>
-                                <option value="">Select Account</option>
-                                <th:block th:each="acct : ${accounts}">
-                                    <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
-                                </th:block>
-                            </select>
-                        </td>
-                        <td><input type="number" step="0.01" name="lines[0].debit" class="debit-input" value="0"/></td>
-                        <td><input type="number" step="0.01" name="lines[0].credit" class="credit-input" value="0"/></td>
-                        <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
-                    </tr>
-                    <tr class="line">
-                        <td>
-                            <select name="lines[1].accountId" class="account-select" required>
-                                <option value="">Select Account</option>
-                                <th:block th:each="acct : ${accounts}">
-                                    <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
-                                </th:block>
-                            </select>
-                        </td>
-                        <td><input type="number" step="0.01" name="lines[1].debit" class="debit-input" value="0"/></td>
-                        <td><input type="number" step="0.01" name="lines[1].credit" class="credit-input" value="0"/></td>
-                        <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            <button type="button" class="add-line-btn" onclick="addLine()">Add Line</button>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" th:field="*{type}" required>
+                      <option th:value="NORMAL">Normal</option>
+                      <option th:value="ADJUSTING">Adjusting</option>
+                      <option th:value="CLOSING">Closing</option>
+                      <option th:value="REVERSING">Reversing</option>
+                    </select>
+                  </div>
 
-            <!-- Totals -->
-            <div>
-                <p>Total Debit: <span id="totalDebit">0.00</span></p>
-                <p>Total Credit: <span id="totalCredit">0.00</span></p>
-                <p>Difference: <span id="difference">0.00</span></p>
-            </div>
+                <!-- Journal Entry Lines -->
+                <h3>Journal Entry Lines</h3>
+                <!-- Journal Entry Lines Table -->
+                <table id="linesTable" style="width: 100%;">
+                    <colgroup>
+                        <col style="width: 40%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">Account</th>
+                            <th style="text-align: center;">Debit</th>
+                            <th style="text-align: center;">Credit</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linesBody">
+                        <!-- Preload two line items -->
+                        <tr class="line" style="vertical-align: top;">
+                            <td style="padding: 8px;">
+                                <select name="lines[0].accountId" class="account-select" required style="width: 100%; border: none; outline: none;">
+                                    <option value="">Select Account</option>
+                                    <th:block th:each="acct : ${accounts}">
+                                        <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
+                                    </th:block>
+                                </select>
+                            </td>
+                            <td style="padding: 8px; text-align: right;">
+                                <input type="number" step="0.01" name="lines[0].debit" class="debit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                            </td>
+                            <td style="padding: 8px; text-align: right;">
+                                <input type="number" step="0.01" name="lines[0].credit" class="credit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                            </td>
+                            <td style="padding: 8px; text-align: center;">
+                                <button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button>
+                            </td>
+                        </tr>
+                        <tr class="line" style="vertical-align: top;">
+                            <td style="padding: 8px;">
+                                <select name="lines[1].accountId" class="account-select" required style="width: 100%; border: none; outline: none;">
+                                    <option value="">Select Account</option>
+                                    <th:block th:each="acct : ${accounts}">
+                                        <option th:value="${acct.id}" th:text="${acct.accountNumber} + ' - ' + ${acct.accountName}"></option>
+                                    </th:block>
+                                </select>
+                            </td>
+                            <td style="padding: 8px; text-align: right;">
+                                <input type="number" step="0.01" name="lines[1].debit" class="debit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                            </td>
+                            <td style="padding: 8px; text-align: right;">
+                                <input type="number" step="0.01" name="lines[1].credit" class="credit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                            </td>
+                            <td style="padding: 8px; text-align: center;">
+                                <button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" class="add-line-btn" onclick="addLine()">Add Line</button>
+                
+                <div class="form-group">
+                    <label for="description">Description (Optional)</label>
+                    <textarea id="description" th:field="*{description}"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="attachment">File Attachment (Optional)</label>
+                    <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png" />
+                </div>
 
-            <button type="submit" id="submitEntryBtn">Submit Journal Entry</button>
-        </form>
+                <!-- Totals -->
+                <div>
+                    <p>Total Debit: <span id="totalDebit">0.00</span></p>
+                    <p>Total Credit: <span id="totalCredit">0.00</span></p>
+                    <p>Difference: <span id="difference">0.00</span></p>
+                </div>
+
+                <button type="submit" id="submitEntryBtn" class="btn">Submit Journal Entry</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -163,27 +234,7 @@
             document.getElementById('submitEntryBtn').disabled = (diff !== 0);
         }
 
-        // Disable the opposing field if one is > 0
-        function updateFieldStates(row) {
-            const debitInput = row.querySelector('.debit-input');
-            const creditInput = row.querySelector('.credit-input');
-            if (parseFloat(debitInput.value) > 0) {
-                creditInput.disabled = true;
-                creditInput.classList.add('disabled');
-            } else {
-                creditInput.disabled = false;
-                creditInput.classList.remove('disabled');
-            }
-            if (parseFloat(creditInput.value) > 0) {
-                debitInput.disabled = true;
-                debitInput.classList.add('disabled');
-            } else {
-                debitInput.disabled = false;
-                debitInput.classList.remove('disabled');
-            }
-        }
-
-        // Attach event listeners to inputs
+        // Attach event listeners to debit and credit inputs for a row
         function attachListeners(row) {
             row.querySelectorAll('.debit-input, .credit-input').forEach(input => {
                 input.addEventListener('input', function() {
@@ -193,42 +244,79 @@
             });
         }
 
+        // Update field states in a row and indent the entire row if credit > 0
+        function updateFieldStates(row) {
+            const debitInput = row.querySelector('.debit-input');
+            const creditInput = row.querySelector('.credit-input');
+            
+            // Disable opposing field if one is greater than zero
+            if (parseFloat(debitInput.value) > 0) {
+                creditInput.disabled = true;
+                creditInput.classList.add('disabled');
+            } else {
+                creditInput.disabled = false;
+                creditInput.classList.remove('disabled');
+            }
+            
+            if (parseFloat(creditInput.value) > 0) {
+                debitInput.disabled = true;
+                debitInput.classList.add('disabled');
+            } else {
+                debitInput.disabled = false;
+                debitInput.classList.remove('disabled');
+            }
+            
+            // Indent the entire row if credit is greater than zero
+            if (parseFloat(creditInput.value) > 0) {
+                row.classList.add('indent');
+            } else {
+                row.classList.remove('indent');
+            }
+        }
+
         // Initialize listeners for existing rows
         document.querySelectorAll('.line').forEach(row => {
             attachListeners(row);
         });
 
         function addLine() {
-            const linesBody = document.getElementById('linesBody');
-            const newIndex = linesBody.children.length;
-            const newRow = document.createElement('tr');
-            newRow.className = 'line';
+            const tableBody = document.getElementById("linesBody");
+            const newIndex = tableBody.rows.length; 
+            const newRow = document.createElement("tr");
+            newRow.className = "line";
             newRow.innerHTML = `
-                <td>
-                    <select name="lines[${newIndex}].accountId" class="account-select" required>
+                <td style="padding: 8px;">
+                    <select name="lines[${newIndex}].accountId" class="account-select" required style="width: 100%; border: none; outline: none;">
                         <option value="">Select Account</option>
                         ${document.querySelector('.account-select').innerHTML}
                     </select>
                 </td>
-                <td><input type="number" step="0.01" name="lines[${newIndex}].debit" class="debit-input" value="0"/></td>
-                <td><input type="number" step="0.01" name="lines[${newIndex}].credit" class="credit-input" value="0"/></td>
-                <td><button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button></td>
+                <td style="padding: 8px; text-align: right;">
+                    <input type="number" step="0.01" name="lines[${newIndex}].debit" class="debit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                </td>
+                <td style="padding: 8px; text-align: right;">
+                    <input type="number" step="0.01" name="lines[${newIndex}].credit" class="credit-input" value="0" style="width: 100%; border: none; outline: none; text-align: right;"/>
+                </td>
+                <td style="padding: 8px; text-align: center;">
+                    <button type="button" class="remove-line-btn" onclick="removeLine(this)">Remove</button>
+                </td>
             `;
-            linesBody.appendChild(newRow);
+            tableBody.appendChild(newRow);
             attachListeners(newRow);
+            updateTotals();
         }
 
+        // Re-index rows and remove a line
         function removeLine(btn) {
             const row = btn.closest('.line');
             row.remove();
-            // Re-index names
             const rows = document.querySelectorAll('#linesBody .line');
             rows.forEach((row, index) => {
-                row.querySelectorAll('select, input').forEach(input => {
-                    const nameAttr = input.getAttribute('name');
-                    if(nameAttr) {
+                row.querySelectorAll('select, input').forEach(element => {
+                    const nameAttr = element.getAttribute('name');
+                    if (nameAttr) {
                         const newName = nameAttr.replace(/lines\[\d+\]/, `lines[${index}]`);
-                        input.setAttribute('name', newName);
+                        element.setAttribute('name', newName);
                     }
                 });
             });
@@ -238,5 +326,5 @@
         // Update totals on page load
         updateTotals();
     </script>
-    </body>
+</body>
 </html>

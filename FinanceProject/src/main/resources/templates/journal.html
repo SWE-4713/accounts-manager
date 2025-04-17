@@ -100,7 +100,7 @@
                     <td th:text="${entry.entryDate}"></td>
                     <td th:text="${entry.description}"></td>
                     <td th:text="${entry.status}"></td>
-                    <td th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td style="text-align: right;" th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
                     <td>
                         <!-- Example action buttons for managers -->
                         <div sec:authorize="hasRole('ROLE_MANAGER')">

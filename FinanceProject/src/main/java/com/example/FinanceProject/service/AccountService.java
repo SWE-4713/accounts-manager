@@ -136,20 +136,20 @@ public class AccountService {
         
         // Capture before-image for event log
         Account beforeUpdate = new Account();
-        beforeUpdate.setAccountName(updatedAccount.getAccountName());
-        beforeUpdate.setAccountNumber(updatedAccount.getAccountNumber());
-        beforeUpdate.setAccountDescription(updatedAccount.getAccountDescription());
-        beforeUpdate.setNormalSide(updatedAccount.getNormalSide());
-        beforeUpdate.setAccountCategory(updatedAccount.getAccountCategory());
-        beforeUpdate.setAccountSubcategory(updatedAccount.getAccountSubcategory());
-        beforeUpdate.setInitialBalance(updatedAccount.getInitialBalance().setScale(2, RoundingMode.HALF_UP));
-        beforeUpdate.setDebit(updatedAccount.getDebit().setScale(2, RoundingMode.HALF_UP));
-        beforeUpdate.setCredit(updatedAccount.getCredit().setScale(2, RoundingMode.HALF_UP));
-        beforeUpdate.setBalance(updatedAccount.getBalance().setScale(2, RoundingMode.HALF_UP));
-        beforeUpdate.setUserId(updatedAccount.getUserId());
-        beforeUpdate.setAccountOrder(updatedAccount.getAccountOrder());
-        beforeUpdate.setStatement(updatedAccount.getStatement());
-        beforeUpdate.setComment(updatedAccount.getComment());
+        beforeUpdate.setAccountName(existing.getAccountName());
+        beforeUpdate.setAccountNumber(existing.getAccountNumber());
+        beforeUpdate.setAccountDescription(existing.getAccountDescription());
+        beforeUpdate.setNormalSide(existing.getNormalSide());
+        beforeUpdate.setAccountCategory(existing.getAccountCategory());
+        beforeUpdate.setAccountSubcategory(existing.getAccountSubcategory());
+        beforeUpdate.setInitialBalance(existing.getInitialBalance());
+        beforeUpdate.setDebit(existing.getDebit());
+        beforeUpdate.setCredit(existing.getCredit());
+        beforeUpdate.setBalance(existing.getBalance());
+        beforeUpdate.setUserId(existing.getUserId());
+        beforeUpdate.setAccountOrder(existing.getAccountOrder());
+        beforeUpdate.setStatement(existing.getStatement());
+        beforeUpdate.setComment(existing.getComment());
         // (Copy other fields as needed)
 
         // Update fields (other fields such as dateAdded remain unchanged)
@@ -159,10 +159,10 @@ public class AccountService {
         existing.setNormalSide(updatedAccount.getNormalSide());
         existing.setAccountCategory(updatedAccount.getAccountCategory());
         existing.setAccountSubcategory(updatedAccount.getAccountSubcategory());
-        existing.setInitialBalance(updatedAccount.getInitialBalance().setScale(2, RoundingMode.HALF_UP));
-        existing.setDebit(updatedAccount.getDebit().setScale(2, RoundingMode.HALF_UP));
-        existing.setCredit(updatedAccount.getCredit().setScale(2, RoundingMode.HALF_UP));
-        existing.setBalance(updatedAccount.getBalance().setScale(2, RoundingMode.HALF_UP));
+        existing.setInitialBalance(updatedAccount.getInitialBalance());
+        existing.setDebit(updatedAccount.getDebit());
+        existing.setCredit(updatedAccount.getCredit());
+        existing.setBalance(updatedAccount.getBalance());
         existing.setUserId(updatedAccount.getUserId());
         existing.setAccountOrder(updatedAccount.getAccountOrder());
         existing.setStatement(updatedAccount.getStatement());
