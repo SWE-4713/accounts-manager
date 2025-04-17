@@ -13,6 +13,36 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
+        try {
+            userService.registerSetUser(
+                    "manager1",         // username
+                    "password123",    // password (this will be hashed)
+                    "ROLE_MANAGER",     // role
+                    "Man",          // first name
+                    "Ager",          // last name
+                    "123 Manager Street", // address
+                    "1980-01-01",     // dob
+                    "manager1@example.com" // email
+            );
+        } catch (Exception e) {
+            // User may already exist; ignore if so.
+        }
+
+        try {
+            userService.registerSetUser(
+                    "admin1",         // username
+                    "password123",    // password (this will be hashed)
+                    "ROLE_ADMIN",     // role
+                    "Alice",          // first name
+                    "Admin",          // last name
+                    "123 Admin Street", // address
+                    "1980-01-01",     // dob
+                    "admin1@example.com" // email
+            );
+        } catch (Exception e) {
+            // User may already exist; ignore if so.
+        }
         // Create first admin account
         try {
             userService.registerSetUser(

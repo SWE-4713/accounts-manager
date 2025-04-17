@@ -9,6 +9,7 @@ import com.example.FinanceProject.repository.JournalEntryRepo;
 import com.example.FinanceProject.repository.AccountRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.FinanceProject.repository.ErrorDatabaseRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -112,33 +117,63 @@ public class JournalEntryService {
         return journalEntryRepository.save(entry);
     }
 
+    @Value("${app.upload.dir}")
+    private String uploadRootDir;
+
     public String storeAttachment(MultipartFile file) throws IOException {
-        // Check allowed file types here, e.g., by MIME type or extension.
+        // Check allowed file types
         String[] allowedExtensions = {"pdf", "doc", "docx", "xls", "xlsx", "csv", "jpg", "jpeg", "png"};
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename != null) {
-            String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
-            boolean allowed = false;
-            for(String allowedExt : allowedExtensions){
-                if(allowedExt.equals(ext)){
-                    allowed = true;
-                    break;
-                }
-            }
-            if(!allowed) {
-                throw new IllegalArgumentException("File type not allowed.");
-            }
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("Original filename is null");
         }
 
-        String uploadsDir = "/uploads/journal/"; // Adjust your storage path as needed
-        File dir = new File(uploadsDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        String ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        boolean allowed = false;
+        for(String allowedExt : allowedExtensions){
+            if(allowedExt.equals(ext)){
+                allowed = true;
+                break;
+            }
         }
-        String filePath = uploadsDir + System.currentTimeMillis() + "_" + originalFilename;
-        file.transferTo(new File(filePath));
-        return filePath;
+        if(!allowed) {
+            throw new IllegalArgumentException("File type not allowed.");
+        }
+
+        // Use an absolute path for uploads - consider using application.properties to configure this
+        Path uploadDirectory = Paths.get(System.getProperty("user.dir"), "app_uploads", "journal").toAbsolutePath();
+
+        // Print the path to diagnose issues
+        System.out.println("Attempting to create directory: " + uploadDirectory);
+
+        // Create directories with better error handling
+        try {
+            Files.createDirectories(uploadDirectory);
+        } catch (IOException e) {
+            System.err.println("Failed to create directory: " + e.getMessage());
+            throw new IOException("Could not create upload directory", e);
+        }
+
+        // Verify directory exists
+        if (!Files.exists(uploadDirectory)) {
+            throw new IOException("Failed to create directory: " + uploadDirectory);
+        }
+
+        // Create filename with timestamp
+        String filename = System.currentTimeMillis() + "_" + originalFilename;
+        Path destinationFile = uploadDirectory.resolve(filename);
+
+        // Save the file with better error handling
+        try {
+            Files.copy(file.getInputStream(), destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("File saved successfully at: " + destinationFile);
+            return destinationFile.toString();
+        } catch (IOException e) {
+            System.err.println("Failed to save file: " + e.getMessage());
+            throw new IOException("Failed to save uploaded file", e);
+        }
     }
+
 
     // Retrieve journal entries by status with optional filtering (dummy implementation)
     public List<JournalEntry> getJournalEntriesByStatus(String status, String dateFrom, String dateTo, String search) {
