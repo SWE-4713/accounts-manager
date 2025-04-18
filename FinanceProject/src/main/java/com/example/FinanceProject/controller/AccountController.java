@@ -111,8 +111,6 @@ public class AccountController {
         Account account = accountService.getAccountById(id);
         model.addAttribute("account", account);
         List<JournalEntry> ledgerEntries = journalEntryRepo.findByAccountId(id);
-        System.out.println(id);
-        System.out.println(ledgerEntries);
         model.addAttribute("ledgerEntries", ledgerEntries);
         return "account-ledger"; // Create a template to display the account ledger
     }
