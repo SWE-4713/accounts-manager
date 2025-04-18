@@ -4,6 +4,7 @@ package com.example.FinanceProject.controller;
 import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.entity.User;
+import com.example.FinanceProject.repository.JournalEntryRepo;
 import com.example.FinanceProject.service.AccountService;
 import com.example.FinanceProject.service.JournalEntryService;
 import com.example.FinanceProject.service.UserService;
@@ -26,6 +27,9 @@ import java.util.Objects;
 @Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGER"})
 @RequestMapping("/accounts")
 public class AccountController {
+
+    @Autowired
+    private JournalEntryRepo journalEntryRepo;
     
     @Autowired
     private AccountService accountService;
@@ -106,7 +110,10 @@ public class AccountController {
         model.addAttribute("username", authentication.getName());
         Account account = accountService.getAccountById(id);
         model.addAttribute("account", account);
-        model.addAttribute("ledgerEntries", new ArrayList<>());
+        List<JournalEntry> ledgerEntries = journalEntryRepo.findByAccountId(id);
+        System.out.println(id);
+        System.out.println(ledgerEntries);
+        model.addAttribute("ledgerEntries", ledgerEntries);
         return "account-ledger"; // Create a template to display the account ledger
     }
     
