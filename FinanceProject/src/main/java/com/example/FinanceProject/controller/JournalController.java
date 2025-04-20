@@ -1,5 +1,6 @@
 package com.example.FinanceProject.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Sort;
@@ -81,6 +82,12 @@ public class JournalController {
                                     @RequestParam(value = "attachment", required = false) MultipartFile attachment,
                                     Model model, RedirectAttributes redirectAttributes) {
         try {
+            if (journalEntry.getTotalDebit().compareTo(BigDecimal.ZERO) == 0 ||
+                journalEntry.getTotalCredit().compareTo(BigDecimal.ZERO) == 0) {
+                redirectAttributes.addFlashAttribute("error",
+                    "Total debits and total credits must both be greater than zero.");
+                    return "redirect:/journal/new";
+            }
             if (attachment != null && !attachment.isEmpty()) {
                 String filePath = journalEntryService.storeAttachment(attachment);
                 journalEntry.setAttachmentPath(filePath);
