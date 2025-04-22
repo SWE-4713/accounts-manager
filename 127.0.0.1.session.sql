@@ -1,2 +1,1 @@
-SELECT * FROM journal_entries;
-delete from journal_entries where id = 48;
+delete from report_snapshots;

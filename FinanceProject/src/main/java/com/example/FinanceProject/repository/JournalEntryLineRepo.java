@@ -5,6 +5,7 @@
 
  package com.example.FinanceProject.repository;
 
+ import java.time.LocalDate;
  import java.util.List;               // ← add this
 
  import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,30 @@ public interface JournalEntryLineRepo extends JpaRepository<JournalEntryLine, Lo
     List<JournalEntryLine> findByAccountIdAndStatus(
         @Param("accountId") Long accountId,
         @Param("status")    JournalStatus status);
-  }
+    
+    // Query for calculating balance between two dates (used for Income Statement/RE changes)
+    @Query("""
+      SELECT l
+        FROM JournalEntryLine l
+        JOIN l.journalEntry je
+       WHERE l.account.id = :acctId
+         AND je.status     = com.example.FinanceProject.entity.JournalStatus.APPROVED
+         AND je.entryDate BETWEEN :start AND :end
+    """)
+    List<JournalEntryLine> findLinesForPeriod( // Renamed for clarity
+            @Param("acctId") Long accountId,
+            @Param("start")  LocalDate start,
+            @Param("end")    LocalDate end);
+    
+    @Query("""
+      SELECT l
+        FROM JournalEntryLine l
+        JOIN l.journalEntry je
+        WHERE l.account.id = :acctId
+        AND je.status     = com.example.FinanceProject.entity.JournalStatus.APPROVED
+        AND je.entryDate <= :asOfDate
+    """)
+    List<JournalEntryLine> findLinesForBalanceAsOf(
+            @Param("acctId") Long accountId,
+            @Param("asOfDate") LocalDate asOfDate);
+}
