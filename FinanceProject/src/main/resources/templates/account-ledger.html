@@ -42,20 +42,25 @@
             </thead>
             <tbody>
             <tr th:each="entry : ${ledgerEntries}">
-                <!-- Adjust "entry.date" if your field is entryDate -->
-                <td th:text="${entry.entryDate}"></td>
+                <td th:text="${entry.journalEntry.entryDate}"></td>
                 <td>
-                    <a th:href="@{'/journal/view/' + ${entry.id}}"
+                    <a th:href="@{'/journal/view/' + ${entry.journalEntry.id}}"
                        class="entry-link" 
-                       th:text="${entry.id}"></a>
+                       th:text="${entry.journalEntry.id}"></a>
                 </td>
-                <td th:text="${entry.description != null ? entry.description : 'No Description'}"></td>
-                <!-- If you use transient getters for totals, you may replace these as needed -->
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(entry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(entry.totalCredit, 1, 'COMMA', 2, 'POINT')}"></td>
-                <!-- Assuming balance is stored/derived in JournalEntry -->
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(entry.totalDebit.add(entry.totalCredit), 1, 'COMMA', 2, 'POINT')}"></td>
-                <!-- The clickable entry ID: -->
+                <td th:text="${entry.journalEntry.description != null ? entry.journalEntry.description : 'No Description'}"></td>
+                <td style="text-align:right;"
+                    th:text="${entry.debit != null and entry.debit > 0
+                            ? #numbers.formatDecimal(entry.debit, 1, 'COMMA', 2, 'POINT') : ''}">
+                </td>
+                <td style="text-align:right;"
+                    th:text="${entry.credit != null and entry.credit > 0
+                            ? #numbers.formatDecimal(entry.credit, 1, 'COMMA', 2, 'POINT') : ''}">
+                </td>
+
+                <td style="text-align: right;"
+                    th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}">
+                </td>
             </tr>
             <tr th:if="${ledgerEntries == null or #lists.isEmpty(ledgerEntries)}">
                 <td colspan="6">No ledger entries available.</td>

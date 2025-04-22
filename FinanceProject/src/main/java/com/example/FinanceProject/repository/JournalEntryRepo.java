@@ -1,16 +1,15 @@
 package com.example.FinanceProject.repository;
 
-import com.example.FinanceProject.entity.JournalEntry;
-import com.example.FinanceProject.entity.JournalStatus;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
+import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.entity.JournalStatus;
 
 public interface JournalEntryRepo extends JpaRepository<JournalEntry, Long> {
     List<JournalEntry> findByStatus(JournalStatus statusEnum);

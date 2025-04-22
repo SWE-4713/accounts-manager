@@ -237,9 +237,10 @@
         // Attach event listeners to debit and credit inputs for a row
         function attachListeners(row) {
             row.querySelectorAll('.debit-input, .credit-input').forEach(input => {
-                input.addEventListener('input', function() {
+                input.addEventListener('change', function() {
                     updateFieldStates(row);
                     updateTotals();
+                    reorderAllRows();
                 });
             });
         }
@@ -304,6 +305,7 @@
             tableBody.appendChild(newRow);
             attachListeners(newRow);
             updateTotals();
+            reorderAllRows();
         }
 
         // Re-index rows and remove a line
@@ -321,6 +323,23 @@
                 });
             });
             updateTotals();
+        }
+
+        // Re‑group rows: debits at top, then zeros, then credits at bottom
+        function reorderAllRows() {
+        const tbody = document.getElementById('linesBody');
+        const rows  = Array.from(tbody.querySelectorAll('tr.line'));
+        const debits = [], zeros = [], credits = [];
+        rows.forEach(row => {
+            const d = parseFloat(row.querySelector('.debit-input').value)  || 0;
+            const c = parseFloat(row.querySelector('.credit-input').value) || 0;
+            if (d > 0)         debits.push(row);
+            else if (c > 0)    credits.push(row);
+            else               zeros.push(row);
+        });
+        tbody.innerHTML = '';
+        debits.concat(zeros).concat(credits)
+                .forEach(r => tbody.appendChild(r));
         }
 
         // Update totals on page load
