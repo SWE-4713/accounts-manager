@@ -18,7 +18,7 @@
 
     /* Table styles (Balance Sheet Specific) */
     table{border-collapse:collapse;width:100%; max-width: 700px; margin: 20px auto;} /* Center table */
-    table, th, td{border:none!important;}
+    table, th, td{border:none;}
     td{padding: 4px 8px; vertical-align: top;}
 
     /* Layout specific styles */
@@ -38,7 +38,9 @@
     tr.indent-3 td.label-col { padding-left: 45px !important; }
 
     /* Underlines applied via borders on TR */
-    tr.underline td { border-top: 1px solid #000; }
+    /* MODIFIED: Changed border-top to border-bottom for single underlines */
+    tr.underline td { border-bottom: 1px solid #000; padding-bottom: 1px; padding-top: 1px; }
+    /* This rule handles the double underline for grand totals */
     tr.double-underline td { border-bottom: 3px double #000; padding-bottom: 2px;}
     tr.blank-row td { padding-top: 10px; padding-bottom: 10px; }
     tr.error td { color: red; font-weight: bold; }
@@ -103,7 +105,8 @@
         .printable-area tr.indent-3 td.label-col { padding-left: 45px !important; }
 
         /* Apply underlines based on TR classes */
-        .printable-area tr.underline td { border-top: 1px solid #000 !important; }
+        /* MODIFIED: Use border-bottom for single underlines in print */
+        .printable-area tr.underline td { border-bottom: 1px solid #000 !important; padding-bottom: 1px; padding-top: 1px; }
         .printable-area tr.double-underline td { border-bottom: 3px double #000 !important; padding-bottom: 2px;}
         .printable-area tr.blank-row td { padding-top: 10px; padding-bottom: 10px; border-top: none !important; border-bottom: none !important; } /* Ensure blank rows have no borders */
         .printable-area tr.error td { color: red !important; font-weight: bold; }
@@ -148,8 +151,8 @@
 
                            <td class="amount-col1">
                                <span th:if="${row.displayColumn == 1 and row.amount != null}">
-                                   <span th:if="${row.styleClass == 'total' or row.styleClass == 'subtotal'}">$</span>
-                                   <span th:unless="${row.styleClass == 'total' or row.styleClass == 'subtotal'}">
+                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
+                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
                                      <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
                                    </span>
                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
@@ -158,8 +161,8 @@
 
                            <td class="amount-col2">
                                <span th:if="${row.displayColumn == 2 and row.amount != null}">
-                                   <span th:if="${row.styleClass == 'total' or row.styleClass == 'subtotal'}">$</span>
-                                   <span th:unless="${row.styleClass == 'total' or row.styleClass == 'subtotal'}">
+                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
+                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
                                       <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
                                    </span>
                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>

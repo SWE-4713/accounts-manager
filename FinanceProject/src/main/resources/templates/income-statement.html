@@ -167,7 +167,7 @@
     </style>
 </head>
 <body>
-<header th:replace="fragments/navbar :: navbar"></header>
+<header th:replace="~{fragments/navbar :: navbar}"></header>
 
 <div class="report-actions">
     <button class="btn-save" onclick="openReportModal('save', 'Income Statement', 'IS')">Save</button>
@@ -197,48 +197,47 @@
             </div>
 
             <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
-                <div th:with="revenueSection=false, expenseSection=false">
-                    <table>
-                        <tbody>
-                        <tr th:each="row, iterStat : ${rows}"
-                            th:with="
-                                isRevenueHeader=${row.label == 'Revenue'},
-                                isExpenseHeader=${row.label == 'Expenses'},
-                                isTotalRevenue=${row.label == 'Total Revenue'},
-                                isTotalExpenses=${row.label == 'Total Expenses'},
-                                isNetIncome=${row.label == 'Net Income'},
-                                isBlankRow=${row.label == ''},
-                                revenueSection=${(revenueSection or isRevenueHeader) and not isTotalRevenue and not isExpenseHeader and not isBlankRow},
-                                expenseSection=${(expenseSection or isExpenseHeader) and not isTotalExpenses and not isRevenueHeader and not isNetIncome and not isBlankRow}
-                            "
-                            th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
+                 <table>
+                     <tbody>
+                     <tr th:each="row, iterStat : ${rows}"
+                         th:with="
+                             isBlankRow=${row.label == ''},
+                             isRevenueHeader=${row.label == 'Revenue'},
+                             isExpenseHeader=${row.label == 'Expenses'},
+                             isTotalRevenue=${row.label == 'Total Revenue'},
+                             isTotalExpenses=${row.label == 'Total Expenses'},
+                             isNetIncome=${row.label == 'Net Income'},
+                             isGenericRevenueItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not row.label.toLowerCase().contains('expense')},
+                             isGenericExpenseItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and row.label.toLowerCase().contains('expense')}
+                         "
+                         th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
 
-                            <td class="label-col"
-                                th:classappend="
-                                    ${revenueSection ? 'text-green' : ''} + ' ' +
-                                    ${expenseSection ? 'text-red' : ''} + ' ' +
-                                    ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
-                                    ${(not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not isBlankRow) ? 'indent-1' : ''} + ' ' +
-                                    ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
-                                "
-                                th:text="${row.label}">
-                            </td>
+                         <td class="label-col"
+                             th:classappend="
+                                 ${(isGenericRevenueItem or isTotalRevenue or isRevenueHeader) ? 'text-green' : ''} + ' ' +
+                                 ${(isGenericExpenseItem or isTotalExpenses or isExpenseHeader) ? 'text-red' : ''} + ' ' +
+                                 ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
+                                 ${(isGenericRevenueItem or isGenericExpenseItem) ? 'indent-1' : ''} + ' ' +
+                                 ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
+                             "
+                             th:text="${row.label}">
+                         </td>
 
-                            <td class="amount-col"
-                                th:classappend="
-                                    ${revenueSection ? 'text-green' : ''} + ' ' +
-                                    ${expenseSection ? 'text-red' : ''} + ' ' +
-                                    ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''}
-                                ">
-                                <span th:if="${row.amount != null}">
-                                    <span class="dollar-sign">$</span>
-                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                                </span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+                         <td class="amount-col">
+                             <span th:if="${row.amount != null}">
+                                 <span class="dollar-sign">$</span>
+                                 <span th:classappend="
+                                        ${(isGenericRevenueItem or isTotalRevenue) ? 'text-green' : ''} + ' ' +
+                                        ${(isGenericExpenseItem or isTotalExpenses) ? 'text-red' : ''} + ' ' +
+                                        ${isNetIncome ? (row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''}
+                                     ">
+                                     <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
+                                 </span>
+                             </span>
+                         </td>
+                     </tr>
+                     </tbody>
+                 </table>
             </div>
             <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
                 <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
@@ -254,7 +253,7 @@
       <div class="modal-body">
         <p id="modalActionText">Please select the report version you want to perform the action on:</p>
         <select id="reportSnapshotSelect">
-          </select>
+        </select>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
@@ -298,18 +297,17 @@
                       reportSelect.appendChild(option);
                   }
               });
-          } else {
-              const option = document.createElement('option');
-              option.textContent = 'No saved reports available for this type.';
-              option.disabled = true;
-              reportSelect.appendChild(option);
-              // Optionally disable confirm button if no reports
-                document.querySelector('.btn-confirm').disabled = true;
           }
-          // Ensure confirm button is enabled if options exist
-          if (reportSelect.options.length > 0 && !reportSelect.options[0].disabled) {
-              document.querySelector('.btn-confirm').disabled = false;
-          }
+          // Add check if any options were added
+           if (reportSelect.options.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = 'No saved reports available for this type.';
+                option.disabled = true;
+                reportSelect.appendChild(option);
+                document.querySelector('#reportActionModal .btn-confirm').disabled = true; // Disable confirm button
+            } else {
+                 document.querySelector('#reportActionModal .btn-confirm').disabled = false; // Enable confirm button
+            }
 
 
           reportModal.style.display = 'block';
@@ -321,8 +319,8 @@
 
       function confirmReportAction() {
           const selectedSnapshotId = reportSelect.value;
-          if (!selectedSnapshotId) {
-              alert('Please select a report.');
+          if (!selectedSnapshotId || reportSelect.options[reportSelect.selectedIndex]?.disabled) { // Check if selection is valid
+              alert('Please select a valid report.');
               return;
           }
 
@@ -350,61 +348,67 @@
                 .then(response => response.json()) // Or handle confirmation
                 .then(data => {
                     if(data.success) {
-                          alert(data.message || 'Email request sent successfully.');
-                      } else {
-                          alert(data.message || 'Failed to send email.');
-                      }
+                         alert(data.message || 'Email request sent successfully.');
+                     } else {
+                         alert(data.message || 'Failed to send email.');
+                     }
                 })
                 .catch(err => {
                     console.error('Email error:', err);
                     alert('Error requesting email.');
-                  });
+                 });
 
           } else if (currentAction === 'print') {
-            // Create a hidden iframe
-            const printFrame = document.createElement('iframe');
-            printFrame.style.position = 'absolute';
-            printFrame.style.width = '0';
-            printFrame.style.height = '0';
-            printFrame.style.border = '0';
-            printFrame.name = 'printFrame';
-            document.body.appendChild(printFrame);
+              // Create a hidden iframe
+              const printFrame = document.createElement('iframe');
+              printFrame.style.position = 'absolute';
+              printFrame.style.width = '0';
+              printFrame.style.height = '0';
+              printFrame.style.border = '0';
+              printFrame.name = 'printFrame';
+              document.body.appendChild(printFrame);
 
-            const printUrl = `/reports/print/${selectedSnapshotId}`;
+              const printUrl = `/reports/print/${selectedSnapshotId}`;
 
-            // Set the iframe's source to the print endpoint
-            printFrame.src = printUrl;
+              // Set the iframe's source to the print endpoint
+              printFrame.src = printUrl;
 
-            // Wait for the iframe to load
-            printFrame.onload = function() {
-                try {
-                    // Get the iframe's window
-                    const frameWindow = printFrame.contentWindow;
-                    frameWindow.focus(); // Focus for some browsers
-                    // Trigger print dialog on the iframe's content
-                    frameWindow.print();
+              // Wait for the iframe to load
+              printFrame.onload = function() {
+                  try {
+                      // Get the iframe's window
+                      const frameWindow = printFrame.contentWindow;
+                      frameWindow.focus(); // Focus for some browsers
+                      // Trigger print dialog on the iframe's content
+                      frameWindow.print();
 
-                    // Clean up: remove the iframe after a short delay (allows print dialog)
-                    // Adjust delay if needed
-                    setTimeout(() => {
-                          document.body.removeChild(printFrame);
-                    }, 1000); // 1 second delay
+                      // Clean up: remove the iframe after a short delay (allows print dialog)
+                      // Adjust delay if needed
+                      setTimeout(() => {
+                           if (document.body.contains(printFrame)) { // Check if frame still exists before removing
+                                document.body.removeChild(printFrame);
+                           }
+                      }, 1000); // 1 second delay
 
-                } catch (error) {
-                    console.error("Printing error:", error);
-                    alert("Could not initiate print. Please try again.");
-                    // Clean up even on error
-                    document.body.removeChild(printFrame);
-                }
-            };
+                  } catch (error) {
+                      console.error("Printing error:", error);
+                      alert("Could not initiate print. Please try again.");
+                      // Clean up even on error
+                       if (document.body.contains(printFrame)) {
+                            document.body.removeChild(printFrame);
+                       }
+                  }
+              };
 
-            // Handle potential loading errors in the iframe
-            printFrame.onerror = function() {
-                console.error("Failed to load print content into iframe.");
-                alert("Failed to load report content for printing.");
-                document.body.removeChild(printFrame);
-            };
-        }
+              // Handle potential loading errors in the iframe
+              printFrame.onerror = function() {
+                  console.error("Failed to load print content into iframe.");
+                  alert("Failed to load report content for printing.");
+                   if (document.body.contains(printFrame)) {
+                       document.body.removeChild(printFrame);
+                   }
+              };
+          }
       }
 
       // Close modal if user clicks outside of it

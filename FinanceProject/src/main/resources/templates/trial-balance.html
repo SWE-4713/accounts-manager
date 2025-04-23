@@ -254,7 +254,8 @@
                     <tr><th>Account</th><th class="amount">Debit</th><th class="amount">Credit</th></tr>
                   </thead>
                   <tbody>
-                    <tr th:each="r: ${rows}">
+                    <tr th:each="r: ${rows}" 
+                        th:if="${(r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0) or (r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0)}">
                       <td th:text="${r.accountName}"></td>
                       <td class="amount debit-value"
                           th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}">
