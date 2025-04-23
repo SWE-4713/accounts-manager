@@ -1,22 +1,5 @@
 package com.example.FinanceProject.service;
 
-import com.example.FinanceProject.entity.JournalEntry;
-import com.example.FinanceProject.entity.JournalEntryLine;
-import com.example.FinanceProject.entity.JournalStatus;
-import com.example.FinanceProject.entity.Account;
-import com.example.FinanceProject.entity.ErrorsDatabase;
-import com.example.FinanceProject.repository.JournalEntryRepo;
-import com.example.FinanceProject.repository.AccountRepo;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.example.FinanceProject.repository.ErrorDatabaseRepo;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -27,7 +10,21 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.ErrorsDatabase;
+import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.entity.JournalEntryLine;
+import com.example.FinanceProject.entity.JournalStatus;
+import com.example.FinanceProject.repository.AccountRepo;
+import com.example.FinanceProject.repository.ErrorDatabaseRepo;
+import com.example.FinanceProject.repository.JournalEntryRepo;
 
 @Service
 public class JournalEntryService {
@@ -163,8 +160,35 @@ public class JournalEntryService {
         // Update status to APPROVED
         existing.setStatus(JournalStatus.APPROVED);
         JournalEntry updated = journalEntryRepository.save(existing);
+
+        for (JournalEntryLine line : updated.getLines()) {
+            Account acct = accountService.getAccountById(line.getAccount().getId());
+            BigDecimal debit  = line.getDebit() != null  ? line.getDebit()  : BigDecimal.ZERO;
+            BigDecimal credit = line.getCredit() != null ? line.getCredit() : BigDecimal.ZERO;
+
+            if (debit.compareTo(BigDecimal.ZERO) > 0) {
+                // always record the debit total
+                acct.setDebit(acct.getDebit().add(debit));
+                // if account’s normal side is Debit, debits increase balance; otherwise they decrease it
+                if ("Debit".equalsIgnoreCase(acct.getNormalSide())) {
+                    acct.setBalance(acct.getBalance().add(debit));
+                } else {
+                    acct.setBalance(acct.getBalance().subtract(debit));
+                }
+            } else if (credit.compareTo(BigDecimal.ZERO) > 0) {
+                // always record the credit total
+                acct.setCredit(acct.getCredit().add(credit));
+                // if account’s normal side is Credit, credits increase balance; otherwise they decrease it
+                if ("Credit".equalsIgnoreCase(acct.getNormalSide())) {
+                    acct.setBalance(acct.getBalance().add(credit));
+                } else {
+                    acct.setBalance(acct.getBalance().subtract(credit));
+                }
+            }
+            accountRepo.save(acct);
+        }
         
-        // Log event with action "APPROVE"
+        //Log event with action "APPROVE"
         eventLogService.logJournalEvent(beforeUpdate, updated, 0L, "APPROVE");
         return updated;
     }
@@ -252,7 +276,7 @@ public class JournalEntryService {
         
         // Process date filtering.
         LocalDate start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : LocalDate.MIN;
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : LocalDate.now();
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : LocalDate.of(9999, 12, 31);
         
         // Retrieve entries filtered by status and date.
         List<JournalEntry> entries;

@@ -1,1 +1,1 @@
-Delete from journal_entries;
+delete from report_snapshots;

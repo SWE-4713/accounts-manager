@@ -1,27 +1,34 @@
 // AccountController.java
 package com.example.FinanceProject.controller;
 
-import com.example.FinanceProject.entity.Account;
-import com.example.FinanceProject.entity.JournalEntry;
-import com.example.FinanceProject.entity.User;
-import com.example.FinanceProject.repository.JournalEntryRepo;
-import com.example.FinanceProject.service.AccountService;
-import com.example.FinanceProject.service.JournalEntryService;
-import com.example.FinanceProject.service.UserService;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.data.domain.Sort;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.Objects;
+import com.example.FinanceProject.entity.Account;
+import com.example.FinanceProject.entity.JournalEntry;
+import com.example.FinanceProject.entity.JournalEntryLine;
+import com.example.FinanceProject.entity.JournalStatus;
+import com.example.FinanceProject.repository.JournalEntryLineRepo;
+import com.example.FinanceProject.repository.JournalEntryRepo;
+import com.example.FinanceProject.service.AccountService;
+import com.example.FinanceProject.service.JournalEntryService;
+import com.example.FinanceProject.service.UserService;
 
 @Controller
 @Secured({"ROLE_ADMIN", "ROLE_USER", "ROLE_MANAGER"})
@@ -39,6 +46,9 @@ public class AccountController {
 
     @Autowired
     private JournalEntryService journalEntryService;
+
+    @Autowired
+    private JournalEntryLineRepo journalEntryLineRepo;
     
     @GetMapping
     public String listAccounts(
@@ -110,7 +120,8 @@ public class AccountController {
         model.addAttribute("username", authentication.getName());
         Account account = accountService.getAccountById(id);
         model.addAttribute("account", account);
-        List<JournalEntry> ledgerEntries = journalEntryRepo.findByAccountId(id);
+        List<JournalEntryLine> ledgerEntries =
+        journalEntryLineRepo.findByAccountIdAndStatus(id, JournalStatus.APPROVED);
         model.addAttribute("ledgerEntries", ledgerEntries);
         return "account-ledger"; // Create a template to display the account ledger
     }

@@ -87,21 +87,20 @@
                       th:text="${line.account.accountName}"></span>
               </td>
                 <td>
-                  <a th:href="@{'/accounts/' + ${line.account.id} + '/history'}">
-                    View Account
-                  </a>
+                  <a th:href="@{'/accounts/' + ${line.account.id} + '/ledger'}"
+                     th:text="${line.account.accountNumber}"></a>
                 </td>
-                <td style="text-align: right;" th:text="${line.debit}"></td>
-                <td style="text-align: right;" th:text="${line.credit}"></td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.debit, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.credit, 1, 'COMMA', 2, 'POINT')}"></td>
             </tr>
         </tbody>
         <tfoot>
-            <tr class="totals">
-                <td>Total</td>
-                <td th:text="${#numbers.formatDecimal(journalEntry.totalDebit, 1, 'COMMA', 2, 'POINT')}"></td>
-                <td th:text="${#numbers.formatDecimal(journalEntry.totalCredit, 1, 'COMMA', 2, 'POINT')}"></td>
-                <td></td>
-            </tr>
+          <tr class="totals">
+            <td></td>
+            <td>Total</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalDebit,1,'COMMA',2,'POINT')}"></td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalCredit,1,'COMMA',2,'POINT')}"></td>
+          </tr>
         </tfoot>
     </table>
     <div>

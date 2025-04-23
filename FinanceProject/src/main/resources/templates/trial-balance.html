@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Trial Balance</title>
+    <style>
+        /* ... (keep existing styles) ... */
+        .container  { width:90%; margin:0 auto; }
+        .report-box { background:#fff; padding:25px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+        h1          { margin-bottom:10px; }
+        .date-box   { margin-bottom:20px; }
+        .date-box label { margin-right:5px; }
+        .btn-green  { background:#28a745; color:#fff; padding:8px 15px; border:none; border-radius:4px; cursor:pointer; margin-left: 10px; }
+        .tab-btn    { background:#007bff; color:#fff; border:none; padding:6px 12px; border-radius:4px; margin-right: 5px; margin-bottom:15px; cursor: pointer;}
+        .tab-btn.active { background-color: #0056b3; font-weight: bold; }
+        table       { border-collapse: collapse; width: 100%; }
+        /* Make table gridless */
+        table, th, td { border : none !important; }
+        thead th    { background-color: #f8f9fa; padding: 12px 15px; text-align: left; font-weight: 600;}
+        /* Style for individual account rows (not bold, normal indent) */
+        tbody td    { padding: 12px 15px; border-bottom: 1px solid #dee2e6;}
+        /* Style for total row (bold) */
+        tfoot td    { font-weight:bold; padding: 12px 15px; border-top: 2px solid #343a40;}
+        .amount     { text-align: right; }
+         /* Add specific styling for bolding and indentation */
+         .bold-item { font-weight: bold; }
+         /* Trial balance usually doesn't indent accounts, but keeping structure if needed */
+         .indent { padding-left: 25px; }
+
+         /* Deep green for debits */
+         .debit-value { color: #006400; /* Slightly deep green */ }
+        /* Deep red for credits */
+        .credit-value { color: #8B0000; /* Slightly deep red */ }
+    </style>
+</head>
+<body>
+<header th:replace="fragments/navbar :: navbar"></header>
+<div class="container">
+    <div class="report-box">
+        <h1>Trial Balance</h1>
+
+        <form th:action="@{/reports/trial-balance}" method="get" class="date-box">
+            From: <input type="date" name="startDate" th:value="${startDate}" required>
+            To:   <input type="date" name="endDate"   th:value="${endDate}"   required>
+            <button type="submit" class="btn-green">Generate Report</button>
+          </form>
+        
+          <div id="snapshotButtons" th:if="${snapshots}">
+            <button th:each="s: ${snapshots}" class="tab-btn"
+                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                    th:onclick="'window.location.href=\'' + @{/reports/trial-balance(snapshotId=${s.id})} + '\''"
+                    th:text="${s.text}">
+            </button>
+          </div>
+        
+          <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+              <table>
+                <thead>
+                  <tr><th>Account</th><th class="amount">Debit</th><th class="amount">Credit</th></tr>
+                </thead>
+                <tbody>
+                  <tr th:each="r: ${rows}">
+                    <td th:text="${r.accountName}"></td>
+                    <td class="amount debit-value"
+                        th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}">
+                    </td>
+                    <td class="amount credit-value"
+                        th:text="${r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.credit, 1, 'COMMA', 2, 'POINT') : ''}">
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="total">
+                    <td>Total</td>
+                    <td class="amount debit-value" th:text="${debitTotal != null ? #numbers.formatDecimal(debitTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                    <td class="amount credit-value" th:text="${creditTotal != null ? #numbers.formatDecimal(creditTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                  </tr>
+                </tfoot>
+              </table>
+          </div>
+          <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
+              <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+          </div>
+    </div>
+</div>
+</body>
+</html>

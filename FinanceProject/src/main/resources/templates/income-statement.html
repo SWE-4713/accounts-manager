@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Income Statement</title>
+    <style>
+        /* Basic styles (keep existing) */
+        body { font-family: sans-serif; }
+        .container{width:90%;margin:0 auto;}
+        .report-box{background:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+        h1{margin:0 0 5px; text-align: center;}
+        h3.report-date { text-align: center; margin-bottom: 20px; font-weight: normal;}
+        .date-box{margin-bottom:15px; text-align: center;}
+        .btn-green{background:#28a745;color:#fff;padding:8px 15px;border:none;border-radius:4px;cursor:pointer; margin-left: 10px;}
+        .tab-btn{background:#007bff;color:#fff;border:none;padding:6px 12px;border-radius:4px;margin-right: 5px; margin-bottom:15px; cursor: pointer;}
+        .tab-btn.active { background-color: #0056b3; font-weight: bold; }
+        #snapshotButtons { text-align: center; margin-bottom: 15px; }
+
+        /* Table styles (adjust as needed) */
+        table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px auto; }
+        th, td { border: none; padding: 6px 8px; } /* Remove borders */
+        .label-col { width: 70%; text-align: left; }
+        .amount-col { width: 30%; text-align: right; }
+        .section-header { font-weight: bold; font-size: 1.1em; padding-top: 15px; }
+        .total-row td { border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; }
+        .net-income-row td { border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold; }
+        .indent-1 { padding-left: 20px; }
+        .blank-row td { padding-top: 10px; padding-bottom: 10px; }
+
+        /* --- NEW STYLES --- */
+        /* Deep green for positive/revenue */
+        .text-green { color: #006400; /* Slightly deep green */ }
+        /* Deep red for negative/expenses */
+        .text-red { color: #8B0000; /* Slightly deep red */ }
+        /* Ensure dollar sign stays inline */
+        .dollar-sign { padding-right: 2px; display: inline !important; }
+    </style>
+</head>
+<body>
+<header th:replace="fragments/navbar :: navbar"></header>
+<div class="container">
+    <div class="report-box">
+        <h1>Income Statement</h1>
+        <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
+        <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+
+        <form th:action="@{/reports/income-statement}" method="get" class="date-box">
+            Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
+            End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
+            <button type="submit" class="btn-green">Generate Report</button>
+        </form>
+
+        <div id="snapshotButtons" th:if="${snapshots}">
+            <button th:each="s: ${snapshots}" class="tab-btn"
+                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                    th:onclick="'window.location.href=\'' + @{/reports/income-statement(snapshotId=${s.id})} + '\''"
+                    th:text="${s.text}">
+            </button>
+        </div>
+
+        <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+            <div th:with="revenueSection=false, expenseSection=false">
+                <table>
+                    <tbody>
+                    <tr th:each="row, iterStat : ${rows}"
+                        th:with="
+                            isRevenueHeader=${row.label == 'Revenue'},
+                            isExpenseHeader=${row.label == 'Expenses'},
+                            isTotalRevenue=${row.label == 'Total Revenue'},
+                            isTotalExpenses=${row.label == 'Total Expenses'},
+                            isNetIncome=${row.label == 'Net Income'},
+                            isBlankRow=${row.label == ''},
+                            revenueSection=${(revenueSection or isRevenueHeader) and not isTotalRevenue and not isExpenseHeader and not isBlankRow},
+                            expenseSection=${(expenseSection or isExpenseHeader) and not isTotalExpenses and not isRevenueHeader and not isNetIncome and not isBlankRow}
+                        "
+                        th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
+
+                        <td class="label-col"
+                            th:classappend="
+                                ${revenueSection ? 'text-green' : ''} + ' ' +
+                                ${expenseSection ? 'text-red' : ''} + ' ' +
+                                ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
+                                ${(not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not isBlankRow) ? 'indent-1' : ''} + ' ' +
+                                ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
+                            "
+                            th:text="${row.label}">
+                        </td>
+
+                        <td class="amount-col"
+                            th:classappend="
+                                ${revenueSection ? 'text-green' : ''} + ' ' +
+                                ${expenseSection ? 'text-red' : ''} + ' ' +
+                                ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''}
+                            ">
+                            <span th:if="${row.amount != null}">
+                                <span class="dollar-sign">$</span>
+                                <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
+            <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
