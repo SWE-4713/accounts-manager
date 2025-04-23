@@ -44,6 +44,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity (enable in production)
+            .headers(headers -> headers
+                .frameOptions(options -> options.sameOrigin()) // Allows framing from same origin
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "/password-reset-success", "/api/password/forgot", "/api/password/reset/validate", "/api/password/reset", "/password-expired").permitAll() // Allow public access
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Restrict admin routes

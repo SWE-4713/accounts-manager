@@ -34,78 +34,386 @@
         .text-red { color: #8B0000; /* Slightly deep red */ }
         /* Ensure dollar sign stays inline */
         .dollar-sign { padding-right: 2px; display: inline !important; }
+
+        .report-actions { /* Style for the button container */
+            position: absolute; /* Position relative to the body or a positioned ancestor */
+            top: 120px; /* Adjust based on navbar height */
+            left: 20px; /* Adjust as needed */
+            z-index: 10; /* Ensure buttons are above other content */
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px; /* Add some space below buttons */
+        }
+        .report-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-save { background-color: #28a745; color: white; } /* Green */
+        .btn-email { background-color: #17a2b8; color: white; } /* Teal */
+        .btn-print { background-color: #6c757d; color: white; } /* Grey */
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%; /* Could be more or less, depending on screen size */
+            border-radius: 5px;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-body select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .modal-footer {
+            text-align: right;
+        }
+         .modal-footer button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-confirm { background-color: #007bff; color: white; border: none;}
+        .btn-cancel { background-color: #6c757d; color: white; border: none;}
+
+        /* Add hover effects */
+        .report-actions button:hover { opacity: 0.9; }
+        .modal-footer button:hover { opacity: 0.9; }
+        .container { position: relative; padding-top: 50px; } /* Add padding to container if buttons overlap */
+
+        @media print {
+            body * { visibility: hidden; }
+            header, .report-actions, .date-box, #snapshotButtons, .modal, .tab-btn, .btn-green { display: none !important; visibility: hidden !important; } /* Hide non-printable */
+
+            .printable-area, .printable-area * { visibility: visible; }
+            .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .report-box { visibility: visible; box-shadow: none; border: none; margin-top: 0;}
+
+            .printable-area h1, .printable-area h3.report-date { visibility: visible !important; text-align: center; width: 100%; margin: 0 auto 5px auto; }
+            .printable-area h1 { font-size: 16pt; }
+            .printable-area h3.report-date { font-size: 12pt; font-weight: normal; margin-bottom: 20px; }
+
+            .printable-area table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10pt; max-width: none; /* Remove max-width for print */ }
+            .printable-area th, .printable-area td { border: none !important; padding: 5px 8px; text-align: left; }
+
+            /* Specific header styling for Income Statement */
+            /* Removed thead styling as the provided HTML doesn't use thead */
+
+            /* Specific styling for Income Statement rows */
+            .printable-area tbody td { border-bottom: 1px solid #eee; }
+            .printable-area .label-col { width: 70%; text-align: left; } /* Keep label column width */
+            .printable-area .amount-col { width: 30%; text-align: right; } /* Keep amount column width */
+            .printable-area .amount { text-align: right; } /* Ensure amounts are right-aligned */
+
+            /* --- Indentation Fix Start --- */
+            .printable-area .indent-1 {
+                padding-left: 20px !important; /* Apply indentation for print */
+            }
+            /* --- Indentation Fix End --- */
+
+            .printable-area .section-header { font-weight: bold; font-size: 1.1em; padding-top: 15px; }
+            .printable-area .total-row td { border-top: 1px solid #000 !important; border-bottom: 1px solid #000 !important; font-weight: bold; }
+            .printable-area .net-income-row td { border-top: 1px solid #000 !important; border-bottom: 3px double #000 !important; font-weight: bold; }
+            .printable-area .blank-row td { padding-top: 10px; padding-bottom: 10px; border-bottom: none !important; } /* Ensure blank rows are blank */
+
+            /* Color styling for print */
+            .printable-area .text-green { color: #006400 !important; }
+            .printable-area .text-red { color: #8B0000 !important; }
+            .printable-area .dollar-sign { padding-right: 2px; display: inline !important; }
+
+            .printable-area tfoot { display: table-row-group; }
+
+
+            /* Hide elements that should never print */
+            .report-actions, .date-box, #snapshotButtons, header, .modal, .tab-btn, .btn-green {
+                 display: none !important;
+                 visibility: hidden !important;
+            }
+            .report-box {
+                visibility: visible;
+                 box-shadow: none;
+                 border: none;
+            }
+        }
     </style>
 </head>
 <body>
 <header th:replace="fragments/navbar :: navbar"></header>
+
+<div class="report-actions">
+    <button class="btn-save" onclick="openReportModal('save', 'Income Statement', 'IS')">Save</button>
+    <button class="btn-email" onclick="openReportModal('email', 'Income Statement', 'IS')">Email</button>
+    <button class="btn-print" onclick="openReportModal('print', 'Income Statement', 'IS')">Print</button>
+</div>
+
 <div class="container">
     <div class="report-box">
-        <h1>Income Statement</h1>
-        <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
-        <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+        <div class="printable-area">
+            <h1>Income Statement</h1>
+            <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
+            <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-        <form th:action="@{/reports/income-statement}" method="get" class="date-box">
-            Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
-            End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
-            <button type="submit" class="btn-green">Generate Report</button>
-        </form>
+            <form th:action="@{/reports/income-statement}" method="get" class="date-box">
+                Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
+                End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
+                <button type="submit" class="btn-green">Generate Report</button>
+            </form>
 
-        <div id="snapshotButtons" th:if="${snapshots}">
-            <button th:each="s: ${snapshots}" class="tab-btn"
-                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
-                    th:onclick="'window.location.href=\'' + @{/reports/income-statement(snapshotId=${s.id})} + '\''"
-                    th:text="${s.text}">
-            </button>
-        </div>
-
-        <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
-            <div th:with="revenueSection=false, expenseSection=false">
-                <table>
-                    <tbody>
-                    <tr th:each="row, iterStat : ${rows}"
-                        th:with="
-                            isRevenueHeader=${row.label == 'Revenue'},
-                            isExpenseHeader=${row.label == 'Expenses'},
-                            isTotalRevenue=${row.label == 'Total Revenue'},
-                            isTotalExpenses=${row.label == 'Total Expenses'},
-                            isNetIncome=${row.label == 'Net Income'},
-                            isBlankRow=${row.label == ''},
-                            revenueSection=${(revenueSection or isRevenueHeader) and not isTotalRevenue and not isExpenseHeader and not isBlankRow},
-                            expenseSection=${(expenseSection or isExpenseHeader) and not isTotalExpenses and not isRevenueHeader and not isNetIncome and not isBlankRow}
-                        "
-                        th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
-
-                        <td class="label-col"
-                            th:classappend="
-                                ${revenueSection ? 'text-green' : ''} + ' ' +
-                                ${expenseSection ? 'text-red' : ''} + ' ' +
-                                ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
-                                ${(not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not isBlankRow) ? 'indent-1' : ''} + ' ' +
-                                ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
-                            "
-                            th:text="${row.label}">
-                        </td>
-
-                        <td class="amount-col"
-                            th:classappend="
-                                ${revenueSection ? 'text-green' : ''} + ' ' +
-                                ${expenseSection ? 'text-red' : ''} + ' ' +
-                                ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''}
-                            ">
-                            <span th:if="${row.amount != null}">
-                                <span class="dollar-sign">$</span>
-                                <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                            </span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+            <div id="snapshotButtons" th:if="${snapshots}">
+                <button th:each="s: ${snapshots}" class="tab-btn"
+                        th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                        th:onclick="'window.location.href=\'' + @{/reports/income-statement(snapshotId=${s.id})} + '\''"
+                        th:text="${s.text}">
+                </button>
             </div>
-        </div>
-        <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
-            <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+
+            <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+                <div th:with="revenueSection=false, expenseSection=false">
+                    <table>
+                        <tbody>
+                        <tr th:each="row, iterStat : ${rows}"
+                            th:with="
+                                isRevenueHeader=${row.label == 'Revenue'},
+                                isExpenseHeader=${row.label == 'Expenses'},
+                                isTotalRevenue=${row.label == 'Total Revenue'},
+                                isTotalExpenses=${row.label == 'Total Expenses'},
+                                isNetIncome=${row.label == 'Net Income'},
+                                isBlankRow=${row.label == ''},
+                                revenueSection=${(revenueSection or isRevenueHeader) and not isTotalRevenue and not isExpenseHeader and not isBlankRow},
+                                expenseSection=${(expenseSection or isExpenseHeader) and not isTotalExpenses and not isRevenueHeader and not isNetIncome and not isBlankRow}
+                            "
+                            th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
+
+                            <td class="label-col"
+                                th:classappend="
+                                    ${revenueSection ? 'text-green' : ''} + ' ' +
+                                    ${expenseSection ? 'text-red' : ''} + ' ' +
+                                    ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
+                                    ${(not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not isBlankRow) ? 'indent-1' : ''} + ' ' +
+                                    ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
+                                "
+                                th:text="${row.label}">
+                            </td>
+
+                            <td class="amount-col"
+                                th:classappend="
+                                    ${revenueSection ? 'text-green' : ''} + ' ' +
+                                    ${expenseSection ? 'text-red' : ''} + ' ' +
+                                    ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''}
+                                ">
+                                <span th:if="${row.amount != null}">
+                                    <span class="dollar-sign">$</span>
+                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
+                <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+            </div>
         </div>
     </div>
 </div>
+
+<div id="reportActionModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeReportModal()">&times;</span>
+      <h2 id="modalTitle">Select Report</h2>
+      <div class="modal-body">
+        <p id="modalActionText">Please select the report version you want to perform the action on:</p>
+        <select id="reportSnapshotSelect">
+          </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmReportAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+  /*<![CDATA[*/
+      const reportModal = document.getElementById('reportActionModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalActionText = document.getElementById('modalActionText');
+      const reportSelect = document.getElementById('reportSnapshotSelect');
+      let currentAction = ''; // To store 'save', 'email', or 'print'
+      let currentReportType = ''; // To store 'Trial Balance', 'Income Statement', etc.
+      let currentReportAbbr = ''; // To store 'TB', 'IS', etc.
+
+      // Get snapshot data from Thymeleaf model
+      const availableSnapshots = /*[[${snapshots}]]*/ [];
+
+      function openReportModal(action, reportType, reportAbbr) {
+          currentAction = action;
+          currentReportType = reportType;
+          currentReportAbbr = reportAbbr;
+
+          modalTitle.textContent = `Select ${currentReportType} to ${action}`;
+          modalActionText.textContent = `Please select the ${currentReportType} version you want to ${action}:`;
+
+          // Clear previous options
+          reportSelect.innerHTML = '';
+
+          // Populate select options with available snapshots for the current report type
+          if (availableSnapshots && availableSnapshots.length > 0) {
+              availableSnapshots.forEach(snapshot => {
+                  // Ensure the snapshot button text starts with the current report abbreviation
+                  if (snapshot.text.startsWith(reportAbbr)) {
+                      const option = document.createElement('option');
+                      option.value = snapshot.id;
+                      option.textContent = snapshot.text; // Use the button text from the model
+                      reportSelect.appendChild(option);
+                  }
+              });
+          } else {
+              const option = document.createElement('option');
+              option.textContent = 'No saved reports available for this type.';
+              option.disabled = true;
+              reportSelect.appendChild(option);
+              // Optionally disable confirm button if no reports
+                document.querySelector('.btn-confirm').disabled = true;
+          }
+          // Ensure confirm button is enabled if options exist
+          if (reportSelect.options.length > 0 && !reportSelect.options[0].disabled) {
+              document.querySelector('.btn-confirm').disabled = false;
+          }
+
+
+          reportModal.style.display = 'block';
+      }
+
+      function closeReportModal() {
+          reportModal.style.display = 'none';
+      }
+
+      function confirmReportAction() {
+          const selectedSnapshotId = reportSelect.value;
+          if (!selectedSnapshotId) {
+              alert('Please select a report.');
+              return;
+          }
+
+          console.log(`Action: ${currentAction}, Report Type: ${currentReportType}, Snapshot ID: ${selectedSnapshotId}`);
+
+          // Close the modal first
+          closeReportModal();
+
+          // Perform action based on 'currentAction'
+          if (currentAction === 'save') {
+              // Trigger download - Needs backend endpoint /reports/download/{snapshotId}
+              window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`; // Pass reportType if needed for formatting
+          } else if (currentAction === 'email') {
+              // Option 1: Use mailto (simpler, relies on user client)
+              // Generate file name based on report type and snapshot details
+              const selectedOptionText = reportSelect.options[reportSelect.selectedIndex].text;
+              const subject = `Financial Report: ${selectedOptionText}`;
+              const body = `Please find the attached ${currentReportType} report (${selectedOptionText}).`;
+              // Ideally, trigger backend to generate and attach, then provide a mailto link or confirmation.
+              // For now, a simple mailto:
+              const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+              //window.location.href = mailtoLink;
+              // Option 2: Trigger backend to generate and email (more robust)
+              fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' }) // Needs backend endpoint
+                .then(response => response.json()) // Or handle confirmation
+                .then(data => {
+                    if(data.success) {
+                          alert(data.message || 'Email request sent successfully.');
+                      } else {
+                          alert(data.message || 'Failed to send email.');
+                      }
+                })
+                .catch(err => {
+                    console.error('Email error:', err);
+                    alert('Error requesting email.');
+                  });
+
+          } else if (currentAction === 'print') {
+            // Create a hidden iframe
+            const printFrame = document.createElement('iframe');
+            printFrame.style.position = 'absolute';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            printFrame.style.border = '0';
+            printFrame.name = 'printFrame';
+            document.body.appendChild(printFrame);
+
+            const printUrl = `/reports/print/${selectedSnapshotId}`;
+
+            // Set the iframe's source to the print endpoint
+            printFrame.src = printUrl;
+
+            // Wait for the iframe to load
+            printFrame.onload = function() {
+                try {
+                    // Get the iframe's window
+                    const frameWindow = printFrame.contentWindow;
+                    frameWindow.focus(); // Focus for some browsers
+                    // Trigger print dialog on the iframe's content
+                    frameWindow.print();
+
+                    // Clean up: remove the iframe after a short delay (allows print dialog)
+                    // Adjust delay if needed
+                    setTimeout(() => {
+                          document.body.removeChild(printFrame);
+                    }, 1000); // 1 second delay
+
+                } catch (error) {
+                    console.error("Printing error:", error);
+                    alert("Could not initiate print. Please try again.");
+                    // Clean up even on error
+                    document.body.removeChild(printFrame);
+                }
+            };
+
+            // Handle potential loading errors in the iframe
+            printFrame.onerror = function() {
+                console.error("Failed to load print content into iframe.");
+                alert("Failed to load report content for printing.");
+                document.body.removeChild(printFrame);
+            };
+        }
+      }
+
+      // Close modal if user clicks outside of it
+      window.onclick = function(event) {
+          if (event.target == reportModal) {
+              closeReportModal();
+          }
+      }
+  /*]]>*/
+  </script>
 </body>
 </html>
