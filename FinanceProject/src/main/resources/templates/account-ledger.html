@@ -2,72 +2,145 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Account Ledger</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/aBKRRy2.png">
     <style>
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #ccc;
-            padding: 10px;
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --warning: #ffc107;
+            --info: #17a2b8;
         }
-        .nav-buttons a {
-            margin-right: 10px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        table { 
-            border-collapse: collapse; 
-            width: 90%; 
-            margin-bottom: 20px; 
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 40px;
         }
-        table, th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        h1 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            /* Removed text-align: center; */
+        }
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .back-link a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: var(--secondary);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .back-link a:hover {
+             background-color: #5a6268;
+        }
+
+        /* Table Styles (Non-Responsive) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
             text-align: left;
+            border-bottom: 1px solid var(--border);
+            /* Removed white-space, overflow, text-overflow */
         }
+        th {
+            background-color: #f8f9fa;
+            color: var(--dark);
+            font-weight: 600;
+             /* Removed sticky styles */
+        }
+         tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background-color: #f5f8fa;
+        }
+        a.entry-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        a.entry-link:hover {
+            text-decoration: underline;
+        }
+        .right {
+            text-align: right;
+        }
+
     </style>
 </head>
 <body>
     <header th:replace="~{fragments/navbar :: navbar}"></header>
     <div class="container">
-        <h1>Ledger for Account: <span th:text="${account.accountName}"></span></h1>
-        <table>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Post Reference</th>
-                <th>Description</th>
-                <th>Debit</th>
-                <th>Credit</th>
-                <th>Balance</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="entry : ${ledgerEntries}">
-                <td th:text="${entry.journalEntry.entryDate}"></td>
-                <td>
-                    <a th:href="@{'/journal/view/' + ${entry.journalEntry.id}}"
-                       class="entry-link" 
-                       th:text="${entry.journalEntry.id}"></a>
-                </td>
-                <td th:text="${entry.journalEntry.description != null ? entry.journalEntry.description : 'No Description'}"></td>
-                <td style="text-align:right;"
-                    th:text="${entry.debit != null and entry.debit > 0
-                            ? #numbers.formatDecimal(entry.debit, 1, 'COMMA', 2, 'POINT') : ''}">
-                </td>
-                <td style="text-align:right;"
-                    th:text="${entry.credit != null and entry.credit > 0
-                            ? #numbers.formatDecimal(entry.credit, 1, 'COMMA', 2, 'POINT') : ''}">
-                </td>
+        <div class="section"> <h1>Ledger for Account: <span th:text="${account.accountName}"></span></h1>
 
-                <td style="text-align: right;"
-                    th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}">
-                </td>
-            </tr>
-            <tr th:if="${ledgerEntries == null or #lists.isEmpty(ledgerEntries)}">
-                <td colspan="6">No ledger entries available.</td>
-            </tr>
-            </tbody>
-        </table>
-        <a th:href="@{/accounts}">Back to Chart of Accounts</a>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Post Reference</th>
+                        <th>Description</th>
+                        <th class="right">Debit</th>  <th class="right">Credit</th> <th class="right">Balance</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="entry : ${ledgerEntries}">
+                        <td th:text="${#temporals.format(entry.journalEntry.entryDate, 'yyyy-MM-dd')}"></td> <td>
+                            <a th:href="@{'/journal/view/' + ${entry.journalEntry.id}}"
+                               class="entry-link"
+                               th:text="${entry.journalEntry.id}"></a>
+                        </td>
+                        <td th:text="${entry.journalEntry.description != null ? entry.journalEntry.description : 'No Description'}"></td>
+                        <td class="right"
+                            th:text="${entry.debit != null and entry.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0
+                                    ? #numbers.formatDecimal(entry.debit, 1, 'COMMA', 2, 'POINT') : ''}">
+                        </td> <td class="right"
+                            th:text="${entry.credit != null and entry.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0
+                                    ? #numbers.formatDecimal(entry.credit, 1, 'COMMA', 2, 'POINT') : ''}">
+                        </td> <td class="right"
+                            th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}">
+                        </td> </tr>
+                    <tr th:if="${ledgerEntries == null or #lists.isEmpty(ledgerEntries)}">
+                        <td colspan="6" style="text-align: center;">No ledger entries available.</td> </tr>
+                </tbody>
+            </table>
+
+             <div class="back-link">
+                <a th:href="@{/accounts}">Back to Chart of Accounts</a>
+            </div>
+        </div>
     </div>
 </body>
 </html>

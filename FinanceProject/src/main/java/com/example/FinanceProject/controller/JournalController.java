@@ -3,26 +3,28 @@ package com.example.FinanceProject.controller;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.FinanceProject.entity.Account;
 import com.example.FinanceProject.entity.JournalEntry;
 import com.example.FinanceProject.entity.JournalEntryLine;
-import com.example.FinanceProject.entity.JournalStatus;
 import com.example.FinanceProject.service.AccountService;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.JournalEntryService;
-import com.example.FinanceProject.repository.JournalEntryRepo;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;    
 
 
 @Controller
