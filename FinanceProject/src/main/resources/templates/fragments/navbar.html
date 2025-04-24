@@ -12,7 +12,7 @@
     <div class="container header-content">
         <div class="logo">
             <img src="https://i.imgur.com/aBKRRy2.png" width="40px">
-            <span th:text="${#dates.format(#dates.createNow(), 'MMMM dd, yyyy')}"></span>
+            <span th:text="${#dates.format(#dates.createNow(), 'MMMM dd, YYYY')}"></span>
         </div>
 
         <div class="nav-menu">
@@ -39,12 +39,12 @@
                 </div>
             </div>
 
-            <div class="nav-dropdown">
-                <button class="nav-dropbtn">Settings <i class="fas fa-caret-down"></i></button>
-                <div class="nav-dropdown-content">
-                    <a href="/settings/general">General Settings</a>
-                    <a sec:authorize="hasRole('ROLE_ADMIN')" href="/admin/user-management">User Management</a>
-                    <a href="/settings/company">Company Profile</a>
+            <div sec:authorize="hasRole('ROLE_ADMIN')">
+                <div class="nav-dropdown">
+                    <button class="nav-dropbtn">Settings <i class="fas fa-caret-down"></i></button>
+                    <div class="nav-dropdown-content">
+                        <a href="/admin/user-management">User Management</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,6 +82,7 @@
             color: #333;
             line-height: 1.6;
             padding-bottom: 40px;
+             margin: 0;
         }
 
         .container {
@@ -94,7 +95,7 @@
         .header {
             background-color: var(--primary);
             color: white;
-            padding: 20px 0;
+            padding: 15px 0;
             margin-bottom: 30px;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
         }
@@ -103,40 +104,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 20px;
         }
 
         .logo {
-            font-size: 18px; /* Slightly reduced font size */
-            font-weight: normal; /* Normal weight */
+            font-size: 16px;
+            font-weight: normal;
             display: flex;
             align-items: center;
             gap: 10px;
+            white-space: nowrap;
         }
 
-        .logout-link {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 8px 15px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .logout-link:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Navigation Menu Styles */
         .nav-menu {
             display: flex;
-            gap: 15px; /* Adjusted gap */
-            align-items: center; /* Align items vertically */
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
         }
 
-        /* Navigation Dropdown Styles */
         .nav-dropdown {
             position: relative;
             display: inline-block;
@@ -145,14 +132,22 @@
         .nav-dropbtn {
             background-color: transparent;
             color: white;
-            padding: 10px 15px;
-            font-size: 16px;
+            padding: 8px 12px;
+            font-size: 15px;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 5px;
+            white-space: nowrap;
+             border-radius: 4px;
+             transition: background-color 0.2s;
         }
+         .nav-dropdown:hover .nav-dropbtn,
+         .nav-dropbtn:hover {
+             background-color: rgba(255, 255, 255, 0.1);
+         }
+
 
         .nav-dropdown-content {
             display: none;
@@ -160,17 +155,23 @@
             background-color: #f9f9f9;
             min-width: 200px;
             box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-            z-index: 100; /* Ensure dropdown is above other content */
+            z-index: 100;
             border-radius: 4px;
-            left: 0; /* Align dropdown to the left of the button */
+             left: 50%;
+             transform: translateX(-50%);
+             /* Removed margin-top: 5px; */
+             /* Optional: Add padding top if visual space is desired without a gap */
+             /* padding-top: 5px; */
         }
 
         .nav-dropdown-content a {
             color: var(--dark);
-            padding: 12px 16px;
+            padding: 10px 15px;
             text-decoration: none;
             display: block;
             transition: background-color 0.2s;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         .nav-dropdown-content a:hover {
@@ -181,35 +182,30 @@
             display: block;
         }
 
-        /* Style direct links in nav-menu like dropdown buttons */
         .nav-menu > a.nav-dropbtn {
             color: white;
             background-color: transparent;
             border: none;
-            font-size: 16px;
              transition: background-color 0.2s;
-        }
-        .nav-menu > a.nav-dropbtn:hover,
-        .nav-dropdown:hover .nav-dropbtn {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+             text-decoration: none;
         }
 
 
-        /* Existing User Dropdown Styles */
+        /* User Dropdown Styles */
         .dropdown {
             position: relative;
             display: inline-block;
-            margin-left: auto; /* Pushes user dropdown to the right */
         }
 
         .dropbtn {
             background-color: transparent;
             color: white;
-            padding: 10px 15px;
-            font-size: 16px;
+            padding: 8px 12px;
+            font-size: 15px;
             border: none;
             cursor: pointer;
+             border-radius: 4px;
+             transition: background-color 0.2s;
         }
 
         .dropdown-content {
@@ -219,16 +215,19 @@
             background-color: #f9f9f9;
             min-width: 160px;
             box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-            z-index: 100; /* Ensure dropdown is above other content */
+            z-index: 100;
             border-radius: 4px;
+            /* margin-top: 5px; /* Removed margin-top here too for consistency */
         }
 
         .dropdown-content a {
             color: var(--dark);
-            padding: 12px 16px;
+            padding: 10px 15px;
             text-decoration: none;
             display: block;
             transition: background-color 0.2s;
+             font-size: 14px;
+             white-space: nowrap;
         }
 
         .dropdown-content a:hover {
@@ -241,7 +240,6 @@
 
         .dropdown:hover .dropbtn {
             background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
         }
     </style>
 </div>
