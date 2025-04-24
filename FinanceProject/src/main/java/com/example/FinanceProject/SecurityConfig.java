@@ -1,9 +1,7 @@
 package com.example.FinanceProject;
 
-import com.example.FinanceProject.entity.User;
-import com.example.FinanceProject.repository.UserRepo;
-import com.example.FinanceProject.service.LoginAttemptService;
-import com.example.FinanceProject.service.PasswordExpirationService;
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,18 +10,26 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.FinanceProject.entity.User;
+import com.example.FinanceProject.repository.UserRepo;
 import com.example.FinanceProject.service.CustomUserDetailsService;
+import com.example.FinanceProject.service.LoginAttemptService;
+import com.example.FinanceProject.service.PasswordExpirationService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-
-import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
@@ -43,25 +49,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity (enable in production)
+            .csrf(csrf -> csrf.disable())
             .headers(headers -> headers
-                .frameOptions(options -> options.sameOrigin()) // Allows framing from same origin
+                .frameOptions(options -> options.sameOrigin())
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "/password-reset-success", "/api/password/forgot", "/api/password/reset/validate", "/api/password/reset", "/password-expired").permitAll() // Allow public access
-                .requestMatchers("/admin/**").hasRole("ADMIN") // Restrict admin routes
-                .requestMatchers("/accounts/add").hasRole("ADMIN") // Only admin can access account-add
-                .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN") // Restrict user routes
-                .anyRequest().authenticated()
+                .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "/password-reset-success", "/api/password/**", "/password-expired", "/update-expired-password", "/login").permitAll() // Ensure login and password reset pages are permitted
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/accounts/add", "/accounts/edit", "/accounts/deactivate").hasRole("ADMIN") // Admin only account modification
+                // Permit dashboard for all authenticated users
+                .requestMatchers("/dashboard").authenticated()
+                // Keep other specific role restrictions as needed
+                .requestMatchers("/reports/**").hasAnyRole("ADMIN", "MANAGER") // Example: Reports for Admin/Manager
+                .requestMatchers("/manager/**").hasRole("MANAGER")
+                .requestMatchers("/accountant/**").hasRole("USER") // Assuming ROLE_USER is accountant
+                .anyRequest().authenticated() // All other requests need authentication
             )
             .formLogin(login -> login
                 .loginPage("/login").permitAll()
-                .successHandler(customAuthenticationSuccessHandler())
+                .successHandler(customAuthenticationSuccessHandler()) // Use the updated success handler
+                // Add failure handler if not already present
+                // .failureHandler(loginFailureHandler())
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login").permitAll()
-            ).addFilterBefore(passwordExpirationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .logoutSuccessUrl("/login?logout").permitAll() // Redirect to login page with logout message
+            )
+            .addFilterBefore(passwordExpirationFilter(), UsernamePasswordAuthenticationFilter.class); // Keep password expiration filter
 
         return http.build();
     }
@@ -76,26 +90,41 @@ public class SecurityConfig {
     public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
         return new AuthenticationSuccessHandler() {
             @Override
-            public void onAuthenticationSuccess(HttpServletRequest request, 
-                                                HttpServletResponse response, 
+            public void onAuthenticationSuccess(HttpServletRequest request,
+                                                HttpServletResponse response,
                                                 Authentication authentication) throws IOException, ServletException {
-                // Check if the logged in user has ROLE_ADMIN
+
+                // Check for password expiration FIRST (optional but good practice)
+                // User user = userRepo.findByUsername(authentication.getName()).orElse(null);
+                // if (user != null && passwordExpirationService.isPasswordExpired(user)) {
+                //     response.sendRedirect("/password-expired"); // Redirect to change password page
+                //     return;
+                // }
+
+                // Redirect based on role (or always to dashboard)
                 boolean isAdmin = authentication.getAuthorities().stream()
                                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
                 boolean isManager = authentication.getAuthorities().stream()
                         .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MANAGER"));
                 boolean isUser = authentication.getAuthorities().stream()
                         .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"));
+
+                // --- MODIFICATION START ---
+                // Redirect all authenticated users to the dashboard
+                response.sendRedirect("/dashboard");
+
+                // --- Original Role-Based Redirect (Keep for reference or revert if needed) ---
+                /*
                 if (isAdmin) {
-                    response.sendRedirect("/admin");
+                    response.sendRedirect("/admin/user-management"); // Or /admin if preferred
                 } else if (isManager) {
-                    response.sendRedirect("/manager");
-                } else if (isUser) {
-                    response.sendRedirect("/accountant");
-                } else {
-                    // For non-admin users, redirect to a default user page or home page
-                    response.sendRedirect("/user");
+                    // Managers might also go to the dashboard, or a specific manager view
+                    response.sendRedirect("/dashboard"); // Or /manager if needed
+                } else { // Default for ROLE_USER or others
+                    response.sendRedirect("/dashboard"); // Redirect standard users to dashboard
                 }
+                */
+                // --- MODIFICATION END ---
             }
         };
     }

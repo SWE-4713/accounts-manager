@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
 </head>
 <body>
-<!-- Navbar Fragment -->
 <div th:fragment="navbar">
-<header th:fragment="navbar" class="header">
+<header class="header">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="https://i.imgur.com/aBKRRy2.png">
     <div class="container header-content">
@@ -17,7 +16,8 @@
         </div>
 
         <div class="nav-menu">
-            <!-- Accounting Dropdown -->
+            <a href="/dashboard" class="nav-dropbtn" style="text-decoration: none; padding: 10px 15px;">Dashboard</a>
+
             <div class="nav-dropdown">
                 <button class="nav-dropbtn">Accounting <i class="fas fa-caret-down"></i></button>
                 <div class="nav-dropdown-content">
@@ -27,7 +27,6 @@
                 </div>
             </div>
 
-            <!-- Reports Dropdown -->
             <div sec:authorize="hasRole('ROLE_MANAGER')">
                 <div class="nav-dropdown">
                     <button class="nav-dropbtn">Reports <i class="fas fa-caret-down"></i></button>
@@ -40,7 +39,6 @@
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
             <div class="nav-dropdown">
                 <button class="nav-dropbtn">Settings <i class="fas fa-caret-down"></i></button>
                 <div class="nav-dropdown-content">
@@ -51,7 +49,6 @@
             </div>
         </div>
 
-        <!-- User Dropdown -->
         <div class="dropdown">
             <button class="dropbtn" th:text="${username}"></button>
             <div class="dropdown-content">
@@ -109,8 +106,8 @@
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 18px; /* Slightly reduced font size */
+            font-weight: normal; /* Normal weight */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -135,7 +132,8 @@
         /* Navigation Menu Styles */
         .nav-menu {
             display: flex;
-            gap: 20px;
+            gap: 15px; /* Adjusted gap */
+            align-items: center; /* Align items vertically */
         }
 
         /* Navigation Dropdown Styles */
@@ -162,8 +160,9 @@
             background-color: #f9f9f9;
             min-width: 200px;
             box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-            z-index: 1;
+            z-index: 100; /* Ensure dropdown is above other content */
             border-radius: 4px;
+            left: 0; /* Align dropdown to the left of the button */
         }
 
         .nav-dropdown-content a {
@@ -182,15 +181,26 @@
             display: block;
         }
 
+        /* Style direct links in nav-menu like dropdown buttons */
+        .nav-menu > a.nav-dropbtn {
+            color: white;
+            background-color: transparent;
+            border: none;
+            font-size: 16px;
+             transition: background-color 0.2s;
+        }
+        .nav-menu > a.nav-dropbtn:hover,
         .nav-dropdown:hover .nav-dropbtn {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
 
+
         /* Existing User Dropdown Styles */
         .dropdown {
             position: relative;
             display: inline-block;
+            margin-left: auto; /* Pushes user dropdown to the right */
         }
 
         .dropbtn {
@@ -209,7 +219,7 @@
             background-color: #f9f9f9;
             min-width: 160px;
             box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-            z-index: 1;
+            z-index: 100; /* Ensure dropdown is above other content */
             border-radius: 4px;
         }
 
