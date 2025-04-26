@@ -3,85 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <title>Trial Balance</title>
-    <style>
+    <style th:inline="css">
         /* ... (keep existing styles) ... */
-        .container  { width:90%; margin:0 auto; }
+        .container  { width:90%; margin:0 auto; position: relative; padding-top: 50px; } /* Added padding */
         .report-box { background:#fff; padding:25px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
-        h1          { margin-bottom:10px; }
-        .date-box   { margin-bottom:20px; }
+        h1          { margin-bottom:10px; text-align: center; } /* Center H1 */
+        .report-date { text-align: center; font-weight: normal; margin-bottom: 20px; visibility: visible; } /* Center date */
+
+        /* --- New Centering Container --- */
+        .report-controls-center {
+            text-align: center; /* Center inline/inline-block children */
+            margin-bottom: 20px; /* Space below controls */
+        }
+
+        .date-box   { margin-bottom:15px; display: inline-block; /* Allow text-align to work */}
         .date-box label { margin-right:5px; }
         .btn-green  { background:#28a745; color:#fff; padding:8px 15px; border:none; border-radius:4px; cursor:pointer; margin-left: 10px; }
-        .tab-btn    { background:#007bff; color:#fff; border:none; padding:6px 12px; border-radius:4px; margin-right: 5px; margin-bottom:15px; cursor: pointer;}
+
+        #snapshotButtons { /* Container for snapshot buttons */
+             margin-top: 10px; /* Add space above snapshot buttons if date box is present */
+             /* text-align center is handled by parent */
+        }
+        .tab-btn    { background:#007bff; color:#fff; border:none; padding:6px 12px; border-radius:4px; margin: 0 3px 10px 3px; /* Adjust margins */ cursor: pointer;} /* Added bottom margin */
         .tab-btn.active { background-color: #0056b3; font-weight: bold; }
+
         table       { border-collapse: collapse; width: 100%; }
-        /* Make table gridless */
         table, th, td { border : none !important; }
         thead th    { background-color: #f8f9fa; padding: 12px 15px; text-align: left; font-weight: 600;}
-        /* Style for individual account rows (not bold, normal indent) */
         tbody td    { padding: 12px 15px; border-bottom: 1px solid #dee2e6;}
-        /* Style for total row (bold) */
         tfoot td    { font-weight:bold; padding: 12px 15px; border-top: 2px solid #343a40;}
         .amount     { text-align: right; }
-         /* Add specific styling for bolding and indentation */
          .bold-item { font-weight: bold; }
-         /* Trial balance usually doesn't indent accounts, but keeping structure if needed */
          .indent { padding-left: 25px; }
+         .debit-value { color: #006400; }
+        .credit-value { color: #8B0000; }
 
-         /* Deep green for debits */
-         .debit-value { color: #006400; /* Slightly deep green */ }
-        /* Deep red for credits */
-        .credit-value { color: #8B0000; /* Slightly deep red */ }
+        .report-actions {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .report-actions button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-save { background-color: #28a745; color: white; }
+        .btn-email { background-color: #17a2b8; color: white; }
+        .btn-print { background-color: #6c757d; color: white; }
+
+        /* Modal Styles (Unchanged) */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 50%; border-radius: 5px; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        .modal-body select { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; }
+        .modal-footer { text-align: right; }
+        .modal-footer button { padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; }
+        .btn-confirm { background-color: #007bff; color: white; border: none;}
+        .btn-cancel { background-color: #6c757d; color: white; border: none;}
+        .report-actions button:hover { opacity: 0.9; }
+        .modal-footer button:hover { opacity: 0.9; }
+
+
+        /* Print Styles (Unchanged) */
+         @media print {
+            body * { visibility: hidden; }
+            .printable-area, .printable-area * { visibility: visible; }
+            .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .printable-area h1, .printable-area h3.report-date { visibility: visible !important; text-align: center; width: 100%; margin-left: auto; margin-right: auto; margin-bottom: 5px; }
+            .printable-area h3.report-date { font-size: 12pt; font-weight: normal; margin-bottom: 20px; }
+            .printable-area table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10pt; }
+            .printable-area tfoot { display: table-row-group; }
+            .printable-area thead th { background-color: #343a40 !important; color: white !important; font-weight: bold; padding: 8px 8px; border-bottom: 2px solid #343a40; }
+            .printable-area thead th:first-child { text-align: left; }
+            .printable-area thead th.amount { text-align: right; }
+            .printable-area td { border: none !important; padding: 5px 8px; text-align: left; }
+            .printable-area tbody td { border-bottom: 1px solid #eee; }
+            .printable-area .amount, .printable-area .debit-value, .printable-area .credit-value { text-align: right; }
+            .printable-area tfoot td { font-weight: bold; border-top: 1px solid #343a40; padding-top: 8px; }
+            .printable-area tfoot td.amount { text-align: right; }
+            .report-actions, .report-controls-center, header, .modal { display: none !important; visibility: hidden !important; } /* Hide new container on print */
+            .report-box { visibility: visible; box-shadow: none; border: none; }
+        }
     </style>
 </head>
 <body>
-<header th:replace="fragments/navbar :: navbar"></header>
-<div class="container">
-    <div class="report-box">
-        <h1>Trial Balance</h1>
+  <header th:replace="fragments/navbar :: navbar"></header>
 
-        <form th:action="@{/reports/trial-balance}" method="get" class="date-box">
-            From: <input type="date" name="startDate" th:value="${startDate}" required>
-            To:   <input type="date" name="endDate"   th:value="${endDate}"   required>
-            <button type="submit" class="btn-green">Generate Report</button>
-          </form>
-        
-          <div id="snapshotButtons" th:if="${snapshots}">
-            <button th:each="s: ${snapshots}" class="tab-btn"
-                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
-                    th:onclick="'window.location.href=\'' + @{/reports/trial-balance(snapshotId=${s.id})} + '\''"
-                    th:text="${s.text}">
-            </button>
-          </div>
-        
-          <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
-              <table>
-                <thead>
-                  <tr><th>Account</th><th class="amount">Debit</th><th class="amount">Credit</th></tr>
-                </thead>
-                <tbody>
-                  <tr th:each="r: ${rows}">
-                    <td th:text="${r.accountName}"></td>
-                    <td class="amount debit-value"
-                        th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}">
-                    </td>
-                    <td class="amount credit-value"
-                        th:text="${r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.credit, 1, 'COMMA', 2, 'POINT') : ''}">
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr class="total">
-                    <td>Total</td>
-                    <td class="amount debit-value" th:text="${debitTotal != null ? #numbers.formatDecimal(debitTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
-                    <td class="amount credit-value" th:text="${creditTotal != null ? #numbers.formatDecimal(creditTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
-                  </tr>
-                </tfoot>
-              </table>
-          </div>
-          <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
-              <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
-          </div>
+  <div class="report-actions">
+      <button class="btn-save" onclick="openReportModal('save', 'Trial Balance', 'TB')">Save</button>
+      <button class="btn-email" onclick="openReportModal('email', 'Trial Balance', 'TB')">Email</button>
+      <button class="btn-print" onclick="openReportModal('print', 'Trial Balance', 'TB')">Print</button>
+  </div>
+
+  <div class="container">
+      <div class="report-box">
+        <div class="printable-area">
+          <h1>Trial Balance</h1>
+          <h3 class="report-date"
+              th:if="${startDate != null}"
+              th:text="${startDate.equals(endDate) ? 'As of ' + #temporals.format(startDate, 'MM/dd/yyyy') : 'For the period ' + #temporals.format(startDate, 'MM/dd/yyyy') + ' to ' + #temporals.format(endDate, 'MM/dd/yyyy')}">
+          </h3>
+
+           <div class="report-controls-center">
+                <form th:action="@{/reports/trial-balance}" method="get" class="date-box">
+                    From: <input type="date" name="startDate" th:value="${startDate}" required>
+                    To:   <input type="date" name="endDate"   th:value="${endDate}"   required>
+                    <button type="submit" class="btn-green">Generate Report</button>
+                </form>
+
+                <div id="snapshotButtons" th:if="${snapshots}">
+                    <button th:each="s: ${snapshots}" class="tab-btn"
+                            th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                            th:onclick="'window.location.href=\'' + @{/reports/trial-balance(snapshotId=${s.id})} + '\''"
+                            th:data-snapshot-id="${s.id}" th:data-snapshot-text="${s.text}"
+                            th:text="${s.text}">
+                    </button>
+                </div>
+           </div> <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+                <table>
+                  <thead>
+                    <tr><th>Account</th><th class="amount">Debit</th><th class="amount">Credit</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="r: ${rows}"
+                        th:if="${(r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0) or (r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0)}">
+                      <td th:text="${r.accountName}"></td>
+                      <td class="amount debit-value"
+                          th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}">
+                      </td>
+                      <td class="amount credit-value"
+                          th:text="${r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.credit, 1, 'COMMA', 2, 'POINT') : ''}">
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="total">
+                      <td>Total</td>
+                      <td class="amount debit-value" th:text="${debitTotal != null ? #numbers.formatDecimal(debitTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                      <td class="amount credit-value" th:text="${creditTotal != null ? #numbers.formatDecimal(creditTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+            </div>
+            <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
+                <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+            </div>
+          </div></div> </div> <div id="reportActionModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeReportModal()">&times;</span>
+      <h2 id="modalTitle">Select Report</h2>
+      <div class="modal-body">
+        <p id="modalActionText">Please select the report version you want to perform the action on:</p>
+        <select id="reportSnapshotSelect">
+          </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmReportAction()">Confirm</button>
+      </div>
     </div>
-</div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+        const reportModal = document.getElementById('reportActionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalActionText = document.getElementById('modalActionText');
+        const reportSelect = document.getElementById('reportSnapshotSelect');
+        let currentAction = ''; // To store 'save', 'email', or 'print'
+        let currentReportType = ''; // To store 'Trial Balance', 'Income Statement', etc.
+        let currentReportAbbr = ''; // To store 'TB', 'IS', etc.
+        const availableSnapshots = /*[[${snapshots}]]*/ [];
+
+        function openReportModal(action, reportType, reportAbbr) {
+            currentAction = action;
+            currentReportType = reportType;
+            currentReportAbbr = reportAbbr;
+            modalTitle.textContent = `Select ${currentReportType} to ${action}`;
+            modalActionText.textContent = `Please select the ${currentReportType} version you want to ${action}:`;
+            reportSelect.innerHTML = '';
+            if (availableSnapshots && availableSnapshots.length > 0) {
+                let optionsExist = false;
+                availableSnapshots.forEach(snapshot => {
+                    if (snapshot.text.startsWith(reportAbbr)) {
+                        const option = document.createElement('option');
+                        option.value = snapshot.id;
+                        option.textContent = snapshot.text;
+                        reportSelect.appendChild(option);
+                        optionsExist = true;
+                    }
+                });
+                 if (!optionsExist) {
+                     const option = document.createElement('option');
+                     option.textContent = 'No saved reports available for this type.';
+                     option.disabled = true;
+                     reportSelect.appendChild(option);
+                 }
+            } else {
+                const option = document.createElement('option');
+                option.textContent = 'No saved reports available.';
+                option.disabled = true;
+                reportSelect.appendChild(option);
+            }
+             document.querySelector('.btn-confirm').disabled = !reportSelect.options.length || reportSelect.options[0].disabled;
+            reportModal.style.display = 'block';
+        }
+
+        function closeReportModal() { reportModal.style.display = 'none'; }
+
+        function confirmReportAction() {
+            const selectedSnapshotId = reportSelect.value;
+            if (!selectedSnapshotId || reportSelect.options[reportSelect.selectedIndex].disabled) {
+                alert('Please select a valid report.'); return;
+            }
+            console.log(`Action: ${currentAction}, Report Type: ${currentReportType}, Snapshot ID: ${selectedSnapshotId}`);
+            closeReportModal();
+
+            if (currentAction === 'save') {
+                window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`;
+            } else if (currentAction === 'email') {
+                 fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' })
+                   .then(response => response.json())
+                   .then(data => { alert(data.message || (data.success ? 'Email request sent successfully.' : 'Failed to send email.')); })
+                   .catch(err => { console.error('Email error:', err); alert('Error requesting email.'); });
+            } else if (currentAction === 'print') {
+                 const printFrame = document.createElement('iframe');
+                 printFrame.style.position = 'absolute'; printFrame.style.width = '0'; printFrame.style.height = '0'; printFrame.style.border = '0'; printFrame.name = 'printFrame';
+                 document.body.appendChild(printFrame);
+                 printFrame.src = `/reports/print/${selectedSnapshotId}`;
+                 printFrame.onload = function() {
+                     try {
+                         const frameWindow = printFrame.contentWindow;
+                         frameWindow.focus(); frameWindow.print();
+                         setTimeout(() => { document.body.removeChild(printFrame); }, 1000);
+                     } catch (error) { console.error("Printing error:", error); alert("Could not initiate print."); document.body.removeChild(printFrame); }
+                 };
+                 printFrame.onerror = function() { console.error("Failed to load print content."); alert("Failed to load report for printing."); document.body.removeChild(printFrame); };
+            }
+        }
+        window.onclick = function(event) { if (event.target == reportModal) { closeReportModal(); } }
+    /*]]>*/
+    </script>
 </body>
 </html>

@@ -4,110 +4,238 @@
   <meta charset="UTF-8">
   <title>Journal Entry Details</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-    }
-    body {
-            background-color: #f5f8fa;
-            color: #333;
-            line-height: 1.6;
-            padding-bottom: 40px;
-        }
-        .container {
+    /* Ensure this rule is present */
+    header.header {
+          position: relative; 
+          z-index: 10;      
+      }
+      :root {
+          --primary: #4a6fa5;
+          --secondary: #6c757d;
+          --success: #28a745;
+          --danger: #dc3545;
+          --light: #f8f9fa;
+          --dark: #343a40;
+          --border: #dee2e6;
+          --warning: #ffc107;
+          --info: #17a2b8;
+      }
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+          background-color: #f5f8fa;
+          color: #333;
+          line-height: 1.6;
+          
+      }
+      .container {
             width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
+            max-width: 1000px; 
+            margin: 0 auto;    
+            padding: 0 15px
+      }
+      .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-top: 20px; /* Space below header */
+            margin-bottom: 30px; /* Space at the bottom */
         }
-    h1, h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .entry-details p {
-      margin-bottom: 10px;
-    }
-    .entry-details label {
-      font-weight: bold;
-      display: inline-block;
-      width: 150px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    table th, table td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    table th {
-      background-color: #f5f5f5;
-    }
-    .back-link {
-      display: block;
-      margin-top: 20px;
-      text-align: center;
-      color: #007bff;
-      text-decoration: none;
-    }
-    .back-link:hover {
-      text-decoration: underline;
-    }
+      h1 {
+          color: var(--dark);
+          margin-bottom: 25px;
+          /* text-align: center; /* Removed centering based on previous examples */
+      }
+      h2 {
+          color: var(--dark);
+          margin-top: 25px; /* Space above h2 */
+          margin-bottom: 15px;
+          font-size: 1.4em;
+          border-bottom: 1px solid var(--border); /* Add separator */
+          padding-bottom: 5px;
+      }
+      .details-grid {
+          display: grid;
+          grid-template-columns: 150px 1fr; /* Label and Value */
+          gap: 10px 20px;
+          margin-bottom: 20px;
+      }
+      .details-grid dt {
+          font-weight: bold;
+          color: var(--secondary);
+      }
+      .details-grid dd {
+          margin-left: 0; /* Reset default dl margin */
+      }
+
+      /* Table Styles (Non-Responsive) */
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: white; /* Table background is white */
+          margin-top: 20px; /* Add space above table */
+          margin-bottom: 20px;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+          overflow: hidden; /* Needed for border-radius on table */
+      }
+
+      th, td {
+          padding: 12px 15px;
+          text-align: left;
+          border-bottom: 1px solid var(--border);
+      }
+      th {
+          background-color: #f8f9fa;
+          color: var(--dark);
+          font-weight: 600;
+      }
+      tr:last-child td { /* Applied to tbody last row */
+          border-bottom: none;
+      }
+      tr:hover {
+          background-color: #f5f8fa;
+      }
+      .right {
+          text-align: right;
+      }
+      .back-link a { /* Style for the back link container */
+          display: inline-block;
+          margin-top: 20px;
+          margin-right: 10px;
+          padding: 10px 15px;
+          background-color: var(--secondary);
+          color: white;
+          text-decoration: none;
+          border-radius: 4px;
+          transition: background-color 0.3s;
+      }
+      .back-link a:hover {
+          background-color: #5a6268;
+      }
+
+      /* Attachments Section */
+      .attachments-section {
+          margin-top: 25px;
+          padding-top: 15px;
+          border-top: 1px solid var(--border);
+      }
+      .attachments-section h2 { /* Reuse h2 style */
+          border-bottom: none; /* Remove double border */
+          margin-top: 0; /* Reset top margin */
+      }
+      .attachments-list {
+          list-style: none;
+          padding: 0;
+      }
+      .attachments-list li {
+          margin-bottom: 8px;
+      }
+      .attachments-list a {
+          color: var(--primary);
+          text-decoration: none;
+          transition: color 0.3s;
+      }
+      .attachments-list a:hover {
+          text-decoration: underline;
+          color: #3a5a8a;
+      }
+      .attachments-list i { /* Style FontAwesome icon */
+          margin-right: 8px;
+          color: var(--secondary);
+      }
+      /* Rejection Comment Styling */
+      .rejection-comment {
+          margin-top: 10px; /* Space below the Status field */
+          padding: 10px;
+          background-color: #fff3cd; /* Light yellow background */
+          border: 1px solid #ffeeba; /* Yellow border */
+          color: #856404; /* Dark yellow text */
+          border-radius: 4px;
+          grid-column: 1 / -1; /* Span both columns in the grid */
+      }
+      .rejection-comment strong {
+          color: #721c24; /* Darker color for emphasis */
+      }
+      /* Totals Row */
+      .totals td {
+          font-weight: bold;
+          border-top: 2px solid var(--dark); /* Add a stronger top border */
+          border-bottom: none; /* Ensure no bottom border */
+      }
+
+      
   </style>
 </head>
 <body>
   <header th:replace="fragments/navbar :: navbar"></header>
+
   <div class="container">
-    <h1>Journal Entry Details</h1>
-    <div class="header-info">
-        <p><strong>ID:</strong> <span th:text="${journalEntry.id}"></span></p>
-        <p><strong>Description:</strong> <span th:text="${journalEntry.description}"></span></p>
-        <p><strong>Type:</strong> <span th:text="${journalEntry.type}"></span></p>
-        <p><strong>Date:</strong> <span th:text="${journalEntry.entryDate}"></span></p>
-        <p><strong>Status:</strong> <span th:text="${journalEntry.status}"></span></p>
-        <p><strong>Created By:</strong> <span th:text="${journalEntry.createdBy}"></span></p>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Account Name</th>
-                <th>Post Reference</th>
-                <th>Debit</th>
-                <th>Credit</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="line : ${journalEntry.lines}">
-              <td>
-                <span th:if="${line.credit != null and line.credit > 0}" style="margin-left:20px;" 
-                      th:text="${line.account.accountName}"></span>
-                <span th:unless="${line.credit != null and line.credit > 0}" 
-                      th:text="${line.account.accountName}"></span>
-              </td>
+    <div class="section">
+      <h1>Journal Entry Details</h1>
+      <dl class="details-grid">
+        <dt>ID:</dt>
+        <dd th:text="${journalEntry.id}"></dd>
+    
+        <dt>Date:</dt>
+        <dd th:text="${#temporals.format(journalEntry.entryDate, 'yyyy-MM-dd')}"></dd>
+    
+        <dt>Description:</dt>
+        <dd th:text="${journalEntry.description}"></dd>
+    
+        <dt>Type:</dt> <dd th:text="${journalEntry.type}"></dd>
+    
+        <dt>Status:</dt>
+        <dd th:text="${journalEntry.status}"></dd>
+    
+        <dt>Created By:</dt>
+        <dd th:text="${journalEntry.createdBy}"></dd> <dt th:if="${journalEntry.entryComment != null and !journalEntry.entryComment.isEmpty()}">Comment:</dt>
+        <dd th:if="${journalEntry.entryComment != null and !journalEntry.entryComment.isEmpty()}" th:text="${journalEntry.entryComment}"></dd>
+    
+    </dl>
+      <table>
+          <thead>
+              <tr>
+                  <th>Account Name</th>
+                  <th>Post Reference</th>
+                  <th style="text-align: right;">Debit</th>
+                  <th style="text-align: right;">Credit</th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr th:each="line : ${journalEntry.lines}">
                 <td>
-                  <a th:href="@{'/accounts/' + ${line.account.id} + '/ledger'}"
-                     th:text="${line.account.accountNumber}"></a>
+                  <span th:if="${line.credit != null and line.credit > 0}" style="margin-left:20px;" 
+                        th:text="${line.account.accountName}"></span>
+                  <span th:unless="${line.credit != null and line.credit > 0}" 
+                        th:text="${line.account.accountName}"></span>
                 </td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.debit, 1, 'COMMA', 2, 'POINT')}"></td>
-                <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.credit, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td>
+                    <a th:href="@{'/accounts/' + ${line.account.id} + '/ledger'}"
+                      th:text="${line.account.accountNumber}"></a>
+                  </td>
+                  <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.debit, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td style="text-align: right;" th:text="${#numbers.formatDecimal(line.credit, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+          </tbody>
+          <tfoot>
+            <tr class="totals">
+              <td></td>
+              <td>Total</td>
+              <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalDebit,1,'COMMA',2,'POINT')}"></td>
+              <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalCredit,1,'COMMA',2,'POINT')}"></td>
             </tr>
-        </tbody>
-        <tfoot>
-          <tr class="totals">
-            <td></td>
-            <td>Total</td>
-            <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalDebit,1,'COMMA',2,'POINT')}"></td>
-            <td style="text-align: right;" th:text="${#numbers.formatDecimal(journalEntry.totalCredit,1,'COMMA',2,'POINT')}"></td>
-          </tr>
-        </tfoot>
-    </table>
-    <div>
-        <p><strong>Comment:</strong></p>
-        <p th:text="${journalEntry.entryComment}"></p>
+          </tfoot>
+      </table>
+      <div th:if="${journalEntry.entryComment != null and !journalEntry.entryComment.isEmpty()}" style="margin-top: 25px;"> <h2>Comment</h2>
+        <p th:text="${journalEntry.entryComment}" style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid var(--border);"></p> </div>
+      <a th:href="@{/journal}">Back to Journal Dashboard</a>
     </div>
-    <a th:href="@{/journal}">Back to Journal Dashboard</a>
   </div>
 </body>
 </html>

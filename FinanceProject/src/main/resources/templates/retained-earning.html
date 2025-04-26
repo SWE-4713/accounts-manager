@@ -4,102 +4,297 @@
     <meta charset="UTF-8">
     <title>Statement of Retained Earnings</title>
     <style>
-        /* Basic styles (keep existing) */
-        body { font-family: sans-serif; }
-        .container{width:90%;margin:0 auto;}
+        /* Base styles */
+        body { font-family: sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .container{width:90%;margin: 20px auto; position: relative; padding-top: 50px; /* Space for buttons */}
         .report-box{background:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
         h1{margin:0 0 5px; text-align: center;}
-        h3.report-date { text-align: center; margin-bottom: 20px; font-weight: normal;}
+        h3.report-date { text-align: center; margin-bottom: 20px; font-weight: normal; color: #555;}
         .date-box{margin-bottom:15px; text-align: center;}
         .btn-green{background:#28a745;color:#fff;padding:8px 15px;border:none;border-radius:4px;cursor:pointer; margin-left: 10px;}
         .tab-btn{background:#007bff;color:#fff;border:none;padding:6px 12px;border-radius:4px;margin-right: 5px; margin-bottom:15px; cursor: pointer;}
         .tab-btn.active { background-color: #0056b3; font-weight: bold; }
         #snapshotButtons { text-align: center; margin-bottom: 15px; }
 
-        /* Table styles (adjust as needed) */
+        /* Table styles (Retained Earnings Specific) */
         table { border-collapse: collapse; width: 100%; max-width: 600px; margin: 20px auto; }
-        th, td { border: none; padding: 6px 8px; } /* Remove borders */
+        th, td { border: none; padding: 6px 8px; }
         .label-col { width: 70%; text-align: left; }
         .amount-col { width: 30%; text-align: right; }
-        .indent-1 { padding-left: 20px; }
+        .indent-1 { padding-left: 20px !important; } /* Use !important for specificity */
         .total-row td { border-top: 1px solid #000; }
         .final-total-row td { border-top: 1px solid #000; border-bottom: 3px double #000; font-weight: bold; }
-
-        /* --- NEW STYLES --- */
-        /* Deep green for positive/additions */
-        .text-green { color: #006400; /* Slightly deep green */ }
-        /* Deep red for negative/subtractions */
-        .text-red { color: #8B0000; /* Slightly deep red */ }
-        /* Ensure dollar sign stays inline */
+        .text-green { color: #006400; }
+        .text-red { color: #8B0000; }
         .dollar-sign { padding-right: 2px; display: inline !important; }
+
+        /* Report Action Buttons */
+        .report-actions {
+            position: absolute;
+            top: 120px; /* Match other reports */
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .report-actions button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-save { background-color: #28a745; color: white; }
+        .btn-email { background-color: #17a2b8; color: white; }
+        .btn-print { background-color: #6c757d; color: white; }
+        .report-actions button:hover { opacity: 0.9; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 50%; border-radius: 5px; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        .modal-body select { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; }
+        .modal-footer { text-align: right; }
+        .modal-footer button { padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; border: none; }
+        .btn-confirm { background-color: #007bff; color: white; }
+        .btn-cancel { background-color: #6c757d; color: white; }
+        .modal-footer button:hover { opacity: 0.9; }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            header, .report-actions, .date-box, #snapshotButtons, .modal, .tab-btn, .btn-green { display: none !important; visibility: hidden !important; } /* Hide non-printable */
+
+            .printable-area, .printable-area * { visibility: visible; }
+            .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .report-box { visibility: visible; box-shadow: none; border: none; margin-top: 0;}
+
+            .printable-area h1, .printable-area h3.report-date { visibility: visible !important; text-align: center; width: 100%; margin: 0 auto 5px auto; }
+            .printable-area h1 { font-size: 16pt; }
+            .printable-area h3.report-date { font-size: 12pt; font-weight: normal; margin-bottom: 20px; }
+
+            .printable-area table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10pt; max-width: none; /* Remove max-width for print */ }
+            .printable-area th, .printable-area td { border: none !important; padding: 5px 8px; text-align: left; }
+
+            /* Specific styling for Retained Earnings rows */
+            .printable-area .label-col { width: 70%; text-align: left; }
+            .printable-area .amount-col { width: 30%; text-align: right; }
+            .printable-area .indent-1 { padding-left: 20px !important; } /* Apply indentation */
+            .printable-area .total-row td { border-top: 1px solid #000 !important; }
+            .printable-area .final-total-row td { border-top: 1px solid #000 !important; border-bottom: 3px double #000 !important; font-weight: bold; }
+            .printable-area .text-green { color: #006400 !important; }
+            .printable-area .text-red { color: #8B0000 !important; }
+            .printable-area .dollar-sign { padding-right: 2px; display: inline !important; }
+
+            .printable-area tfoot { display: table-row-group; } /* Prevent footer repeat if any */
+        }
     </style>
 </head>
 <body>
 <header th:replace="fragments/navbar :: navbar"></header>
+
+<div class="report-actions">
+    <button class="btn-save" onclick="openReportModal('save', 'Retained Earnings', 'RE')">Save</button>
+    <button class="btn-email" onclick="openReportModal('email', 'Retained Earnings', 'RE')">Email</button>
+    <button class="btn-print" onclick="openReportModal('print', 'Retained Earnings', 'RE')">Print</button>
+</div>
+
 <div class="container">
     <div class="report-box">
-        <h1>Statement of Retained Earnings</h1>
-        <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
-        <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+        <div class="printable-area"> <h1>Statement of Retained Earnings</h1>
+            <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
+            <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-        <form th:action="@{/reports/retained-earning}" method="get" class="date-box">
-            Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
-            End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
-            <button type="submit" class="btn-green">Generate Report</button>
-        </form>
+            <form th:action="@{/reports/retained-earning}" method="get" class="date-box">
+                Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
+                End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
+                <button type="submit" class="btn-green">Generate Report</button>
+            </form>
 
-        <div id="snapshotButtons" th:if="${snapshots}">
-            <button th:each="s: ${snapshots}" class="tab-btn"
-                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
-                    th:onclick="'window.location.href=\'' + @{/reports/retained-earning(snapshotId=${s.id})} + '\''"
-                    th:text="${s.text}">
-            </button>
-        </div>
+            <div id="snapshotButtons" th:if="${snapshots}">
+                <button th:each="s: ${snapshots}" class="tab-btn"
+                        th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                        th:onclick="'window.location.href=\'' + @{/reports/retained-earning(snapshotId=${s.id})} + '\''"
+                        th:text="${s.text}">
+                </button>
+            </div>
 
-        <div id="reportDisplay" th:if="${report != null}">
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="label-col">Retained Earnings, Beginning</td>
-                        <td class="amount-col">
-                             <span class="dollar-sign">$</span>
-                             <span th:text="${report.beginningBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.beginningBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.beginningBalance.signum() < 0 ? ')' : ''}"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label-col indent-1" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">Add: Net Income</td>
-                        <td class="amount-col" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">
-                            <span th:if="${report.netIncome != null}">
+            <div id="reportDisplay" th:if="${report != null}">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="label-col">Retained Earnings, Beginning</td>
+                            <td class="amount-col">
                                 <span class="dollar-sign">$</span>
-                                <span th:text="${report.netIncome.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.netIncome.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.netIncome.signum() < 0 ? ')' : ''}"></span>
-                            </span>
-                        </td>
-                    </tr>
-                     <tr class="total-row">
-                         <td class="label-col indent-1 text-red">Less: Dividends</td>
-                        <td class="amount-col text-red">
-                             <span th:if="${report.dividends != null}">
-                                <span class="dollar-sign">$</span>
-                                <span th:text="${report.dividends.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.dividends.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.dividends.signum() < 0 ? ')' : ''}"></span>
-                            </span>
-                        </td>
-                    </tr>
-                    <tr class="final-total-row">
-                        <td class="label-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">Retained Earnings, Ending</td>
-                        <td class="amount-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">
-                            <span th:if="${report.endingBalance != null}">
-                                <span class="dollar-sign">$</span>
-                                <span th:text="${report.endingBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.endingBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.endingBalance.signum() < 0 ? ')' : ''}"></span>
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-         <div th:unless="${report != null}" style="margin-top: 20px;">
-            <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
-        </div>
+                                <span th:text="${report.beginningBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.beginningBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.beginningBalance.signum() < 0 ? ')' : ''}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">Add: Net Income</td>
+                            <td class="amount-col" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">
+                                <span th:if="${report.netIncome != null}">
+                                    <span class="dollar-sign">$</span>
+                                    <span th:text="${report.netIncome.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.netIncome.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.netIncome.signum() < 0 ? ')' : ''}"></span>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="total-row"> <td class="label-col indent-1 text-red">Less: Dividends</td>
+                            <td class="amount-col text-red">
+                                <span th:if="${report.dividends != null}">
+                                    <span class="dollar-sign">$</span>
+                                     <span th:text="${report.dividends.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.dividends.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.dividends.signum() < 0 ? ')' : ''}"></span>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="final-total-row"> <td class="label-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">Retained Earnings, Ending</td>
+                            <td class="amount-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">
+                                <span th:if="${report.endingBalance != null}">
+                                    <span class="dollar-sign">$</span>
+                                    <span th:text="${report.endingBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.endingBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.endingBalance.signum() < 0 ? ')' : ''}"></span>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:unless="${report != null}" style="margin-top: 20px; text-align: center;">
+                <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
+            </div>
+        </div> </div>
+</div>
+
+<div id="reportActionModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeReportModal()">&times;</span>
+      <h2 id="modalTitle">Select Report</h2>
+      <div class="modal-body">
+        <p id="modalActionText">Please select the report version you want to perform the action on:</p>
+        <select id="reportSnapshotSelect">
+          </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmReportAction()">Confirm</button>
+      </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+    // --- JavaScript for Modal and Actions ---
+    const reportModal = document.getElementById('reportActionModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalActionText = document.getElementById('modalActionText');
+    const reportSelect = document.getElementById('reportSnapshotSelect');
+    let currentAction = '';
+    let currentReportType = '';
+    let currentReportAbbr = '';
+
+    const availableSnapshots = /*[[${snapshots}]]*/ [];
+
+    function openReportModal(action, reportType, reportAbbr) {
+        currentAction = action;
+        currentReportType = reportType;
+        currentReportAbbr = reportAbbr;
+
+        modalTitle.textContent = `Select ${currentReportType} to ${action}`;
+        modalActionText.textContent = `Please select the ${currentReportType} version you want to ${action}:`;
+        reportSelect.innerHTML = ''; // Clear previous options
+
+        console.log(`Opening modal for ${reportType} (${reportAbbr}). Action: ${action}`); // Debug log
+        console.log("Available snapshots:", availableSnapshots); // Debug log
+
+        let hasOptions = false;
+        if (availableSnapshots && availableSnapshots.length > 0) {
+            availableSnapshots.forEach(snapshot => {
+                console.log(`Checking snapshot text: "${snapshot.text}" against abbr: "${reportAbbr}"`); // Debug log comparison
+                // --- Use Robust Check ---
+                if (snapshot.text && snapshot.text.trim().startsWith(reportAbbr)) {
+                    console.log(`Match found: "${snapshot.text}"`); // Debug log match
+                    const option = document.createElement('option');
+                    option.value = snapshot.id;
+                    option.textContent = snapshot.text; // Use the actual text
+                    reportSelect.appendChild(option);
+                    hasOptions = true;
+                } else {
+                     console.log(`No match for: "${snapshot.text}"`); // Debug log no match
+                }
+            });
+        }
+
+        if (!hasOptions) {
+            console.log("No matching snapshots found for abbreviation:", reportAbbr); // Debug log
+            const option = document.createElement('option');
+            option.textContent = 'No saved reports available for this type.';
+            option.disabled = true;
+            reportSelect.appendChild(option);
+            document.querySelector('#reportActionModal .btn-confirm').disabled = true;
+        } else {
+            document.querySelector('#reportActionModal .btn-confirm').disabled = false;
+        }
+
+        reportModal.style.display = 'block';
+    }
+
+    function closeReportModal() {
+        reportModal.style.display = 'none';
+    }
+
+    function confirmReportAction() {
+        const selectedSnapshotId = reportSelect.value;
+        if (!selectedSnapshotId || reportSelect.options[reportSelect.selectedIndex]?.disabled) {
+            alert('Please select a valid report.');
+            return;
+        }
+
+        console.log(`Action: ${currentAction}, Report Type: ${currentReportType}, Abbr: ${currentReportAbbr}, Snapshot ID: ${selectedSnapshotId}`);
+        closeReportModal();
+
+        if (currentAction === 'save') {
+            window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`;
+        } else if (currentAction === 'email') {
+            fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' })
+              .then(response => response.json())
+              .then(data => {
+                  alert(data.message || (data.success ? 'Email request sent.' : 'Failed to send email.'));
+              })
+              .catch(err => {
+                  console.error('Email error:', err);
+                  alert('Error requesting email.');
+              });
+        } else if (currentAction === 'print') {
+            // Use iframe printing method
+            const printFrame = document.createElement('iframe');
+             printFrame.style.position = 'absolute'; printFrame.style.width = '0'; printFrame.style.height = '0'; printFrame.style.border = '0';
+            printFrame.name = 'printFrame';
+            document.body.appendChild(printFrame);
+            const printUrl = `/reports/print/${selectedSnapshotId}`; // Assumes backend endpoint exists
+
+            printFrame.src = printUrl;
+            printFrame.onload = function() {
+                try {
+                    const frameWindow = printFrame.contentWindow;
+                    frameWindow.focus();
+                    frameWindow.print();
+                    // Clean up after a delay
+                    setTimeout(() => { if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); } }, 1000);
+                } catch (error) {
+                    console.error("Printing error:", error);
+                    alert("Could not initiate print. Error: " + error.message);
+                    if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); }
+                }
+            };
+            printFrame.onerror = function() {
+                 console.error("Failed to load print content into iframe.");
+                 alert("Failed to load report content for printing.");
+                 if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); }
+            };
+        }
+    }
+
+    // Close modal if user clicks outside of it
+    window.onclick = function(event) {
+        if (event.target == reportModal) {
+            closeReportModal();
+        }
+    }
+/*]]>*/
+</script>
 </body>
 </html>

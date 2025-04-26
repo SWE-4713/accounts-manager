@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Financial Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://i.imgur.com/aBKRRy2.png">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --warning: #ffc107;
+            --info: #17a2b8;
+             /* Color codes for ratios */
+             --ratio-green: #d4edda;
+             --ratio-yellow: #fff3cd;
+             --ratio-red: #f8d7da;
+             --ratio-grey: #e9ecef;
+             --ratio-text-green: #155724;
+             --ratio-text-yellow: #856404;
+             --ratio-text-red: #721c24;
+             --ratio-text-grey: #495057;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f5f8fa; color: #333; line-height: 1.6; padding-bottom: 40px; }
+        .container { width: 90%; max-width: 1400px; margin: 0 auto; padding: 0 15px; }
+        h1 { color: var(--dark); margin-bottom: 30px; text-align: center; }
+         .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+         }
+         .ratio-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            text-align: center;
+            border-left: 5px solid;
+         }
+         .ratio-card.green { border-left-color: var(--success); background-color: var(--ratio-green); color: var(--ratio-text-green); }
+         .ratio-card.yellow { border-left-color: var(--warning); background-color: var(--ratio-yellow); color: var(--ratio-text-yellow); }
+         .ratio-card.red { border-left-color: var(--danger); background-color: var(--ratio-red); color: var(--ratio-text-red); }
+         .ratio-card.grey { border-left-color: var(--secondary); background-color: var(--ratio-grey); color: var(--ratio-text-grey); }
+         .ratio-card h3 { font-size: 1.0em; margin-bottom: 8px; }
+         .ratio-value { font-size: 1.8em; font-weight: bold; margin-bottom: 8px; }
+         .ratio-description { font-size: 0.85em; color: var(--secondary); }
+         .message-section { padding: 15px; border-radius: 4px; margin-bottom: 30px; border: 1px solid transparent; }
+         .message-section.info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+         .message-section.warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+         .message-section.danger { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+
+         /* --- Container for all charts --- */
+         .charts-section {
+             display: flex;
+             flex-direction: column;
+             gap: 30px;
+             margin-bottom: 30px;
+         }
+
+         /* --- Containers for doughnut chart rows --- */
+         .doughnut-row-top, .doughnut-row-middle { /* Renamed second row */
+             display: grid;
+             gap: 25px;
+              /* Make both rows behave the same (3 columns responsive) */
+             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+         }
+
+          @media (min-width: 900px) { /* Force 3 columns on larger screens for both rows */
+             .doughnut-row-top, .doughnut-row-middle {
+                 grid-template-columns: repeat(3, 1fr);
+             }
+         }
+         /* Removed .doughnut-row-bottom styles */
+
+         .chart-card {
+             background-color: white;
+             border-radius: 8px;
+             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+             padding: 20px;
+             text-align: center;
+             display: flex;
+             flex-direction: column;
+         }
+         .chart-card h2 {
+            font-size: 1.2em;
+            color: var(--dark);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+         }
+
+         .chart-card canvas {
+             max-width: 100%;
+             max-height: 100%;
+             flex-grow: 1;
+             min-height: 0;
+         }
+         .chart-placeholder p { color: var(--secondary); }
+
+         .doughnut-chart-card {
+             align-items: center;
+         }
+         .doughnut-chart-card canvas {
+             max-width: 250px;
+             max-height: 250px;
+             width: 100%;
+             height: auto;
+             aspect-ratio: 1 / 1;
+             margin-bottom: 10px;
+             flex-grow: 0;
+         }
+         .doughnut-footer {
+             font-size: 0.9em;
+             color: var(--secondary);
+             margin-top: auto;
+             padding-top: 10px;
+         }
+
+         .bar-chart-container {
+             height: 400px;
+             position: relative;
+             width: 100%;
+         }
+         .bar-chart-container canvas {
+             aspect-ratio: unset;
+         }
+    </style>
+</head>
+<body>
+
+    <header th:replace="~{fragments/navbar :: navbar}"></header>
+
+    <div class="container">
+        <h1>Financial Dashboard</h1>
+
+        <div th:if="${importantMessage}"
+             class="message-section"
+             th:classappend="${messageType != null ? messageType : 'info'}">
+            <i class="fas fa-info-circle" th:if="${messageType == 'info'}"></i>
+            <i class="fas fa-exclamation-triangle" th:if="${messageType == 'warning'}"></i>
+            <i class="fas fa-times-circle" th:if="${messageType == 'danger'}"></i>
+            <strong th:text="${importantMessage}"></strong>
+        </div>
+
+        <div class="dashboard-grid" th:if="${ratios != null}">
+             <div th:each="ratio : ${ratios}" class="ratio-card" th:classappend="${ratio.color}">
+                 <h3 th:text="${ratio.name}">Ratio Name</h3>
+                 <div class="ratio-value" th:text="${ratio.value}">0.00</div>
+                 <p class="ratio-description" th:if="${ratio.description}" th:text="${ratio.description}">Ratio description.</p>
+             </div>
+        </div>
+         <div th:unless="${ratios != null}" class="message-section info">
+             Ratio data is currently unavailable.
+         </div>
+
+        <div class="charts-section">
+
+            <div class="doughnut-row-top">
+                <div class="chart-card doughnut-chart-card">
+                    <h2>Net Profit Margin</h2>
+                    <canvas id="netProfitMarginChart"></canvas>
+                    <div class="doughnut-footer">Target: 10% (Example)</div>
+                </div>
+                <div class="chart-card doughnut-chart-card">
+                    <h2>Current Ratio</h2>
+                    <canvas id="currentRatioChart"></canvas>
+                    <div class="doughnut-footer">Target: 2.0 or higher</div>
+                </div>
+                <div class="chart-card doughnut-chart-card">
+                    <h2>Quick Ratio</h2>
+                    <canvas id="quickRatioChart"></canvas>
+                    <div class="doughnut-footer">Target: 1.0 or higher</div>
+                </div>
+            </div>
+
+            <div class="doughnut-row-middle">
+                 <div class="chart-card doughnut-chart-card">
+                     <h2>Return on Assets (ROA)</h2>
+                     <canvas id="roaChart"></canvas>
+                     <div class="doughnut-footer">Target: 5% or higher</div>
+                </div>
+                 <div class="chart-card doughnut-chart-card">
+                     <h2>Return on Equity (ROE)</h2>
+                     <canvas id="roeChart"></canvas>
+                     <div class="doughnut-footer">Target: 15% or higher</div>
+                 </div>
+                  <div class="chart-card doughnut-chart-card">
+                     <h2>Asset Turnover</h2>
+                     <canvas id="assetTurnoverChart"></canvas>
+                     <div class="doughnut-footer">Target: 1.0 or higher</div>
+                 </div>
+            </div>
+
+            <div class="chart-card bar-chart-container">
+                <h2>Income and Expenses (Monthly)</h2>
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // === Data fetching ===
+        const rawRatios = /*[[${rawRatios}]]*/ null; // Get the raw ratios map
+        const monthlyData = /*[[${monthlyData}]]*/ {};
+        // Removed budget percent fetching
+
+        // === Helper Functions ===
+        const getStyle = (prop) => getComputedStyle(document.documentElement).getPropertyValue(prop).trim();
+        const COLORS = {
+            primary: getStyle('--primary'), success: getStyle('--success'), warning: getStyle('--warning'),
+            danger: getStyle('--danger'), secondary: getStyle('--secondary'), light: getStyle('--light'), border: getStyle('--border')
+         };
+
+        // Basic color logic based on typical ratio goals (can be refined)
+        // Note: rawRatios contains ROA, ROE, NPM as percentages (0-100), others as ratios
+        const getChartColor = (ratioName, value) => {
+             value = parseFloat(value) || 0; // Ensure numeric
+             switch(ratioName) {
+                case 'Current Ratio':
+                    return value >= 2.0 ? COLORS.success : (value >= 1.0 ? COLORS.warning : COLORS.danger);
+                case 'Quick Ratio':
+                     return value >= 1.0 ? COLORS.success : (value >= 0.5 ? COLORS.warning : COLORS.danger);
+                case 'Net Profit Margin': // Value is already %
+                case 'ROA': // Value is already %
+                case 'ROE': // Value is already %
+                    const targetHigh = ratioName === 'Net Profit Margin' ? 20 : (ratioName === 'ROE' ? 15 : 5); // Example targets
+                    const targetMid = ratioName === 'Net Profit Margin' ? 10 : (ratioName === 'ROE' ? 10 : 2.5); // Example targets
+                    return value >= targetHigh ? COLORS.success : (value >= targetMid ? COLORS.warning : COLORS.danger);
+                case 'Asset Turnover':
+                    return value >= 1.0 ? COLORS.success : (value >= 0.5 ? COLORS.warning : COLORS.danger); // Example targets
+                 default: return COLORS.secondary;
+             }
+        };
+
+        // === Chart Configurations ===
+
+        if (rawRatios) { // Only proceed if rawRatios exist
+
+            // --- Top Row Charts (Net Profit, Current Ratio, Quick Ratio) ---
+            // 1. Net Profit Margin Doughnut
+            const npmValue = rawRatios['Net Profit Margin'] || 0;
+            const npmColor = getChartColor('Net Profit Margin', npmValue);
+            const npmCtx = document.getElementById('netProfitMarginChart');
+            if (npmCtx) {
+                 new Chart(npmCtx, { type: 'doughnut', data: { datasets: [{ label: 'Net Profit Margin (%)', data: [npmValue, Math.max(0, 100 - npmValue)], backgroundColor: [npmColor, COLORS.light], borderColor: [npmColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+            }
+
+            // 2. Current Ratio Doughnut
+            const currentRatioValue = rawRatios['Current Ratio'] || 0;
+            const currentRatioTarget = 2.0; // Example target
+            const currentRatioPercent = Math.min(100, (currentRatioValue / currentRatioTarget) * 100);
+            const currentRatioColor = getChartColor('Current Ratio', currentRatioValue);
+            const crCtx = document.getElementById('currentRatioChart');
+             if (crCtx) {
+                 new Chart(crCtx, { type: 'doughnut', data: { datasets: [{ label: `Current Ratio (Target ${currentRatioTarget})`, data: [currentRatioPercent, Math.max(0, 100 - currentRatioPercent)], backgroundColor: [currentRatioColor, COLORS.light], borderColor: [currentRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${currentRatioValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+             }
+
+            // 3. Quick Ratio Doughnut
+            const quickRatioValue = rawRatios['Quick Ratio'] || 0;
+            const quickRatioTarget = 1.0; // Example target
+            const quickRatioPercent = Math.min(100, (quickRatioValue / quickRatioTarget) * 100);
+            const quickRatioColor = getChartColor('Quick Ratio', quickRatioValue);
+            const qrCtx = document.getElementById('quickRatioChart');
+            if (qrCtx) {
+                 new Chart(qrCtx, { type: 'doughnut', data: { datasets: [{ label: `Quick Ratio (Target ${quickRatioTarget})`, data: [quickRatioPercent, Math.max(0, 100 - quickRatioPercent)], backgroundColor: [quickRatioColor, COLORS.light], borderColor: [quickRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${quickRatioValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+            }
+
+            // --- Middle Row Charts (ROA, ROE, Asset Turnover) ---
+            // 4. ROA Doughnut
+            const roaValue = rawRatios['ROA'] || 0; // Already a percentage
+            const roaColor = getChartColor('ROA', roaValue);
+            const roaCtx = document.getElementById('roaChart');
+            if (roaCtx) {
+                 new Chart(roaCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROA (%)', data: [roaValue, Math.max(0, 100 - roaValue)], backgroundColor: [roaColor, COLORS.light], borderColor: [roaColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+            }
+
+            // 5. ROE Doughnut
+            const roeValue = rawRatios['ROE'] || 0; // Already a percentage
+            const roeColor = getChartColor('ROE', roeValue);
+            const roeCtx = document.getElementById('roeChart');
+            if (roeCtx) {
+                 new Chart(roeCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROE (%)', data: [roeValue, Math.max(0, 100 - roeValue)], backgroundColor: [roeColor, COLORS.light], borderColor: [roeColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+            }
+
+            // 6. Asset Turnover Doughnut
+            const assetTurnoverValue = rawRatios['Asset Turnover'] || 0; // This is a ratio
+            const assetTurnoverTarget = 1.0; // Example Target
+            const assetTurnoverPercent = Math.min(100, (assetTurnoverValue / assetTurnoverTarget) * 100);
+            const assetTurnoverColor = getChartColor('Asset Turnover', assetTurnoverValue);
+            const atCtx = document.getElementById('assetTurnoverChart');
+            if (atCtx) {
+                 new Chart(atCtx, { type: 'doughnut', data: { datasets: [{ label: `Asset Turnover (Target ${assetTurnoverTarget})`, data: [assetTurnoverPercent, Math.max(0, 100 - assetTurnoverPercent)], backgroundColor: [assetTurnoverColor, COLORS.light], borderColor: [assetTurnoverColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${assetTurnoverValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+            }
+
+        } else {
+             console.error("Raw ratio data is missing, cannot initialize ratio charts.");
+             // Optionally display placeholders or error messages in the chart divs
+        }
+
+
+        // --- Bar Chart ---
+        const ieCtx = document.getElementById('incomeExpenseChart');
+        if (ieCtx && monthlyData && Object.keys(monthlyData).length > 0) {
+             const months = Object.keys(monthlyData);
+             const incomeData = months.map(m => parseFloat(monthlyData[m]?.income || '0'));
+             const expenseData = months.map(m => parseFloat(monthlyData[m]?.expense || '0'));
+             const netProfitData = months.map(m => parseFloat(monthlyData[m]?.netProfit || '0'));
+
+            new Chart(ieCtx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        { label: 'Total Income', data: incomeData, backgroundColor: COLORS.primary, order: 2 },
+                        { label: 'Total Expenses', data: expenseData, backgroundColor: COLORS.secondary, order: 2 },
+                        { label: 'Net Profit', data: netProfitData, type: 'line', borderColor: COLORS.success, backgroundColor: COLORS.success + '30', tension: 0.1, fill: true, order: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { callback: value => '$' + value.toLocaleString() } } },
+                    plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` } } }
+                }
+            });
+        } else if(ieCtx) {
+             const ctx = ieCtx.getContext('2d');
+             ctx.font = '16px Segoe UI'; ctx.fillStyle = COLORS.secondary; ctx.textAlign = 'center';
+             ctx.fillText('Monthly income/expense data not available.', ieCtx.width / 2, 50);
+         }
+
+        /*]]>*/
+    </script>
+
+</body>
+</html>

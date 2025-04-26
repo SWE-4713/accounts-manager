@@ -4,33 +4,27 @@
   <meta charset="UTF-8">
   <title>Balance Sheet</title>
   <style>
-    body { font-family: sans-serif; } /* Basic font */
-    .container{width:90%;margin:0 auto;}
+    /* Base styles */
+    body { font-family: sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+    .container{width:90%;margin: 20px auto; position: relative; padding-top: 50px; /* Space for buttons */}
     .report-box{background:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
     h1{margin:0 0 5px; text-align: center;}
-    h3.report-date { text-align: center; margin-bottom: 20px; font-weight: normal;} /* Centered date */
+    h3.report-date { text-align: center; margin-bottom: 20px; font-weight: normal; color: #555;}
     .date-box{margin-bottom:15px; text-align: center;}
     .btn-green{background:#28a745;color:#fff;padding:8px 15px;border:none;border-radius:4px;cursor:pointer; margin-left: 10px;}
     .tab-btn{background:#007bff;color:#fff;border:none;padding:6px 12px;border-radius:4px;margin-right: 5px; margin-bottom:15px; cursor: pointer;}
     .tab-btn.active { background-color: #0056b3; font-weight: bold; }
-    #snapshotButtons { text-align: center; margin-bottom: 15px; } /* Center snapshot buttons */
+    #snapshotButtons { text-align: center; margin-bottom: 15px; }
 
-    table{border-collapse:collapse;width:100%; max-width: 700px; margin: 0 auto;} /* Center table */
-    table, th, td{border:none!important;}
-    td{padding: 4px 8px; vertical-align: top;} /* Adjust padding */
+    /* Table styles (Balance Sheet Specific) */
+    table{border-collapse:collapse;width:100%; max-width: 700px; margin: 20px auto;} /* Center table */
+    table, th, td{border:none;}
+    td{padding: 4px 8px; vertical-align: top;}
 
     /* Layout specific styles */
-    td.label-col {
-        width: 70%;
-        text-align: left; /* Ensure left alignment */
-        padding-left: 0;
-    }
-    td.amount-col1, td.amount-col2 {
-        width: 15%;
-        text-align: right; /* Ensure right alignment */
-    }
-    /* Ensure dollar sign stays inline */
-    .dollar-sign { padding-right: 2px; display: inline !important; } /* Keep this */
+    td.label-col { width: 70%; text-align: left; padding-left: 0; }
+    td.amount-col1, td.amount-col2 { width: 15%; text-align: right; }
+    .dollar-sign { padding-right: 2px; display: inline !important; }
 
     /* Styling based on styleClass applied to TR */
     tr.section-header td.label-col { font-weight: bold; font-size: 1.1em; padding-top: 15px; }
@@ -44,71 +38,283 @@
     tr.indent-3 td.label-col { padding-left: 45px !important; }
 
     /* Underlines applied via borders on TR */
-    tr.underline td { border-top: 1px solid #000; }
-    tr.double-underline td { border-bottom: 3px double #000; padding-bottom: 2px;} /* Double underline for final totals */
+    /* MODIFIED: Changed border-top to border-bottom for single underlines */
+    tr.underline td { border-bottom: 1px solid #000; padding-bottom: 1px; padding-top: 1px; }
+    /* This rule handles the double underline for grand totals */
+    tr.double-underline td { border-bottom: 3px double #000; padding-bottom: 2px;}
     tr.blank-row td { padding-top: 10px; padding-bottom: 10px; }
-    tr.error td { color: red; font-weight: bold; } /* Style for error messages */
+    tr.error td { color: red; font-weight: bold; }
+
+    .report-actions { /* Style for the button container */
+            position: absolute; /* Position relative to the body or a positioned ancestor */
+            top: 120px; /* Adjust based on navbar height */
+            left: 20px; /* Adjust as needed */
+            z-index: 10; /* Ensure buttons are above other content */
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px; /* Add some space below buttons */
+        }
+    .report-actions button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .btn-save { background-color: #28a745; color: white; }
+    .btn-email { background-color: #17a2b8; color: white; }
+    .btn-print { background-color: #6c757d; color: white; }
+    .report-actions button:hover { opacity: 0.9; }
+
+    /* Modal Styles */
+    .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+    .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 50%; border-radius: 5px; }
+    .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+    .modal-body select { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; }
+    .modal-footer { text-align: right; }
+    .modal-footer button { padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; border: none; }
+    .btn-confirm { background-color: #007bff; color: white; }
+    .btn-cancel { background-color: #6c757d; color: white; }
+    .modal-footer button:hover { opacity: 0.9; }
+
+    /* Print Styles */
+    @media print {
+        body * { visibility: hidden; }
+        header, .report-actions, .date-box, #snapshotButtons, .modal, .tab-btn, .btn-green { display: none !important; visibility: hidden !important; } /* Hide non-printable */
+
+        .printable-area, .printable-area * { visibility: visible; }
+        .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+        .report-box { visibility: visible; box-shadow: none; border: none; margin-top: 0;}
+
+        .printable-area h1, .printable-area h3.report-date { visibility: visible !important; text-align: center; width: 100%; margin: 0 auto 5px auto; }
+        .printable-area h1 { font-size: 16pt; }
+        .printable-area h3.report-date { font-size: 12pt; font-weight: normal; margin-bottom: 20px; }
+
+        .printable-area table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10pt; max-width: none; /* Remove max-width for print */ }
+        .printable-area th, .printable-area td { border: none !important; padding: 4px 8px; /* Match screen padding */ text-align: left; vertical-align: top; }
+
+        /* Specific styling for Balance Sheet rows */
+        .printable-area td.label-col { width: 70%; text-align: left; padding-left: 0; }
+        .printable-area td.amount-col1, .printable-area td.amount-col2 { width: 15%; text-align: right; }
+        .printable-area .dollar-sign { padding-right: 2px; display: inline !important; }
+
+        /* Apply styles based on TR classes */
+        .printable-area tr.section-header td.label-col { font-weight: bold; font-size: 1.1em; padding-top: 15px; }
+        .printable-area tr.subheader td.label-col { font-weight: bold; }
+        .printable-area tr.total td { font-weight: bold; }
+        .printable-area tr.subtotal td { font-weight: bold; }
+
+        /* Apply indentation based on TR classes */
+        .printable-area tr.indent-1 td.label-col { padding-left: 15px !important; }
+        .printable-area tr.indent-2 td.label-col { padding-left: 30px !important; }
+        .printable-area tr.indent-3 td.label-col { padding-left: 45px !important; }
+
+        /* Apply underlines based on TR classes */
+        /* MODIFIED: Use border-bottom for single underlines in print */
+        .printable-area tr.underline td { border-bottom: 1px solid #000 !important; padding-bottom: 1px; padding-top: 1px; }
+        .printable-area tr.double-underline td { border-bottom: 3px double #000 !important; padding-bottom: 2px;}
+        .printable-area tr.blank-row td { padding-top: 10px; padding-bottom: 10px; border-top: none !important; border-bottom: none !important; } /* Ensure blank rows have no borders */
+        .printable-area tr.error td { color: red !important; font-weight: bold; }
+
+        .printable-area tfoot { display: table-row-group; } /* Prevent footer repeat if any */
+    }
   </style>
 </head>
 <body>
   <header th:replace="fragments/navbar :: navbar"></header>
+
+    <div class="report-actions">
+      <button class="btn-save" onclick="openReportModal('save', 'Balance Sheet', 'BS')">Save</button>
+      <button class="btn-email" onclick="openReportModal('email', 'Balance Sheet', 'BS')">Email</button>
+      <button class="btn-print" onclick="openReportModal('print', 'Balance Sheet', 'BS')">Print</button>
+    </div>
+
     <div class="container">
       <div class="report-box">
-        <h1>Balance Sheet</h1>
-        <h3 class="report-date" th:if="${date != null}" th:text="'As of ' + ${#temporals.format(date, 'MM/dd/yyyy')}"></h3>
-        <h3 class="report-date" th:if="${date == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+        <div class="printable-area"> <h1>Balance Sheet</h1>
+          <h3 class="report-date" th:if="${date != null}" th:text="'As of ' + ${#temporals.format(date, 'MM/dd/yyyy')}"></h3>
+          <h3 class="report-date" th:if="${date == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-        <form th:action="@{/reports/balance-sheet}" method="get" class="date-box">
-            As of: <input type="date" name="date" th:value="${date != null ? #temporals.format(date, 'yyyy-MM-dd') : ''}" required>
-            <button type="submit" class="btn-green" id="generateReportBtn">Generate Report</button>
-        </form>
+          <form th:action="@{/reports/balance-sheet}" method="get" class="date-box">
+              As of: <input type="date" name="date" th:value="${date != null ? #temporals.format(date, 'yyyy-MM-dd') : ''}" required>
+              <button type="submit" class="btn-green" id="generateReportBtn">Generate Report</button>
+          </form>
 
           <div id="snapshotButtons" th:if="${snapshots}">
-            <button th:each="s: ${snapshots}" class="tab-btn"
-                    th:classappend="${s.id == snapshotId} ? 'active' : ''"
-                    th:onclick="'window.location.href=\'' + @{/reports/balance-sheet(snapshotId=${s.id})} + '\''"
-                    th:text="${s.text}">
-            </button>
-          </div>
+              <button th:each="s: ${snapshots}" class="tab-btn"
+                      th:classappend="${s.id == snapshotId} ? 'active' : ''"
+                      th:onclick="'window.location.href=\'' + @{/reports/balance-sheet(snapshotId=${s.id})} + '\''"
+                      th:text="${s.text}"> </button>
+            </div>
 
-          <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
-            <table>
-                <tbody>
-                    <tr th:each="row : ${rows}" th:classappend="${row.styleClass}">
+            <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+              <table>
+                  <tbody>
+                      <tr th:each="row : ${rows}" th:classappend="${row.styleClass}">
 
-                         <td class="label-col" th:text="${row.label}"></td>
+                           <td class="label-col" th:text="${row.label}"></td>
 
-                         <td class="amount-col1">
-                             <span th:if="${row.displayColumn == 1 and row.amount != null}">
-                                 <span th:if="${row.label == 'Total Current Assets' or row.label == 'Total Assets' or row.label == 'Total Stockholders Equity' or row.label == 'Total Liabilities & Stockholders Equity'}">
-                                     $<span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                                 </span>
-                                 <span th:unless="${row.label == 'Total Current Assets' or row.label == 'Total Assets' or row.label == 'Total Stockholders Equity' or row.label == 'Total Liabilities & Stockholders Equity'}">
+                           <td class="amount-col1">
+                               <span th:if="${row.displayColumn == 1 and row.amount != null}">
+                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
+                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
                                      <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
-                                     <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                                 </span>
-                             </span>
-                         </td>
+                                   </span>
+                                   <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
+                               </span>
+                           </td>
 
-                         <td class="amount-col2">
-                             <span th:if="${row.displayColumn == 2 and row.amount != null}">
-                                 <span th:if="${row.label == 'Total Current Assets' or row.label == 'Total Assets' or row.label == 'Total Stockholders Equity' or row.label == 'Total Liabilities & Stockholders Equity'}">
-                                     $<span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                                 </span>
-                                 <span th:unless="${row.label == 'Total Current Assets' or row.label == 'Total Assets' or row.label == 'Total Stockholders Equity' or row.label == 'Total Liabilities & Stockholders Equity'}">
+                           <td class="amount-col2">
+                               <span th:if="${row.displayColumn == 2 and row.amount != null}">
+                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
+                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
                                       <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
-                                     <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
-                                 </span>
-                             </span>
-                         </td>
-                    </tr>
-                </tbody>
-            </table>
+                                   </span>
+                                   <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
+                               </span>
+                           </td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+          <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px; text-align: center;">
+              <p>Please select a date and click "Generate Report" or choose a saved report.</p>
+          </div>
+        </div> </div>
+    </div>
+
+    <div id="reportActionModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeReportModal()">&times;</span>
+        <h2 id="modalTitle">Select Report</h2>
+        <div class="modal-body">
+          <p id="modalActionText">Please select the report version you want to perform the action on:</p>
+          <select id="reportSnapshotSelect">
+            </select>
         </div>
-        <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
-            <p>Please select a date and click "Generate Report" or choose a saved report.</p>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
+          <button class="btn-confirm" onclick="confirmReportAction()">Confirm</button>
         </div>
       </div>
     </div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+        // --- JavaScript for Modal and Actions ---
+        const reportModal = document.getElementById('reportActionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalActionText = document.getElementById('modalActionText');
+        const reportSelect = document.getElementById('reportSnapshotSelect');
+        let currentAction = '';
+        let currentReportType = '';
+        let currentReportAbbr = '';
+
+        const availableSnapshots = /*[[${snapshots}]]*/ [];
+
+        function openReportModal(action, reportType, reportAbbr) {
+            currentAction = action;
+            currentReportType = reportType;
+            currentReportAbbr = reportAbbr;
+
+            modalTitle.textContent = `Select ${currentReportType} to ${action}`;
+            modalActionText.textContent = `Please select the ${currentReportType} version you want to ${action}:`;
+            reportSelect.innerHTML = ''; // Clear previous options
+
+            console.log(`Opening modal for ${reportType} (${reportAbbr}). Action: ${action}`); // Debug log
+            console.log("Available snapshots:", availableSnapshots); // Debug log
+
+            let hasOptions = false;
+            if (availableSnapshots && availableSnapshots.length > 0) {
+                availableSnapshots.forEach(snapshot => {
+                    console.log(`Checking snapshot text: "${snapshot.text}" against abbr: "${reportAbbr}"`); // Debug log comparison
+                    // --- Modified Check ---
+                    // Check if snapshot.text exists and starts with the abbreviation, ignoring leading/trailing spaces.
+                    if (snapshot.text && snapshot.text.trim().startsWith(reportAbbr)) {
+                        console.log(`Match found: "${snapshot.text}"`); // Debug log match
+                        const option = document.createElement('option');
+                        option.value = snapshot.id;
+                        option.textContent = snapshot.text; // Use the actual text
+                        reportSelect.appendChild(option);
+                        hasOptions = true;
+                    } else {
+                         console.log(`No match for: "${snapshot.text}"`); // Debug log no match
+                    }
+                });
+            }
+
+            if (!hasOptions) {
+                console.log("No matching snapshots found for abbreviation:", reportAbbr); // Debug log
+                const option = document.createElement('option');
+                option.textContent = 'No saved reports available for this type.';
+                option.disabled = true;
+                reportSelect.appendChild(option);
+                document.querySelector('#reportActionModal .btn-confirm').disabled = true;
+            } else {
+                document.querySelector('#reportActionModal .btn-confirm').disabled = false;
+            }
+
+            reportModal.style.display = 'block';
+        }
+
+        function closeReportModal() {
+            reportModal.style.display = 'none';
+        }
+
+        function confirmReportAction() {
+            const selectedSnapshotId = reportSelect.value;
+            if (!selectedSnapshotId || reportSelect.options[reportSelect.selectedIndex]?.disabled) {
+                alert('Please select a valid report.');
+                return;
+            }
+
+            console.log(`Action: ${currentAction}, Report Type: ${currentReportType}, Abbr: ${currentReportAbbr}, Snapshot ID: ${selectedSnapshotId}`);
+            closeReportModal();
+
+            if (currentAction === 'save') {
+                window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`;
+            } else if (currentAction === 'email') {
+                fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' })
+                  .then(response => response.json())
+                  .then(data => {
+                      alert(data.message || (data.success ? 'Email request sent.' : 'Failed to send email.'));
+                  })
+                  .catch(err => {
+                      console.error('Email error:', err);
+                      alert('Error requesting email.');
+                  });
+            } else if (currentAction === 'print') {
+                // Use iframe printing method
+                const printFrame = document.createElement('iframe');
+                 printFrame.style.position = 'absolute'; printFrame.style.width = '0'; printFrame.style.height = '0'; printFrame.style.border = '0';
+                printFrame.name = 'printFrame';
+                document.body.appendChild(printFrame);
+                const printUrl = `/reports/print/${selectedSnapshotId}`; // Assumes backend endpoint exists
+
+                printFrame.src = printUrl;
+                printFrame.onload = function() {
+                    try {
+                        const frameWindow = printFrame.contentWindow;
+                        frameWindow.focus();
+                        frameWindow.print();
+                        // Clean up after a delay
+                        setTimeout(() => { if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); } }, 1000);
+                    } catch (error) {
+                        console.error("Printing error:", error);
+                        alert("Could not initiate print. Error: " + error.message);
+                        if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); }
+                    }
+                };
+                printFrame.onerror = function() {
+                     console.error("Failed to load print content into iframe.");
+                     alert("Failed to load report content for printing.");
+                     if (document.body.contains(printFrame)) { document.body.removeChild(printFrame); }
+                };
+            }
+        }
+
+        // Close modal if user clicks outside of it
+        window.onclick = function(event) {
+            if (event.target == reportModal) {
+                closeReportModal();
+            }
+        }
+    /*]]>*/
+    </script>
   </body>
 </html>
