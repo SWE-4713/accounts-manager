@@ -186,6 +186,13 @@
           <p id="modalActionText">Please select the report version you want to perform the action on:</p>
           <select id="reportSnapshotSelect">
             </select>
+            <br>
+            <div id="emailSelectContainer" style="display: none;">
+                <label for="emailSelect">Send to:</label>
+                <select id="emailSelect">
+                    <option th:each="email : ${userEmails}" th:value="${email}" th:text="${email}"></option>
+                </select>
+            </div>
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
@@ -250,6 +257,14 @@
             }
 
             reportModal.style.display = 'block';
+
+            // Show/hide the email dropdown
+            const emailContainer = document.getElementById('emailSelectContainer');
+            if (action === 'email') {
+                emailContainer.style.display = 'block';
+            } else {
+                emailContainer.style.display = 'none';
+            }
         }
 
         function closeReportModal() {
@@ -269,15 +284,28 @@
             if (currentAction === 'save') {
                 window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`;
             } else if (currentAction === 'email') {
-                fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' })
-                  .then(response => response.json())
-                  .then(data => {
-                      alert(data.message || (data.success ? 'Email request sent.' : 'Failed to send email.'));
-                  })
-                  .catch(err => {
-                      console.error('Email error:', err);
-                      alert('Error requesting email.');
-                  });
+                let reportName = currentReportType;
+                let email = document.getElementById('emailSelect').value;
+
+                const params = new URLSearchParams();
+                params.append('reportName', reportName);
+                params.append('email', email);
+
+                fetch(`/reports/email/${selectedSnapshotId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message || (data.success ? 'Email request sent successfully.' : 'Failed to send email.'));
+                    })
+                    .catch(err => {
+                        console.error('Email error:', err);
+                        alert('Error requesting email.');
+                    });
             } else if (currentAction === 'print') {
                 // Use iframe printing method
                 const printFrame = document.createElement('iframe');

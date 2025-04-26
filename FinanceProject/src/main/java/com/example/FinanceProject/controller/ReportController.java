@@ -4,7 +4,9 @@ package com.example.FinanceProject.controller;
 // --- Keep existing imports ---
 import com.example.FinanceProject.dto.*;
 import com.example.FinanceProject.entity.ReportSnapshot;
+import com.example.FinanceProject.entity.User;
 import com.example.FinanceProject.repository.ReportSnapshotRepo;
+import com.example.FinanceProject.repository.UserRepo;
 import com.example.FinanceProject.service.EmailService;
 import com.example.FinanceProject.service.FinancialReportService;
 import com.example.FinanceProject.service.PDFReportService; // Import the new service
@@ -34,9 +36,7 @@ import java.nio.file.Files; // For temporary file handling
 import java.nio.file.Path; // For temporary file handling
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 // Removed text formatting helpers (pad*, formatAmount*, etc.)
 
@@ -63,6 +63,9 @@ public class ReportController {
         this.pdfReportService = pdfReportService; // Initialize
     }
 
+    @Autowired
+    private UserRepo userRepo;
+
     // --- Remove convertReportToFixedWidthText and related helpers ---
 
     // --- Keep existing report mapping methods (trialBalance, incomeStatement, etc.) ---
@@ -75,6 +78,14 @@ public class ReportController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
         @RequestParam(value="snapshotId", required=false) Long snapshotId,
         Model model, Authentication authentication) throws Exception {
+
+        List<User> managers = userRepo.findByRoleAndStatusNot("ROLE_MANAGER", "INACTIVE"); // or whatever filter you want
+        List<User> accountants = userRepo.findByRoleAndStatusNot("ROLE_USER", "INACTIVE"); // or whatever filter you want
+        Set<String> emailSet = new HashSet<>();
+        emailSet.addAll(managers.stream().map(User::getEmail).toList());
+        emailSet.addAll(accountants.stream().map(User::getEmail).toList());
+        List<String> emails = new ArrayList<>(emailSet);
+        model.addAttribute("userEmails", emails);
 
         List<TrialBalanceRow> rows = null; // Initialize as null
         BigDecimal debitTotal = BigDecimal.ZERO;
@@ -114,6 +125,14 @@ public class ReportController {
         @RequestParam(value="snapshotId", required=false) Long snapshotId,
         Model model, Authentication authentication) throws Exception {
 
+        List<User> managers = userRepo.findByRoleAndStatusNot("ROLE_MANAGER", "INACTIVE"); // or whatever filter you want
+        List<User> accountants = userRepo.findByRoleAndStatusNot("ROLE_USER", "INACTIVE"); // or whatever filter you want
+        Set<String> emailSet = new HashSet<>();
+        emailSet.addAll(managers.stream().map(User::getEmail).toList());
+        emailSet.addAll(accountants.stream().map(User::getEmail).toList());
+        List<String> emails = new ArrayList<>(emailSet);
+        model.addAttribute("userEmails", emails);
+
         List<IncomeStatementRow> rows = null;
 
          if (snapshotId != null) {
@@ -149,6 +168,14 @@ public class ReportController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
         @RequestParam(value="snapshotId", required=false) Long snapshotId,
         Model model, Authentication authentication) throws Exception {
+
+        List<User> managers = userRepo.findByRoleAndStatusNot("ROLE_MANAGER", "INACTIVE"); // or whatever filter you want
+        List<User> accountants = userRepo.findByRoleAndStatusNot("ROLE_USER", "INACTIVE"); // or whatever filter you want
+        Set<String> emailSet = new HashSet<>();
+        emailSet.addAll(managers.stream().map(User::getEmail).toList());
+        emailSet.addAll(accountants.stream().map(User::getEmail).toList());
+        List<String> emails = new ArrayList<>(emailSet);
+        model.addAttribute("userEmails", emails);
 
         List<BalanceSheetRow> rows = null;
 
@@ -187,6 +214,14 @@ public class ReportController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
         @RequestParam(value="snapshotId",   required=false) Long snapshotId,
         Model model, Authentication authentication) throws Exception {
+
+        List<User> managers = userRepo.findByRoleAndStatusNot("ROLE_MANAGER", "INACTIVE"); // or whatever filter you want
+        List<User> accountants = userRepo.findByRoleAndStatusNot("ROLE_USER", "INACTIVE"); // or whatever filter you want
+        Set<String> emailSet = new HashSet<>();
+        emailSet.addAll(managers.stream().map(User::getEmail).toList());
+        emailSet.addAll(accountants.stream().map(User::getEmail).toList());
+        List<String> emails = new ArrayList<>(emailSet);
+        model.addAttribute("userEmails", emails);
 
         RetainedEarningsReport report = null;
 
@@ -306,10 +341,12 @@ public class ReportController {
      public ResponseEntity<Map<String, Object>> emailReport(
              @PathVariable Long snapshotId,
              @RequestParam String reportName, // Keep using this for subject/body
+             @RequestParam String email,
              Authentication authentication) {
 
          Map<String, Object> response = new java.util.HashMap<>();
          Path tempFilePath = null; // Define outside try for finally block
+         String userEmail = email;
 
          try {
              ReportSnapshot snapshot = snapRepo.findById(snapshotId)
@@ -335,16 +372,6 @@ public class ReportController {
                 default:
                     throw new IllegalArgumentException("Unsupported report type for PDF email: " + reportType);
             }
-
-
-             String userEmail = "user@example.com"; // Default/placeholder
-              if (authentication != null) {
-                   String username = authentication.getName();
-                   // --- TODO: Replace with your actual logic to fetch user email from username ---
-                   userEmail = username; // Using username as email - ADJUST AS NEEDED
-              } else {
-                  throw new IllegalStateException("Cannot send email: User not authenticated.");
-              }
 
              String subject = "Financial Report: " + reportName;
              String body = "Please find the attached financial report (PDF): " + reportName;

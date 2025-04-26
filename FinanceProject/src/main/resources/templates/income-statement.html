@@ -254,6 +254,13 @@
         <p id="modalActionText">Please select the report version you want to perform the action on:</p>
         <select id="reportSnapshotSelect">
         </select>
+          <br>
+          <div id="emailSelectContainer" style="display: none;">
+              <label for="emailSelect">Send to:</label>
+              <select id="emailSelect">
+                  <option th:each="email : ${userEmails}" th:value="${email}" th:text="${email}"></option>
+              </select>
+          </div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
@@ -311,6 +318,14 @@
 
 
           reportModal.style.display = 'block';
+
+          // Show/hide the email dropdown
+          const emailContainer = document.getElementById('emailSelectContainer');
+          if (action === 'email') {
+              emailContainer.style.display = 'block';
+          } else {
+              emailContainer.style.display = 'none';
+          }
       }
 
       function closeReportModal() {
@@ -334,30 +349,28 @@
               // Trigger download - Needs backend endpoint /reports/download/{snapshotId}
               window.location.href = `/reports/download/${selectedSnapshotId}?reportType=${currentReportAbbr}`; // Pass reportType if needed for formatting
           } else if (currentAction === 'email') {
-              // Option 1: Use mailto (simpler, relies on user client)
-              // Generate file name based on report type and snapshot details
-              const selectedOptionText = reportSelect.options[reportSelect.selectedIndex].text;
-              const subject = `Financial Report: ${selectedOptionText}`;
-              const body = `Please find the attached ${currentReportType} report (${selectedOptionText}).`;
-              // Ideally, trigger backend to generate and attach, then provide a mailto link or confirmation.
-              // For now, a simple mailto:
-              const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-              //window.location.href = mailtoLink;
-              // Option 2: Trigger backend to generate and email (more robust)
-              fetch(`/reports/email/${selectedSnapshotId}`, { method: 'POST' }) // Needs backend endpoint
-                .then(response => response.json()) // Or handle confirmation
-                .then(data => {
-                    if(data.success) {
-                         alert(data.message || 'Email request sent successfully.');
-                     } else {
-                         alert(data.message || 'Failed to send email.');
-                     }
-                })
-                .catch(err => {
-                    console.error('Email error:', err);
-                    alert('Error requesting email.');
-                 });
+              let reportName = currentReportType;
+              let email = document.getElementById('emailSelect').value;
 
+              const params = new URLSearchParams();
+              params.append('reportName', reportName);
+              params.append('email', email);
+
+              fetch(`/reports/email/${selectedSnapshotId}`, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                  },
+                  body: params
+              })
+                  .then(response => response.json())
+                  .then(data => {
+                      alert(data.message || (data.success ? 'Email request sent successfully.' : 'Failed to send email.'));
+                  })
+                  .catch(err => {
+                      console.error('Email error:', err);
+                      alert('Error requesting email.');
+                  });
           } else if (currentAction === 'print') {
               // Create a hidden iframe
               const printFrame = document.createElement('iframe');
