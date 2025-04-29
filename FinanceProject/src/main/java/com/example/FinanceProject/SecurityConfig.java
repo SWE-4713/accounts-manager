@@ -57,11 +57,10 @@ public class SecurityConfig {
                 .requestMatchers("/public/**", "/auth/registration", "/auth/register", "/forgot-password", "/reset-password", "/password-reset-success", "/api/password/**", "/password-expired", "/update-expired-password", "/login").permitAll() // Ensure login and password reset pages are permitted
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/accounts/add", "/accounts/edit", "/accounts/deactivate").hasRole("ADMIN") // Admin only account modification
-                // Permit dashboard for all authenticated users
-                .requestMatchers("/dashboard").authenticated()
+                // *** MODIFICATION: Allow any authenticated user to view reports ***
+                .requestMatchers("/reports/**").authenticated() // Changed from hasAnyRole("ADMIN", "MANAGER")
                 // Keep other specific role restrictions as needed
-                .requestMatchers("/reports/**").hasAnyRole("ADMIN", "MANAGER") // Example: Reports for Admin/Manager
-                .requestMatchers("/manager/**").hasRole("MANAGER")
+                .requestMatchers("/manager/**").hasRole("MANAGER") // Manager specific actions like approve/reject
                 .requestMatchers("/accountant/**").hasRole("USER") // Assuming ROLE_USER is accountant
                 .anyRequest().authenticated() // All other requests need authentication
             )
@@ -94,37 +93,9 @@ public class SecurityConfig {
                                                 HttpServletResponse response,
                                                 Authentication authentication) throws IOException, ServletException {
 
-                // Check for password expiration FIRST (optional but good practice)
-                // User user = userRepo.findByUsername(authentication.getName()).orElse(null);
-                // if (user != null && passwordExpirationService.isPasswordExpired(user)) {
-                //     response.sendRedirect("/password-expired"); // Redirect to change password page
-                //     return;
-                // }
-
-                // Redirect based on role (or always to dashboard)
-                boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-                boolean isManager = authentication.getAuthorities().stream()
-                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_MANAGER"));
-                boolean isUser = authentication.getAuthorities().stream()
-                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"));
-
-                // --- MODIFICATION START ---
                 // Redirect all authenticated users to the dashboard
                 response.sendRedirect("/dashboard");
 
-                // --- Original Role-Based Redirect (Keep for reference or revert if needed) ---
-                /*
-                if (isAdmin) {
-                    response.sendRedirect("/admin/user-management"); // Or /admin if preferred
-                } else if (isManager) {
-                    // Managers might also go to the dashboard, or a specific manager view
-                    response.sendRedirect("/dashboard"); // Or /manager if needed
-                } else { // Default for ROLE_USER or others
-                    response.sendRedirect("/dashboard"); // Redirect standard users to dashboard
-                }
-                */
-                // --- MODIFICATION END ---
             }
         };
     }

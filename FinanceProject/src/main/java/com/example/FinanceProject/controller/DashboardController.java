@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -222,78 +223,83 @@ public class DashboardController {
     }
 
 
-    // --- calculateRatios method (Now receives actual calculated values) ---
-    // (Unchanged)
+    // --- calculateRatios method (UPDATED FORMATTING) ---
     private List<RatioInfo> calculateRatios(BigDecimal currentAssets, BigDecimal currentLiabilities, BigDecimal netIncome, BigDecimal totalAssets, BigDecimal totalEquity, BigDecimal salesRevenue, BigDecimal inventory) {
-        // ... (Implementation remains the same) ...
-         List<RatioInfo> ratioInfos = new ArrayList<>();
-        DecimalFormat pctFormat = new DecimalFormat("0.0%");
+        List<RatioInfo> ratioInfos = new ArrayList<>();
+        // Use pctFormat for ratios to be displayed as percentages
+        DecimalFormat pctFormat = new DecimalFormat("0.00%"); // Changed format
+        // Keep ratioFormat for ratios displayed as decimals (although we might not need it anymore)
         DecimalFormat ratioFormat = new DecimalFormat("0.00");
 
-        // 1. Current Ratio
+        // 1. Current Ratio (Displayed as %)
         if (currentLiabilities != null && currentLiabilities.compareTo(BigDecimal.ZERO) != 0 && currentAssets != null) {
-            BigDecimal currentRatio = currentAssets.divide(currentLiabilities, 2, RoundingMode.HALF_UP);
+            BigDecimal currentRatio = currentAssets.divide(currentLiabilities, 4, RoundingMode.HALF_UP); // Calculate with more precision
+            // Pass the RAW ratio to getRatioColorClass
             String color = getRatioColorClass("Current Ratio", currentRatio);
-            ratioInfos.add(new RatioInfo("Current Ratio", ratioFormat.format(currentRatio), color, "Measures short-term liquidity"));
+            // Format value as percentage for display
+            ratioInfos.add(new RatioInfo("Current Ratio", pctFormat.format(currentRatio), color, "Measures short-term liquidity"));
         } else {
-             ratioInfos.add(new RatioInfo("Current Ratio", "N/A", "grey", "Measures short-term liquidity"));
+            ratioInfos.add(new RatioInfo("Current Ratio", "N/A", "grey", "Measures short-term liquidity"));
         }
 
-        // 2. Return on Assets (ROA)
+        // 2. Return on Assets (ROA) (Displayed as %)
         if (totalAssets != null && totalAssets.compareTo(BigDecimal.ZERO) != 0 && netIncome != null) {
-             BigDecimal roa = netIncome.divide(totalAssets, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-             String color = getRatioColorClass("ROA", roa);
-             ratioInfos.add(new RatioInfo("Return on Assets (ROA)", pctFormat.format(roa.divide(BigDecimal.valueOf(100))), color, "Profit per dollar of assets"));
+            BigDecimal roa = netIncome.divide(totalAssets, 4, RoundingMode.HALF_UP); // Calculate raw ratio
+            String color = getRatioColorClass("ROA", roa.multiply(BigDecimal.valueOf(100))); // Pass percentage value for color logic
+            ratioInfos.add(new RatioInfo("Return on Assets (ROA)", pctFormat.format(roa), color, "Profit per dollar of assets"));
         } else {
-             ratioInfos.add(new RatioInfo("Return on Assets (ROA)", "N/A", "grey", "Profit per dollar of assets"));
+            ratioInfos.add(new RatioInfo("Return on Assets (ROA)", "N/A", "grey", "Profit per dollar of assets"));
         }
 
-        // 3. Return on Equity (ROE)
+        // 3. Return on Equity (ROE) (Displayed as %)
         if (totalEquity != null && totalEquity.compareTo(BigDecimal.ZERO) != 0 && netIncome != null) {
-             BigDecimal roe = netIncome.divide(totalEquity, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-             String color = getRatioColorClass("ROE", roe);
-             ratioInfos.add(new RatioInfo("Return on Equity (ROE)", pctFormat.format(roe.divide(BigDecimal.valueOf(100))), color, "Profit per dollar of equity"));
+            BigDecimal roe = netIncome.divide(totalEquity, 4, RoundingMode.HALF_UP); // Calculate raw ratio
+            String color = getRatioColorClass("ROE", roe.multiply(BigDecimal.valueOf(100))); // Pass percentage value for color logic
+            ratioInfos.add(new RatioInfo("Return on Equity (ROE)", pctFormat.format(roe), color, "Profit per dollar of equity"));
         } else {
-             ratioInfos.add(new RatioInfo("Return on Equity (ROE)", "N/A", "grey", "Profit per dollar of equity"));
+            ratioInfos.add(new RatioInfo("Return on Equity (ROE)", "N/A", "grey", "Profit per dollar of equity"));
         }
 
-         // 4. Net Profit Margin
-         if (salesRevenue != null && salesRevenue.compareTo(BigDecimal.ZERO) != 0 && netIncome != null) {
-             BigDecimal npm = netIncome.divide(salesRevenue, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-             String color = getRatioColorClass("Net Profit Margin", npm);
-             ratioInfos.add(new RatioInfo("Net Profit Margin", pctFormat.format(npm.divide(BigDecimal.valueOf(100))), color, "Profit per dollar of sales"));
-         } else {
-             ratioInfos.add(new RatioInfo("Net Profit Margin", "N/A", "grey", "Profit per dollar of sales"));
-         }
+        // 4. Net Profit Margin (Displayed as %)
+        if (salesRevenue != null && salesRevenue.compareTo(BigDecimal.ZERO) != 0 && netIncome != null) {
+            BigDecimal npm = netIncome.divide(salesRevenue, 4, RoundingMode.HALF_UP); // Calculate raw ratio
+            String color = getRatioColorClass("Net Profit Margin", npm.multiply(BigDecimal.valueOf(100))); // Pass percentage value for color logic
+            ratioInfos.add(new RatioInfo("Net Profit Margin", pctFormat.format(npm), color, "Profit per dollar of sales"));
+        } else {
+            ratioInfos.add(new RatioInfo("Net Profit Margin", "N/A", "grey", "Profit per dollar of sales"));
+        }
 
-        // 5. Asset Turnover
+        // 5. Asset Turnover (Displayed as %)
         if (totalAssets != null && totalAssets.compareTo(BigDecimal.ZERO) != 0 && salesRevenue != null) {
-             BigDecimal assetTurnover = salesRevenue.divide(totalAssets, 4, RoundingMode.HALF_UP);
-             String color = getRatioColorClass("Asset Turnover", assetTurnover);
-             ratioInfos.add(new RatioInfo("Asset Turnover", ratioFormat.format(assetTurnover), color, "Sales generated per dollar of assets"));
+            BigDecimal assetTurnover = salesRevenue.divide(totalAssets, 4, RoundingMode.HALF_UP); // Calculate raw ratio
+            // Pass the RAW ratio to getRatioColorClass for Asset Turnover
+            String color = getRatioColorClass("Asset Turnover", assetTurnover);
+            // Format value as percentage for display
+            ratioInfos.add(new RatioInfo("Asset Turnover", pctFormat.format(assetTurnover), color, "Sales generated per dollar of assets"));
         } else {
-             ratioInfos.add(new RatioInfo("Asset Turnover", "N/A", "grey", "Sales generated per dollar of assets"));
+            ratioInfos.add(new RatioInfo("Asset Turnover", "N/A", "grey", "Sales generated per dollar of assets"));
         }
 
-         // 6. Quick Ratio
-         if (currentLiabilities != null && currentLiabilities.compareTo(BigDecimal.ZERO) != 0 && currentAssets != null && inventory != null) {
-             BigDecimal quickAssets = currentAssets.subtract(inventory);
-             if (currentLiabilities.compareTo(BigDecimal.ZERO) != 0) {
-                 BigDecimal quickRatio = quickAssets.divide(currentLiabilities, 2, RoundingMode.HALF_UP);
-                 String color = getRatioColorClass("Quick Ratio", quickRatio);
-                 ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", ratioFormat.format(quickRatio), color, "Liquidity excluding inventory"));
-             } else {
-                 ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", "N/A", "grey", "Liquidity excluding inventory"));
-             }
-         } else {
-              ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", "N/A", "grey", "Liquidity excluding inventory"));
-         }
+        // 6. Quick Ratio (Displayed as %)
+        if (currentLiabilities != null && currentLiabilities.compareTo(BigDecimal.ZERO) != 0 && currentAssets != null && inventory != null) {
+            BigDecimal quickAssets = currentAssets.subtract(inventory);
+            if (currentLiabilities.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal quickRatio = quickAssets.divide(currentLiabilities, 4, RoundingMode.HALF_UP); // Calculate with more precision
+                // Pass the RAW ratio to getRatioColorClass
+                String color = getRatioColorClass("Quick Ratio", quickRatio);
+                // Format value as percentage for display
+                ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", pctFormat.format(quickRatio), color, "Liquidity excluding inventory"));
+            } else {
+                ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", "N/A", "grey", "Liquidity excluding inventory"));
+            }
+        } else {
+             ratioInfos.add(new RatioInfo("Quick Ratio (Acid Test)", "N/A", "grey", "Liquidity excluding inventory"));
+        }
         return ratioInfos;
     }
 
 
-    // --- getRawRatios method (Now receives actual calculated values) ---
-    // (Unchanged)
+    // --- getRawRatios method (Unchanged) ---
     private Map<String, BigDecimal> getRawRatios(BigDecimal currentAssets, BigDecimal currentLiabilities, BigDecimal netIncome, BigDecimal totalAssets, BigDecimal totalEquity, BigDecimal salesRevenue, BigDecimal inventory) {
         // ... (Implementation remains the same) ...
         Map<String, BigDecimal> rawRatios = new LinkedHashMap<>();
@@ -302,7 +308,7 @@ public class DashboardController {
         // Current Ratio
         if (currentLiabilities != null && currentLiabilities.compareTo(zero) != 0 && currentAssets != null) {
             try {
-                rawRatios.put("Current Ratio", currentAssets.divide(currentLiabilities, 2, RoundingMode.HALF_UP));
+                rawRatios.put("Current Ratio", currentAssets.divide(currentLiabilities, 4, RoundingMode.HALF_UP)); // Increased precision
             } catch (ArithmeticException e) { log.error("Division by zero avoided calculating Current Ratio. CL={}", currentLiabilities); rawRatios.put("Current Ratio", zero); }
         } else { rawRatios.put("Current Ratio", zero); }
 
@@ -333,7 +339,7 @@ public class DashboardController {
         // Quick Ratio (Ratio)
         if (currentLiabilities != null && currentLiabilities.compareTo(zero) != 0 && currentAssets != null && inventory != null) {
             BigDecimal quickAssets = currentAssets.subtract(inventory);
-             try { rawRatios.put("Quick Ratio", quickAssets.divide(currentLiabilities, 2, RoundingMode.HALF_UP));
+             try { rawRatios.put("Quick Ratio", quickAssets.divide(currentLiabilities, 4, RoundingMode.HALF_UP)); // Increased precision
              } catch (ArithmeticException e) { log.error("Division by zero avoided calculating Quick Ratio. CL={}", currentLiabilities); rawRatios.put("Quick Ratio", zero); }
         } else { rawRatios.put("Quick Ratio", zero); }
 
@@ -341,21 +347,63 @@ public class DashboardController {
     }
 
 
-    // --- CORRECTED getRatioColorClass helper method ---
-     private String getRatioColorClass(String ratioName, BigDecimal value) {
+    // --- UPDATED getRatioColorClass helper method ---
+    private String getRatioColorClass(String ratioName, BigDecimal value) {
          if (value == null) return "grey";
+
+         // Note: For ROA, ROE, NPM, the 'value' passed IN is the percentage (e.g., 16.28 for 16.28%)
+         // For Current Ratio, Quick Ratio, Asset Turnover, the 'value' passed IN is the raw ratio (e.g., 17.64, 0.48)
          switch (ratioName) {
              case "Current Ratio":
-                 return value.compareTo(new BigDecimal("2.0")) >= 0 ? "green" : (value.compareTo(new BigDecimal("1.0")) >= 0 ? "yellow" : "red");
+                 // ** NEW LOGIC ** Compares the RAW ratio value (e.g., 17.64)
+                 // Green: > 2.0 (200%)
+                 // Yellow: >= 1.0 and <= 2.0 (100%-200%)
+                 // Red: < 1.0 (< 100%)
+                 if (value.compareTo(new BigDecimal("2.0")) > 0) {
+                     return "green";
+                 } else if (value.compareTo(new BigDecimal("1.0")) >= 0) { // Handles 1.0 to 2.0 range
+                     return "yellow";
+                 } else { // Handles < 1.0
+                     return "red";
+                 }
              case "Quick Ratio":
-                 return value.compareTo(new BigDecimal("1.0")) >= 0 ? "green" : (value.compareTo(new BigDecimal("0.5")) >= 0 ? "yellow" : "red");
-             case "Net Profit Margin": case "ROA": case "ROE":
-                 // Corrected lines: wrap literals with BigDecimal.valueOf()
-                 BigDecimal targetHigh = ratioName.equals("Net Profit Margin") ? BigDecimal.valueOf(20) : (ratioName.equals("ROE") ? BigDecimal.valueOf(15) : BigDecimal.valueOf(5));
-                 BigDecimal targetMid = ratioName.equals("Net Profit Margin") ? BigDecimal.valueOf(10) : (ratioName.equals("ROE") ? BigDecimal.valueOf(10) : BigDecimal.valueOf(2.5));
-                 return value.compareTo(targetHigh) >= 0 ? "green" : (value.compareTo(targetMid) >= 0 ? "yellow" : "red");
-            case "Asset Turnover":
-                return value.compareTo(new BigDecimal("1.0")) >= 0 ? "green" : (value.compareTo(new BigDecimal("0.5")) >= 0 ? "yellow" : "red");
+                 // ** NEW LOGIC ** Compares the RAW ratio value (e.g., 17.64)
+                 // Green: > 1.0 (100%)
+                 // Yellow: >= 0 and <= 1.0 (0%-100%)
+                 // Red: < 0 (< 0%)
+                 if (value.compareTo(new BigDecimal("1.0")) > 0) {
+                     return "green";
+                 } else if (value.compareTo(BigDecimal.ZERO) >= 0) { // Handles 0 to 1.0 range
+                     return "yellow";
+                 } else { // Handles < 0
+                     return "red";
+                 }
+             case "ROA":
+                 // Compares the percentage value (e.g., 16.28) based on NEW requirements
+                 // Green: above 20% (> 20)
+                 // Yellow: above 5% (> 5)
+                 // Red: 5% or below (<= 5)
+                 return value.compareTo(new BigDecimal("20")) > 0 ? "green" : (value.compareTo(new BigDecimal("5")) > 0 ? "yellow" : "red");
+             case "ROE":
+                 // Compares the percentage value (e.g., 22.35)
+                 // Using existing logic for ROE: >15% Green, >10% Yellow, <=10% Red
+                 return value.compareTo(BigDecimal.valueOf(15)) >= 0 ? "green" : (value.compareTo(BigDecimal.valueOf(10)) >= 0 ? "yellow" : "red");
+             case "Net Profit Margin":
+                 // Compares the percentage value (e.g., 33.71)
+                 // Using existing logic for NPM: >20% Green, >10% Yellow, <=10% Red
+                 return value.compareTo(BigDecimal.valueOf(20)) >= 0 ? "green" : (value.compareTo(BigDecimal.valueOf(10)) >= 0 ? "yellow" : "red");
+             case "Asset Turnover":
+                 // Compares the RAW ratio value (e.g., 0.48) based on PREVIOUS update
+                 // Green: > 0.25
+                 // Yellow: >= 0 and <= 0.25
+                 // Red: < 0
+                 if (value.compareTo(new BigDecimal("0.25")) > 0) {
+                     return "green";
+                 } else if (value.compareTo(BigDecimal.ZERO) >= 0) {
+                     return "yellow";
+                 } else {
+                     return "red";
+                 }
              default:
                  return "grey";
          }

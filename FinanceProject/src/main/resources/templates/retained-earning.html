@@ -97,11 +97,13 @@
 
 <div class="container">
     <div class="report-box">
-        <div class="printable-area"> <h1>Statement of Retained Earnings</h1>
+        <div class="printable-area"> 
+            <h1>Statement of Retained Earnings</h1>
+            <h2 style="text-align: center;">Atlas Finance</h2>
             <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
             <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-            <form th:action="@{/reports/retained-earning}" method="get" class="date-box">
+            <form th:action="@{/reports/retained-earning}" method="get" class="date-box" sec:authorize="hasRole('ROLE_MANAGER')">
                 Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
                 End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
                 <button type="submit" class="btn-green">Generate Report</button>
@@ -121,32 +123,35 @@
                         <tr>
                             <td class="label-col">Retained Earnings, Beginning</td>
                             <td class="amount-col">
-                                <span class="dollar-sign">$</span>
-                                <span th:text="${report.beginningBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.beginningBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.beginningBalance.signum() < 0 ? ')' : ''}"></span>
+                                <span class="dollar-sign">$</span> <span th:text="${report.beginningBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.beginningBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.beginningBalance.signum() < 0 ? ')' : ''}"></span>
                             </td>
                         </tr>
                         <tr>
-                            <td class="label-col indent-1" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">Add: Net Income</td>
+                            <td class="label-col indent-1" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">Add: Net Income (loss)</td>
                             <td class="amount-col" th:classappend="${report.netIncome != null and report.netIncome.signum() >= 0 ? 'text-green' : 'text-red'}">
                                 <span th:if="${report.netIncome != null}">
-                                    <span class="dollar-sign">$</span>
                                     <span th:text="${report.netIncome.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.netIncome.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.netIncome.signum() < 0 ? ')' : ''}"></span>
                                 </span>
                             </td>
                         </tr>
+                        <tr class="subtotal-row" style="border-top: 1px solid #000; border-bottom: 1px solid #000;"> <td class="label-col indent-1" style="font-weight: bold;">Subtotal</td> 
+                            <td class="amount-col text-green" style="font-weight: bold;"> <span th:with="subtotal=${(report.beginningBalance != null ? report.beginningBalance : T(java.math.BigDecimal).ZERO) + (report.netIncome != null ? report.netIncome : T(java.math.BigDecimal).ZERO)}">
+                                <span class="dollar-sign">$</span>
+                                <span th:text="${subtotal.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(subtotal.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${subtotal.signum() < 0 ? ')' : ''}"></span>
+                            </span>
+                        </td>
+                        </tr>
                         <tr class="total-row"> <td class="label-col indent-1 text-red">Less: Dividends</td>
                             <td class="amount-col text-red">
                                 <span th:if="${report.dividends != null}">
-                                    <span class="dollar-sign">$</span>
-                                     <span th:text="${report.dividends.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.dividends.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.dividends.signum() < 0 ? ')' : ''}"></span>
+                                    <span th:text="${report.dividends.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.dividends.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.dividends.signum() < 0 ? ')' : ''}"></span>
                                 </span>
                             </td>
                         </tr>
                         <tr class="final-total-row"> <td class="label-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">Retained Earnings, Ending</td>
                             <td class="amount-col" th:classappend="${report.endingBalance != null and report.endingBalance.signum() >= 0 ? 'text-green' : 'text-red'}">
                                 <span th:if="${report.endingBalance != null}">
-                                    <span class="dollar-sign">$</span>
-                                    <span th:text="${report.endingBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.endingBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.endingBalance.signum() < 0 ? ')' : ''}"></span>
+                                    <span class="dollar-sign">$</span> <span th:text="${report.endingBalance.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(report.endingBalance.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${report.endingBalance.signum() < 0 ? ')' : ''}"></span>
                                 </span>
                             </td>
                         </tr>
@@ -156,7 +161,8 @@
             <div th:unless="${report != null}" style="margin-top: 20px; text-align: center;">
                 <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
             </div>
-        </div> </div>
+        </div>
+    </div>
 </div>
 
 <div id="reportActionModal" class="modal">

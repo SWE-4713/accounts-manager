@@ -1,1 +1,1 @@
-delete from report_snapshots;
+SELECT * from report_snapshots
