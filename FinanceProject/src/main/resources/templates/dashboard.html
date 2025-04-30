@@ -166,17 +166,17 @@
                 <div class="chart-card doughnut-chart-card">
                     <h2>Net Profit Margin</h2>
                     <canvas id="netProfitMarginChart"></canvas>
-                    <div class="doughnut-footer">Target: 10% (Example)</div>
+                    <div class="doughnut-footer">Target: >10% Yellow, >20% Green</div>
                 </div>
                 <div class="chart-card doughnut-chart-card">
                     <h2>Current Ratio</h2>
                     <canvas id="currentRatioChart"></canvas>
-                    <div class="doughnut-footer">Target: 2.0 or higher</div>
+                    <div class="doughnut-footer">Target: >100% Yellow, >200% Green</div>
                 </div>
                 <div class="chart-card doughnut-chart-card">
                     <h2>Quick Ratio</h2>
                     <canvas id="quickRatioChart"></canvas>
-                    <div class="doughnut-footer">Target: 1.0 or higher</div>
+                    <div class="doughnut-footer">Target: >0% Yellow, >100% Green</div>
                 </div>
             </div>
 
@@ -184,17 +184,17 @@
                  <div class="chart-card doughnut-chart-card">
                      <h2>Return on Assets (ROA)</h2>
                      <canvas id="roaChart"></canvas>
-                     <div class="doughnut-footer">Target: 5% or higher</div>
+                     <div class="doughnut-footer">Target: >5% Yellow, >20% Green</div>
                 </div>
                  <div class="chart-card doughnut-chart-card">
                      <h2>Return on Equity (ROE)</h2>
                      <canvas id="roeChart"></canvas>
-                     <div class="doughnut-footer">Target: 15% or higher</div>
+                     <div class="doughnut-footer">Target: >10% Yellow, >15% Green</div>
                  </div>
                   <div class="chart-card doughnut-chart-card">
                      <h2>Asset Turnover</h2>
                      <canvas id="assetTurnoverChart"></canvas>
-                     <div class="doughnut-footer">Target: 1.0 or higher</div>
+                     <div class="doughnut-footer">Target: >0% Yellow, >25% Green</div>
                  </div>
             </div>
 
@@ -211,7 +211,6 @@
         // === Data fetching ===
         const rawRatios = /*[[${rawRatios}]]*/ null; // Get the raw ratios map
         const monthlyData = /*[[${monthlyData}]]*/ {};
-        // Removed budget percent fetching
 
         // === Helper Functions ===
         const getStyle = (prop) => getComputedStyle(document.documentElement).getPropertyValue(prop).trim();
@@ -220,23 +219,34 @@
             danger: getStyle('--danger'), secondary: getStyle('--secondary'), light: getStyle('--light'), border: getStyle('--border')
          };
 
-        // Basic color logic based on typical ratio goals (can be refined)
-        // Note: rawRatios contains ROA, ROE, NPM as percentages (0-100), others as ratios
+        // Color logic based on updated Java backend logic
         const getChartColor = (ratioName, value) => {
              value = parseFloat(value) || 0; // Ensure numeric
              switch(ratioName) {
-                case 'Current Ratio':
-                    return value >= 2.0 ? COLORS.success : (value >= 1.0 ? COLORS.warning : COLORS.danger);
-                case 'Quick Ratio':
-                     return value >= 1.0 ? COLORS.success : (value >= 0.5 ? COLORS.warning : COLORS.danger);
-                case 'Net Profit Margin': // Value is already %
-                case 'ROA': // Value is already %
-                case 'ROE': // Value is already %
-                    const targetHigh = ratioName === 'Net Profit Margin' ? 20 : (ratioName === 'ROE' ? 15 : 5); // Example targets
-                    const targetMid = ratioName === 'Net Profit Margin' ? 10 : (ratioName === 'ROE' ? 10 : 2.5); // Example targets
-                    return value >= targetHigh ? COLORS.success : (value >= targetMid ? COLORS.warning : COLORS.danger);
-                case 'Asset Turnover':
-                    return value >= 1.0 ? COLORS.success : (value >= 0.5 ? COLORS.warning : COLORS.danger); // Example targets
+                case 'Current Ratio': // Value is RAW Ratio
+                    if (value > 2.0) return COLORS.success;
+                    if (value >= 1.0) return COLORS.warning;
+                    return COLORS.danger;
+                case 'Quick Ratio': // Value is RAW Ratio
+                    if (value > 1.0) return COLORS.success;
+                    if (value >= 0) return COLORS.warning;
+                    return COLORS.danger;
+                case 'Net Profit Margin': // Value is PERCENTAGE
+                     if (value >= 20) return COLORS.success;
+                     if (value >= 10) return COLORS.warning;
+                     return COLORS.danger;
+                case 'ROA': // Value is PERCENTAGE
+                     if (value > 20) return COLORS.success;
+                     if (value > 5) return COLORS.warning;
+                     return COLORS.danger;
+                case 'ROE': // Value is PERCENTAGE
+                    if (value >= 15) return COLORS.success;
+                    if (value >= 10) return COLORS.warning;
+                    return COLORS.danger;
+                case 'Asset Turnover': // Value is RAW Ratio
+                     if (value > 0.25) return COLORS.success;
+                     if (value >= 0) return COLORS.warning;
+                     return COLORS.danger;
                  default: return COLORS.secondary;
              }
         };
@@ -247,58 +257,68 @@
 
             // --- Top Row Charts (Net Profit, Current Ratio, Quick Ratio) ---
             // 1. Net Profit Margin Doughnut
-            const npmValue = rawRatios['Net Profit Margin'] || 0;
+            const npmValue = rawRatios['Net Profit Margin'] || 0; // Percentage
             const npmColor = getChartColor('Net Profit Margin', npmValue);
             const npmCtx = document.getElementById('netProfitMarginChart');
             if (npmCtx) {
-                 new Chart(npmCtx, { type: 'doughnut', data: { datasets: [{ label: 'Net Profit Margin (%)', data: [npmValue, Math.max(0, 100 - npmValue)], backgroundColor: [npmColor, COLORS.light], borderColor: [npmColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+                 new Chart(npmCtx, { type: 'doughnut', data: { datasets: [{ label: 'Net Profit Margin', data: [npmValue, Math.max(0, 100 - npmValue)], backgroundColor: [npmColor, COLORS.light], borderColor: [npmColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
             }
 
-            // 2. Current Ratio Doughnut
-            const currentRatioValue = rawRatios['Current Ratio'] || 0;
-            const currentRatioTarget = 2.0; // Example target
-            const currentRatioPercent = Math.min(100, (currentRatioValue / currentRatioTarget) * 100);
-            const currentRatioColor = getChartColor('Current Ratio', currentRatioValue);
+            // 2. Current Ratio Doughnut - UPDATED TOOLTIP
+            const currentRatioValue = rawRatios['Current Ratio'] || 0; // Raw Ratio
+            const currentRatioPercentValue = currentRatioValue * 100; // Calculate percentage value
+            const currentRatioColor = getChartColor('Current Ratio', currentRatioValue); // Color based on raw value
             const crCtx = document.getElementById('currentRatioChart');
              if (crCtx) {
-                 new Chart(crCtx, { type: 'doughnut', data: { datasets: [{ label: `Current Ratio (Target ${currentRatioTarget})`, data: [currentRatioPercent, Math.max(0, 100 - currentRatioPercent)], backgroundColor: [currentRatioColor, COLORS.light], borderColor: [currentRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${currentRatioValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+                  const displayPercent = Math.min(100, currentRatioPercentValue / 2); // Fill based on 200% target, capped at 100% fill
+                 new Chart(crCtx, { type: 'doughnut', data: { datasets: [{ label: 'Current Ratio', data: [displayPercent, Math.max(0, 100 - displayPercent)], backgroundColor: [currentRatioColor, COLORS.light], borderColor: [currentRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: {
+                      // Show actual percentage value in tooltip
+                      label: ctx => `${ctx.dataset.label}: ${currentRatioPercentValue.toFixed(1)}%`
+                 } } }, cutout: '70%' } });
              }
 
-            // 3. Quick Ratio Doughnut
-            const quickRatioValue = rawRatios['Quick Ratio'] || 0;
-            const quickRatioTarget = 1.0; // Example target
-            const quickRatioPercent = Math.min(100, (quickRatioValue / quickRatioTarget) * 100);
-            const quickRatioColor = getChartColor('Quick Ratio', quickRatioValue);
+            // 3. Quick Ratio Doughnut - UPDATED TOOLTIP
+            const quickRatioValue = rawRatios['Quick Ratio'] || 0; // Raw Ratio
+            const quickRatioPercentValue = quickRatioValue * 100; // Calculate percentage value
+            const quickRatioColor = getChartColor('Quick Ratio', quickRatioValue); // Color based on raw value
             const qrCtx = document.getElementById('quickRatioChart');
             if (qrCtx) {
-                 new Chart(qrCtx, { type: 'doughnut', data: { datasets: [{ label: `Quick Ratio (Target ${quickRatioTarget})`, data: [quickRatioPercent, Math.max(0, 100 - quickRatioPercent)], backgroundColor: [quickRatioColor, COLORS.light], borderColor: [quickRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${quickRatioValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+                 const displayPercent = Math.min(100, quickRatioPercentValue); // Fill based on 100% target, capped at 100% fill
+                 new Chart(qrCtx, { type: 'doughnut', data: { datasets: [{ label: 'Quick Ratio', data: [Math.max(0, displayPercent), Math.max(0, 100 - displayPercent)], backgroundColor: [quickRatioColor, COLORS.light], borderColor: [quickRatioColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: {
+                      // Show actual percentage value in tooltip
+                      label: ctx => `${ctx.dataset.label}: ${quickRatioPercentValue.toFixed(1)}%`
+                 } } }, cutout: '70%' } });
             }
 
             // --- Middle Row Charts (ROA, ROE, Asset Turnover) ---
             // 4. ROA Doughnut
-            const roaValue = rawRatios['ROA'] || 0; // Already a percentage
+            const roaValue = rawRatios['ROA'] || 0; // Percentage
             const roaColor = getChartColor('ROA', roaValue);
             const roaCtx = document.getElementById('roaChart');
             if (roaCtx) {
-                 new Chart(roaCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROA (%)', data: [roaValue, Math.max(0, 100 - roaValue)], backgroundColor: [roaColor, COLORS.light], borderColor: [roaColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+                 new Chart(roaCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROA', data: [roaValue, Math.max(0, 100 - roaValue)], backgroundColor: [roaColor, COLORS.light], borderColor: [roaColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
             }
 
             // 5. ROE Doughnut
-            const roeValue = rawRatios['ROE'] || 0; // Already a percentage
+            const roeValue = rawRatios['ROE'] || 0; // Percentage
             const roeColor = getChartColor('ROE', roeValue);
             const roeCtx = document.getElementById('roeChart');
             if (roeCtx) {
-                 new Chart(roeCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROE (%)', data: [roeValue, Math.max(0, 100 - roeValue)], backgroundColor: [roeColor, COLORS.light], borderColor: [roeColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
+                 new Chart(roeCtx, { type: 'doughnut', data: { datasets: [{ label: 'ROE', data: [roeValue, Math.max(0, 100 - roeValue)], backgroundColor: [roeColor, COLORS.light], borderColor: [roeColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.toFixed(1)}%`} } }, cutout: '70%' } });
             }
 
-            // 6. Asset Turnover Doughnut
-            const assetTurnoverValue = rawRatios['Asset Turnover'] || 0; // This is a ratio
-            const assetTurnoverTarget = 1.0; // Example Target
-            const assetTurnoverPercent = Math.min(100, (assetTurnoverValue / assetTurnoverTarget) * 100);
-            const assetTurnoverColor = getChartColor('Asset Turnover', assetTurnoverValue);
+            // 6. Asset Turnover Doughnut - UPDATED TOOLTIP
+            const assetTurnoverValue = rawRatios['Asset Turnover'] || 0; // Raw Ratio
+            const assetTurnoverPercentValue = assetTurnoverValue * 100; // Calculate percentage value
+            const assetTurnoverColor = getChartColor('Asset Turnover', assetTurnoverValue); // Color based on raw value
             const atCtx = document.getElementById('assetTurnoverChart');
             if (atCtx) {
-                 new Chart(atCtx, { type: 'doughnut', data: { datasets: [{ label: `Asset Turnover (Target ${assetTurnoverTarget})`, data: [assetTurnoverPercent, Math.max(0, 100 - assetTurnoverPercent)], backgroundColor: [assetTurnoverColor, COLORS.light], borderColor: [assetTurnoverColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: { label: ctx => `Value: ${assetTurnoverValue.toFixed(2)} (${ctx.parsed.toFixed(0)}% of target)`} } }, cutout: '70%' } });
+                 // Fill based on 25% target for green, capped at 100% fill
+                 const displayPercent = Math.min(100, (assetTurnoverValue / 0.25) * 100);
+                 new Chart(atCtx, { type: 'doughnut', data: { datasets: [{ label: `Asset Turnover`, data: [Math.max(0, displayPercent), Math.max(0, 100 - displayPercent)], backgroundColor: [assetTurnoverColor, COLORS.light], borderColor: [assetTurnoverColor, COLORS.light], borderWidth: 1, circumference: 180, rotation: 270 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: {
+                      // Show actual percentage value in tooltip
+                      label: ctx => `${ctx.dataset.label}: ${assetTurnoverPercentValue.toFixed(1)}%`
+                 } } }, cutout: '70%' } });
             }
 
         } else {

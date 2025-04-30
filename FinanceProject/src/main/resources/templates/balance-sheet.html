@@ -113,6 +113,14 @@
 
         .printable-area tfoot { display: table-row-group; } /* Prevent footer repeat if any */
     }
+    /* Style for clickable account links */
+    a.account-link {
+        color: inherit; /* Inherit color */
+        text-decoration: none;
+    }
+    a.account-link:hover {
+        text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -126,11 +134,13 @@
 
     <div class="container">
       <div class="report-box">
-        <div class="printable-area"> <h1>Balance Sheet</h1>
-          <h3 class="report-date" th:if="${date != null}" th:text="'As of ' + ${#temporals.format(date, 'MM/dd/yyyy')}"></h3>
-          <h3 class="report-date" th:if="${date == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+        <div class="printable-area">
+            <h1>Balance Sheet</h1>
+            <h2 style="text-align: center;">Atlas Finance</h2>
+            <h3 class="report-date" th:if="${date != null}" th:text="'As of ' + ${#temporals.format(date, 'MM/dd/yyyy')}"></h3>
+            <h3 class="report-date" th:if="${date == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-          <form th:action="@{/reports/balance-sheet}" method="get" class="date-box">
+          <form th:action="@{/reports/balance-sheet}" method="get" class="date-box" sec:authorize="hasRole('ROLE_MANAGER')">
               As of: <input type="date" name="date" th:value="${date != null ? #temporals.format(date, 'yyyy-MM-dd') : ''}" required>
               <button type="submit" class="btn-green" id="generateReportBtn">Generate Report</button>
           </form>
@@ -143,28 +153,26 @@
             </div>
 
             <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
-              <table>
+                <table>
                   <tbody>
                       <tr th:each="row : ${rows}" th:classappend="${row.styleClass}">
-
-                           <td class="label-col" th:text="${row.label}"></td>
-
+                           <td class="label-col">
+                               <a th:if="${row.accountId != null}"
+                                  th:href="@{'/accounts/' + ${row.accountId} + '/ledger'}"
+                                  class="account-link"
+                                  th:text="${row.label}"></a>
+                               <span th:unless="${row.accountId != null}" th:text="${row.label}"></span>
+                           </td>
                            <td class="amount-col1">
                                <span th:if="${row.displayColumn == 1 and row.amount != null}">
-                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
-                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
-                                     <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
-                                   </span>
+                                   <span class="dollar-sign" th:if="${row.showDollarSign or row.styleClass.contains('subtotal') or row.styleClass.contains('total')}">$</span>
                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
                                </span>
                            </td>
 
                            <td class="amount-col2">
                                <span th:if="${row.displayColumn == 2 and row.amount != null}">
-                                   <span th:if="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">$</span>
-                                   <span th:unless="${row.styleClass.contains('total') or row.styleClass.contains('subtotal')}">
-                                      <span class="dollar-sign" th:if="${row.showDollarSign}">$</span>
-                                   </span>
+                                   <span class="dollar-sign" th:if="${row.showDollarSign or row.styleClass.contains('subtotal') or row.styleClass.contains('total')}">$</span>
                                    <span th:text="${row.amount.signum() < 0 ? '(' : ''}"></span><span th:text="${#numbers.formatDecimal(row.amount.abs(), 1, 'COMMA', 2, 'POINT')}"></span><span th:text="${row.amount.signum() < 0 ? ')' : ''}"></span>
                                </span>
                            </td>
@@ -175,7 +183,8 @@
           <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px; text-align: center;">
               <p>Please select a date and click "Generate Report" or choose a saved report.</p>
           </div>
-        </div> </div>
+        </div>
+      </div>
     </div>
 
     <div id="reportActionModal" class="modal">

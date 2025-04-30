@@ -164,6 +164,15 @@
                  border: none;
             }
         }
+        .dollar-sign { padding-right: 2px; display: inline !important; }
+        /* Style for clickable account links */
+        a.account-link {
+            color: inherit; /* Inherit color from parent (e.g., text-green or text-red) */
+            text-decoration: none;
+        }
+        a.account-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -179,10 +188,11 @@
     <div class="report-box">
         <div class="printable-area">
             <h1>Income Statement</h1>
-            <h3 class="report-date" th:if="${startDate != null and endDate != null}" th:text="'For the period ' + ${#temporals.format(startDate, 'MM/dd/yyyy')} + ' to ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
-            <h3 class="report-date" th:if="${startDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
+            <h2 style="text-align: center;">Atlas Finance</h2>
+            <h3 class="report-date" th:if="${endDate != null}" th:text="'For the period ending ' + ${#temporals.format(endDate, 'MM/dd/yyyy')}"></h3>
+            <h3 class="report-date" th:if="${endDate == null and snapshotId != null}" th:text="${snapshotDateLabel}"></h3>
 
-            <form th:action="@{/reports/income-statement}" method="get" class="date-box">
+            <form th:action="@{/reports/income-statement}" method="get" class="date-box" sec:authorize="hasRole('ROLE_MANAGER')">
                 Start Date: <input type="date" name="startDate" th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
                 End Date:   <input type="date" name="endDate" th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
                 <button type="submit" class="btn-green">Generate Report</button>
@@ -207,8 +217,8 @@
                              isTotalRevenue=${row.label == 'Total Revenue'},
                              isTotalExpenses=${row.label == 'Total Expenses'},
                              isNetIncome=${row.label == 'Net Income'},
-                             isGenericRevenueItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not row.label.toLowerCase().contains('expense')},
-                             isGenericExpenseItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and row.label.toLowerCase().contains('expense')}
+                             isGenericRevenueItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and not row.label.toLowerCase().contains('expense') and row.accountId != null},
+                             isGenericExpenseItem=${not isBlankRow and not isRevenueHeader and not isExpenseHeader and not isTotalRevenue and not isTotalExpenses and not isNetIncome and row.label.toLowerCase().contains('expense') and row.accountId != null}
                          "
                          th:classappend="${isTotalRevenue or isTotalExpenses ? 'total-row' : ''} + ' ' + ${isNetIncome ? 'net-income-row' : ''} + ' ' + ${isBlankRow ? 'blank-row' : ''}">
 
@@ -219,13 +229,17 @@
                                  ${isNetIncome ? (row.amount != null and row.amount.signum() >= 0 ? 'text-green' : 'text-red') : ''} + ' ' +
                                  ${(isGenericRevenueItem or isGenericExpenseItem) ? 'indent-1' : ''} + ' ' +
                                  ${(isRevenueHeader or isExpenseHeader or isTotalRevenue or isTotalExpenses or isNetIncome) ? 'section-header' : ''}
-                             "
-                             th:text="${row.label}">
-                         </td>
+                             ">
+                              <a th:if="${row.accountId != null}"
+                                 th:href="@{'/accounts/' + ${row.accountId} + '/ledger'}"
+                                 class="account-link"
+                                 th:text="${row.label}"></a>
+                              <span th:unless="${row.accountId != null}" th:text="${row.label}"></span>
+                             </td>
 
                          <td class="amount-col">
                              <span th:if="${row.amount != null}">
-                                 <span class="dollar-sign">$</span>
+                                 <span class="dollar-sign" th:if="${row.showDollarSign or isTotalRevenue or isTotalExpenses or isNetIncome}">$</span>
                                  <span th:classappend="
                                         ${(isGenericRevenueItem or isTotalRevenue) ? 'text-green' : ''} + ' ' +
                                         ${(isGenericExpenseItem or isTotalExpenses) ? 'text-red' : ''} + ' ' +

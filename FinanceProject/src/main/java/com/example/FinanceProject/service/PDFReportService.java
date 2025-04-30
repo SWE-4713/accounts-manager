@@ -36,7 +36,7 @@ public class PDFReportService {
     private static final Font FONT_HEADER = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Font.BOLD, Color.WHITE);
     private static final Font FONT_BODY = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.NORMAL);
     private static final Font FONT_BODY_BOLD = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, Font.BOLD);
-     private static final Font FONT_BODY_RED = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.NORMAL, Color.RED);
+    private static final Font FONT_BODY_RED = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.NORMAL, Color.RED);
     private static final Font FONT_BODY_GREEN = FontFactory.getFont(FontFactory.HELVETICA, 10, Font.NORMAL, new Color(0, 128, 0)); // Dark Green
 
     @Autowired

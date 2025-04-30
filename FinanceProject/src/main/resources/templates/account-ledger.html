@@ -105,7 +105,9 @@
 <body>
     <header th:replace="~{fragments/navbar :: navbar}"></header>
     <div class="container">
-        <div class="section"> <h1>Ledger for Account: <span th:text="${account.accountName}"></span></h1>
+        <div class="section">
+            <h1>Ledger for Account: <span th:text="${account.accountName}"></span> (<span th:text="${account.accountNumber}"></span>)</h1>
+             <p>Initial Balance: <span th:text="${#numbers.formatDecimal(account.initialBalance != null ? account.initialBalance : 0, 1, 'COMMA', 2, 'POINT')}"></span></p>
 
             <table>
                 <thead>
@@ -113,28 +115,41 @@
                         <th>Date</th>
                         <th>Post Reference</th>
                         <th>Description</th>
-                        <th class="right">Debit</th>  <th class="right">Credit</th> <th class="right">Balance</th></tr>
+                        <th class="right">Debit</th>
+                        <th class="right">Credit</th>
+                        <th class="right">Balance</th> </tr>
                 </thead>
                 <tbody>
                     <tr th:each="entry : ${ledgerEntries}">
-                        <td th:text="${#temporals.format(entry.journalEntry.entryDate, 'yyyy-MM-dd')}"></td> <td>
-                            <a th:href="@{'/journal/view/' + ${entry.journalEntry.id}}"
+                        <td th:text="${#temporals.format(entry.date, 'yyyy-MM-dd')}"></td>
+                        <td>
+                            <a th:href="@{'/journal/view/' + ${entry.journalEntryId}}"
                                class="entry-link"
-                               th:text="${entry.journalEntry.id}"></a>
+                               th:text="${entry.postRef}"></a>
                         </td>
-                        <td th:text="${entry.journalEntry.description != null ? entry.journalEntry.description : 'No Description'}"></td>
+                        <td th:text="${entry.description}"></td>
                         <td class="right"
                             th:text="${entry.debit != null and entry.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0
                                     ? #numbers.formatDecimal(entry.debit, 1, 'COMMA', 2, 'POINT') : ''}">
-                        </td> <td class="right"
+                        </td>
+                        <td class="right"
                             th:text="${entry.credit != null and entry.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0
                                     ? #numbers.formatDecimal(entry.credit, 1, 'COMMA', 2, 'POINT') : ''}">
-                        </td> <td class="right"
-                            th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}">
-                        </td> </tr>
+                        </td>
+                        <td class="right"
+                            th:text="${#numbers.formatDecimal(entry.balance, 1, 'COMMA', 2, 'POINT')}">
+                        </td>
+                    </tr>
                     <tr th:if="${ledgerEntries == null or #lists.isEmpty(ledgerEntries)}">
-                        <td colspan="6" style="text-align: center;">No ledger entries available.</td> </tr>
+                        <td colspan="6" style="text-align: center;">No ledger entries available for this account.</td>
+                    </tr>
                 </tbody>
+                 <tfoot>
+                    <tr>
+                        <td colspan="5" style="text-align: right; font-weight: bold;">Ending Balance:</td>
+                        <td class="right" style="font-weight: bold;" th:text="${#numbers.formatDecimal(finalBalance, 1, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                 </tfoot>
             </table>
 
              <div class="back-link">

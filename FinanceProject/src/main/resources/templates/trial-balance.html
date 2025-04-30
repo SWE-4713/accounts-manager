@@ -28,15 +28,32 @@
         .tab-btn.active { background-color: #0056b3; font-weight: bold; }
 
         table       { border-collapse: collapse; width: 100%; }
-        table, th, td { border : none !important; }
+        table, th, td { border : none !important; } /* Ensure no default borders */
         thead th    { background-color: #f8f9fa; padding: 12px 15px; text-align: left; font-weight: 600;}
         tbody td    { padding: 12px 15px; border-bottom: 1px solid #dee2e6;}
-        tfoot td    { font-weight:bold; padding: 12px 15px; border-top: 2px solid #343a40;}
+        tfoot td    { font-weight:bold; padding: 12px 15px;} /* Removed border-top here */
         .amount     { text-align: right; }
          .bold-item { font-weight: bold; }
          .indent { padding-left: 25px; }
          .debit-value { color: #006400; }
         .credit-value { color: #8B0000; }
+
+        /* Single line style */
+        .single-underline {
+            border-bottom: 1px solid #000 !important; /* Use !important to override other styles if needed */
+        }
+
+        /* Double line style */
+        .double-underline {
+            border-bottom: 3px double #000 !important; /* Use !important */
+        }
+
+        /* No border style */
+        .no-border {
+            border-bottom: none !important;
+        }
+
+        .dollar-sign { padding-right: 2px; display: inline !important; }
 
         .report-actions {
             position: absolute;
@@ -81,8 +98,17 @@
             .printable-area td { border: none !important; padding: 5px 8px; text-align: left; }
             .printable-area tbody td { border-bottom: 1px solid #eee; }
             .printable-area .amount, .printable-area .debit-value, .printable-area .credit-value { text-align: right; }
-            .printable-area tfoot td { font-weight: bold; border-top: 1px solid #343a40; padding-top: 8px; }
-            .printable-area tfoot td.amount { text-align: right; }
+            .printable-area tfoot td { font-weight: bold; padding-top: 8px; }
+            /* Apply print-specific borders */
+            .printable-area tbody tr:last-child td.debit-value,
+            .printable-area tbody tr:last-child td.credit-value {
+                border-bottom: 1px solid #000 !important; /* Single line for last data row amounts */
+            }
+             .printable-area tfoot td.debit-value,
+             .printable-area tfoot td.credit-value {
+                 border-bottom: 3px double #000 !important; /* Double line for total amounts */
+             }
+
             .report-actions, .report-controls-center, header, .modal { display: none !important; visibility: hidden !important; } /* Hide new container on print */
             .report-box { visibility: visible; box-shadow: none; border: none; }
         }
@@ -101,13 +127,14 @@
       <div class="report-box">
         <div class="printable-area">
           <h1>Trial Balance</h1>
+          <h2 style="text-align: center;">Atlas Finance</h2>
           <h3 class="report-date"
               th:if="${startDate != null}"
               th:text="${startDate.equals(endDate) ? 'As of ' + #temporals.format(startDate, 'MM/dd/yyyy') : 'For the period ' + #temporals.format(startDate, 'MM/dd/yyyy') + ' to ' + #temporals.format(endDate, 'MM/dd/yyyy')}">
           </h3>
 
            <div class="report-controls-center">
-                <form th:action="@{/reports/trial-balance}" method="get" class="date-box">
+                <form th:action="@{/reports/trial-balance}" method="get" class="date-box" sec:authorize="hasRole('ROLE_MANAGER')">
                     From: <input type="date" name="startDate" th:value="${startDate}" required>
                     To:   <input type="date" name="endDate"   th:value="${endDate}"   required>
                     <button type="submit" class="btn-green">Generate Report</button>
@@ -121,28 +148,39 @@
                             th:text="${s.text}">
                     </button>
                 </div>
-           </div> <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
+           </div>
+            <div id="reportDisplay" th:if="${rows != null and not #lists.isEmpty(rows)}">
                 <table>
                   <thead>
                     <tr><th>Account</th><th class="amount">Debit</th><th class="amount">Credit</th></tr>
                   </thead>
                   <tbody>
-                    <tr th:each="r: ${rows}"
+                    <tr th:each="r, iterStat : ${rows}"
                         th:if="${(r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0) or (r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0)}">
-                      <td th:text="${r.accountName}"></td>
+                      <td>
+                          <a th:href="@{'/accounts/' + ${r.accountId} + '/ledger'}" th:text="${r.accountName}"></a>
+                      </td>
                       <td class="amount debit-value"
-                          th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}">
+                          th:classappend="${iterStat.last} ? 'single-underline' : ''">
+                           <span class="dollar-sign" th:if="${r.showDebitDollarSign}">$</span>
+                           <span th:text="${r.debit != null and r.debit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.debit, 1, 'COMMA', 2, 'POINT') : ''}"></span>
                       </td>
                       <td class="amount credit-value"
-                          th:text="${r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.credit, 1, 'COMMA', 2, 'POINT') : ''}">
+                           th:classappend="${iterStat.last} ? 'single-underline' : ''">
+                           <span class="dollar-sign" th:if="${r.showCreditDollarSign}">$</span>
+                           <span th:text="${r.credit != null and r.credit.compareTo(T(java.math.BigDecimal).ZERO) != 0 ? #numbers.formatDecimal(r.credit, 1, 'COMMA', 2, 'POINT') : ''}"></span>
                       </td>
                     </tr>
-                  </tbody>
+                    </tbody>
                   <tfoot>
                     <tr class="total">
-                      <td>Total</td>
-                      <td class="amount debit-value" th:text="${debitTotal != null ? #numbers.formatDecimal(debitTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
-                      <td class="amount credit-value" th:text="${creditTotal != null ? #numbers.formatDecimal(creditTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                      <td class="no-border">Total</td>
+                      <td class="amount debit-value double-underline">
+                           <span class="dollar-sign">$</span> <span th:text="${debitTotal != null ? #numbers.formatDecimal(debitTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></span>
+                      </td>
+                      <td class="amount credit-value double-underline">
+                          <span class="dollar-sign">$</span> <span th:text="${creditTotal != null ? #numbers.formatDecimal(creditTotal, 1, 'COMMA', 2, 'POINT') : '0.00'}"></span>
+                      </td>
                     </tr>
                   </tfoot>
                 </table>
@@ -150,7 +188,11 @@
             <div th:unless="${rows != null and not #lists.isEmpty(rows)}" style="margin-top: 20px;">
                 <p>Please select a date range and click "Generate Report" or choose a saved report.</p>
             </div>
-          </div></div> </div> <div id="reportActionModal" class="modal">
+          </div>
+      </div>
+  </div>
+
+  <div id="reportActionModal" class="modal">
     <div class="modal-content">
       <span class="close-button" onclick="closeReportModal()">&times;</span>
       <h2 id="modalTitle">Select Report</h2>
